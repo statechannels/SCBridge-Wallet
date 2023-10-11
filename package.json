@@ -1,0 +1,26 @@
+{
+  "name": "nitro-smart-contract-wallet",
+  "version": "0.0.1",
+  "description": "A smart contract wallet that harnesses the power of nitro channels.",
+  "main": "index.js",
+  "repository": "https://github.com/statechannels/nitro-smart-contract-wallet.git",
+  "author": "magmo",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
+    "@nomicfoundation/hardhat-toolbox-viem": "^1.0.0",
+    "@nomicfoundation/hardhat-verify": "^1.0.0",
+    "@nomicfoundation/hardhat-viem": "^1.0.0",
+    "@types/chai": "^4.2.0",
+    "@types/chai-as-promised": "^7.1.6",
+    "@types/mocha": ">=9.1.0",
+    "@types/node": ">=16.0.0",
+    "chai": "^4.2.0",
+    "hardhat": "^2.18.1",
+    "hardhat-gas-reporter": "^1.0.8",
+    "solidity-coverage": "^0.8.0",
+    "ts-node": ">=8.0.0",
+    "typescript": "~5.0.4",
+    "viem": "^1.15.1"
+  }
+}
