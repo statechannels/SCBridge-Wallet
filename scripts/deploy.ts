@@ -1,7 +1,7 @@
 import { formatEther, parseEther } from 'viem'
 import hre from 'hardhat'
 
-async function main () {
+async function main (): Promise<void> {
   const currentTimestampInSeconds = Math.round(Date.now() / 1000)
   const unlockTime = BigInt(currentTimestampInSeconds + 60)
 
