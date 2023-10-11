@@ -32,9 +32,7 @@ describe('Nitro-SCW', function () {
 
 
 describe('validateUserOp', function (){
-    it.skip("Should return true if the userOp is signed by the owner and the intermediary", async function () {
-//  const {nitroSCW}= await loadFixture(deployNitroSCW)
-//  nitroSCW.write.validateUserOp()
-});
-});
-});
+    it.skip("Should return success if the userOp is signed by the owner and the intermediary", async function () {});
+  it.skip("Should only allow challenges if the userOp is signed by the owner", async function () {});
+  
+});});
