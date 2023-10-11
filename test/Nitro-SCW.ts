@@ -17,7 +17,7 @@ describe('Nitro-SCW', function () {
     const publicClient = await hre.viem.getPublicClient()
 
     return {
-    nitroSCW,
+      nitroSCW,
       owner,
       otherAccount,
       publicClient
@@ -30,9 +30,8 @@ describe('Nitro-SCW', function () {
     })
   })
 
-
-describe('validateUserOp', function (){
-    it.skip("Should return success if the userOp is signed by the owner and the intermediary", async function () {});
-  it.skip("Should only allow challenges if the userOp is signed by the owner", async function () {});
-  
-});});
+  describe('validateUserOp', function () {
+    it.skip('Should return success if the userOp is signed by the owner and the intermediary', async function () {})
+    it.skip('Should only allow challenges if the userOp is signed by the owner', async function () {})
+  })
+})
