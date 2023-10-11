@@ -6,6 +6,13 @@
   "repository": "https://github.com/statechannels/nitro-smart-contract-wallet.git",
   "author": "magmo",
   "license": "MIT",
+  "scripts": {
+    "test": "yarn hardhat test",
+    "build": "yarn hardhat compile",
+    "lint:check": "eslint . --ext ts",
+    "lint:write": "eslint . --ext ts --fix",
+    "prepack": "yarn build"
+  },
   "devDependencies": {
     "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
     "@nomicfoundation/hardhat-toolbox-viem": "^1.0.0",
