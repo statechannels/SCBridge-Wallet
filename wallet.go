@@ -7,12 +7,13 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
-type ChannelState uint8
+type ChannelStatus uint8
 
 const (
-	ChannelStateCooperative ChannelState = iota
-	ChannelStateChallenge
-	ChannelStateIndependent
+	ChannelStatusCooperative ChannelStatus = iota
+	ChannelStatusChallenge
+	ChannelStatusFinalized
+	ChannelStatusIndependent
 )
 
 type Participant uint8
@@ -41,7 +42,7 @@ type ChannelWallet struct {
 	// Dynamic State  //
 	////////////////////
 
-	State      ChannelState
+	State      ChannelStatus
 	TurnNumber uint64
 
 	///////////////////
