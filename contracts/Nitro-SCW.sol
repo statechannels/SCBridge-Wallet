@@ -5,7 +5,7 @@ pragma solidity 0.8.19;
 import {IAccount} from "contracts/interfaces/IAccount.sol";
 import {UserOperation} from "contracts/interfaces/UserOperation.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import {State, HTLC} from "./state.sol";
+import {State, HTLC, checkSignatures} from "./state.sol";
 enum WalletStatus {
     OPEN,
     CHALLENGE_RAISED,
@@ -32,7 +32,13 @@ contract NitroSmartContractWallet is IAccount {
         return WalletStatus.CHALLENGE_RAISED;
     }
 
-    function challenge(State calldata state) external {
+    function challenge(
+        State calldata state,
+        bytes calldata ownerSignature,
+        bytes calldata intermediarySignature
+    ) external {
+        checkSignatures(state, ownerSignature, intermediarySignature);
+
         WalletStatus status = getStatus();
         if (status == WalletStatus.FINALIZED) {
             revert("Wallet already finalized");
