@@ -3,25 +3,29 @@ import { type NitroSmartContractWallet } from '../typechain-types'
 
 import { type UserOperationStruct } from '../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet'
 import { expect } from 'chai'
+import { type Signer } from 'ethers'
 
 describe('Nitro-SCW', function () {
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
   // and reset Hardhat Network to that snapshot in every test.
-  async function deployNitroSCW (): Promise<NitroSmartContractWallet> {
+  async function deployNitroSCW (owner: Signer): Promise<NitroSmartContractWallet> {
     const deployer = await hre.ethers.getContractFactory('NitroSmartContractWallet')
-    return deployer.deploy()
+
+    return deployer.deploy(owner)
   }
 
   describe('Deployment', function () {
     it('Should deploy the nitro SCW', async function () {
-      await deployNitroSCW()
+      const owner = (await ethers.getSigners())[0]
+      await deployNitroSCW(owner)
     })
   })
 
   describe('validateUserOp', function () {
     it('Should return success if the userOp is signed by the owner and the intermediary', async function () {
-      const nitroSCW = await deployNitroSCW()
+      const owner = (await ethers.getSigners())[0]
+      const nitroSCW = await deployNitroSCW(owner)
 
       const userOp: UserOperationStruct = {
         sender: hre.ethers.ZeroAddress,
