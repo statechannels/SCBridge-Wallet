@@ -27,10 +27,9 @@ contract NitroSmartContractWallet is IAccount {
     uint256 internal constant SIG_VALIDATION_FAILED = 1;
 
     function _validateSignature(
-        UserOperation calldata userOp,
         bytes32 userOpHash,
         bytes memory signature
-    ) private returns (uint256 validationData) {
+    ) private view returns (uint256 validationData) {
         bytes32 hash = userOpHash.toEthSignedMessageHash();
         if (owner != hash.recover(signature)) {
             return SIG_VALIDATION_FAILED;
@@ -61,7 +60,7 @@ contract NitroSmartContractWallet is IAccount {
         // intermediarySig = userOp.signature[65:130];
 
         if (!_isZero(ownerSig)) {
-            return _validateSignature(userOp, userOpHash, ownerSig);
+            return _validateSignature(userOpHash, ownerSig);
         }
 
         return SIG_VALIDATION_FAILED;
