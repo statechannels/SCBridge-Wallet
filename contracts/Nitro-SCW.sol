@@ -16,7 +16,7 @@ contract NitroSmartContractWallet is IAccount {
         bytes32 userOpHash,
         uint256 missingAccountFunds
     ) external returns (uint256 validationData) {
-        return _validateSignature(userOp, userOpHash);
+        return _validateSignatures(userOp, userOpHash);
     }
 
     constructor(address o, address i) {
@@ -26,21 +26,44 @@ contract NitroSmartContractWallet is IAccount {
 
     uint256 internal constant SIG_VALIDATION_FAILED = 1;
 
-    // This validates the UserOp is signed by the owner
     function _validateSignature(
+        UserOperation calldata userOp,
+        bytes32 userOpHash,
+        bytes memory signature
+    ) private returns (uint256 validationData) {
+        bytes32 hash = userOpHash.toEthSignedMessageHash();
+        if (owner != hash.recover(signature)) {
+            return SIG_VALIDATION_FAILED;
+        }
+        return 0;
+    }
+
+    function _isZero(bytes memory b) internal pure returns (bool) {
+        for (uint256 i = 0; i < b.length; i++) {
+            if (b[i] != 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function _validateSignatures(
         UserOperation calldata userOp,
         bytes32 userOpHash
     ) internal virtual returns (uint256 validationData) {
-        if (userOp.signature.length == 2 * 65) {
-            revert("TODO: Handle UserOp signed by owner and intermediary");
-        } else if (userOp.signature.length == 65) {
-            // TODO: Verify the userOp is for a challenge specifically
-            bytes32 hash = userOpHash.toEthSignedMessageHash();
-            if (owner != hash.recover(userOp.signature))
-                return SIG_VALIDATION_FAILED;
-            return 0;
-        } else {
+        if (userOp.signature.length != 2 * 65) {
             revert("Invalid signature length");
         }
-    }
+        if (userOp.signature.length == 0x0) {
+            revert("Empty signature");
+        }
+        bytes memory ownerSig = userOp.signature[0:65];
+        // intermediarySig = userOp.signature[65:130];
 
+        if (!_isZero(ownerSig)) {
+            return _validateSignature(userOp, userOpHash, ownerSig);
+        }
+
+        return SIG_VALIDATION_FAILED;
+    }
+}

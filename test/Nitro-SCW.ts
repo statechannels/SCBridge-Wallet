@@ -50,7 +50,7 @@ describe('Nitro-SCW', function () {
       const ownerSig = signUserOp(userOp, owner, ethers.ZeroAddress, Number(n.chainId))
       const hash = getUserOpHash(userOp, ethers.ZeroAddress, Number(n.chainId))
 
-      userOp.signature = ownerSig
+      userOp.signature = ethers.zeroPadBytes(ownerSig, 65 * 2)
       console.log(userOp)
       // staticCall forces an eth_call, allowing us to easily check the result
       const result = await nitroSCW.getFunction('validateUserOp').staticCall(userOp, hash, 0)
