@@ -18,7 +18,8 @@ contract NitroSmartContractWallet is IAccount {
     address public owner;
     address public intermediary;
 
-    HTLC[] latestHtlcs;
+    bytes32[] activeHTLCs;
+    mapping(bytes32 => HTLC) htlcs;
 
     uint64 highestTurnNum = 0;
     uint htlcCount = 0;
@@ -51,12 +52,13 @@ contract NitroSmartContractWallet is IAccount {
         ) {
             revert("Challenge already exists with a larger TurnNum");
         }
-
-        htlcCount = state.htlcs.length;
         highestTurnNum = state.turnNum;
 
-        for (uint256 i = 0; i < htlcCount; i++) {
-            latestHtlcs.push(state.htlcs[i]);
+        activeHTLCs = new bytes32[](state.htlcs.length);
+        for (uint256 i = 0; i < state.htlcs.length; i++) {
+            activeHTLCs[i] = state.htlcs[i].hashLock;
+
+            htlcs[state.htlcs[i].hashLock] = state.htlcs[i];
 
             if (state.htlcs[i].timelock > latestExpiry) {
                 latestExpiry = state.htlcs[i].timelock;
