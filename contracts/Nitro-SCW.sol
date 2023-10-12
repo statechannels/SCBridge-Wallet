@@ -5,7 +5,7 @@ pragma solidity 0.8.19;
 import {IAccount} from "contracts/interfaces/IAccount.sol";
 import {UserOperation} from "contracts/interfaces/UserOperation.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import {State, HTLC, checkSignatures} from "./state.sol";
+import {HTLC, State} from "./state.sol";
 enum WalletStatus {
     OPEN,
     CHALLENGE_RAISED,
@@ -56,10 +56,10 @@ contract NitroSmartContractWallet is IAccount {
         highestTurnNum = state.turnNum;
 
         for (uint256 i = 0; i < htlcCount; i++) {
-            latestHtlcs[i] = state.htlcs[i];
+            latestHtlcs.push(state.htlcs[i]);
 
-            if (latestHtlcs[i].timelock > latestExpiry) {
-                latestExpiry = latestHtlcs[i].timelock;
+            if (state.htlcs[i].timelock > latestExpiry) {
+                latestExpiry = state.htlcs[i].timelock;
             }
         }
     }
