@@ -18,9 +18,11 @@ contract NitroSmartContractWallet is IAccount {
     address public owner;
     address public intermediary;
 
-    uint64 highestTurnNum;
     HTLC[] latestHtlcs;
-    uint latestExpiry;
+
+    uint64 highestTurnNum = 0;
+    uint htlcCount = 0;
+    uint latestExpiry = 0;
 
     function getStatus() public view returns (WalletStatus) {
         if (latestExpiry == 0) {
@@ -50,11 +52,12 @@ contract NitroSmartContractWallet is IAccount {
             revert("Challenge already exists with a larger TurnNum");
         }
 
-        latestHtlcs = state.htlcs;
+        htlcCount = state.htlcs.length;
         highestTurnNum = state.turnNum;
-        status = WalletStatus.CHALLENGE_RAISED;
-        // Set the expiry to the latest HTLC value
-        for (uint256 i = 0; i < latestHtlcs.length; i++) {
+
+        for (uint256 i = 0; i < htlcCount; i++) {
+            latestHtlcs[i] = state.htlcs[i];
+
             if (latestHtlcs[i].timelock > latestExpiry) {
                 latestExpiry = latestHtlcs[i].timelock;
             }
