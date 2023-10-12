@@ -5,11 +5,38 @@ pragma solidity 0.8.19;
 import {IAccount} from "contracts/interfaces/IAccount.sol";
 import {UserOperation} from "contracts/interfaces/UserOperation.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import {State, HTLC} from "./state.sol";
+enum WalletStatus {
+    OPEN,
+    CHALLENGE_RAISED,
+    FINALIZED
+}
 
 contract NitroSmartContractWallet is IAccount {
+    using ECDSA for bytes32;
+
     address public owner;
     address public intermediary;
-    using ECDSA for bytes32;
+    WalletStatus status;
+
+    uint64 highestTurnNum;
+    HTLC[] latestHtlcs;
+
+    function challenge(State calldata state) external {
+        if (status == WalletStatus.FINALIZED) {
+            revert("Wallet already finalized");
+        }
+        if (
+            status == WalletStatus.CHALLENGE_RAISED &&
+            state.turnNum <= highestTurnNum
+        ) {
+            revert("Challenge already exists with a larger TurnNum");
+        }
+
+        latestHtlcs = state.htlcs;
+        highestTurnNum = state.turnNum;
+        status = WalletStatus.CHALLENGE_RAISED;
+    }
 
     function validateUserOp(
         UserOperation calldata userOp,
