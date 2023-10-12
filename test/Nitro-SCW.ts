@@ -47,8 +47,6 @@ describe('Nitro-SCW', function () {
         intermediary: intermediary.address,
         turnNum: 0,
         htlcs: [{
-          sender: owner.address,
-          receiver: intermediary.address,
           amount: 0,
           hashLock: ethers.ZeroHash,
           timelock: (await getBlockTimestamp()) + 1000
