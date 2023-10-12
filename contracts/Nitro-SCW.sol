@@ -35,6 +35,32 @@ contract NitroSmartContractWallet is IAccount {
         return WalletStatus.CHALLENGE_RAISED;
     }
 
+    function unlockHTLC(bytes32 hashLock, bytes memory preImage) public {
+        HTLC memory htlc = htlcs[hashLock];
+        if (htlc.timelock > block.timestamp) {
+            revert("HTLC already expired");
+        }
+        if (htlc.hashLock != keccak256(preImage)) {
+            revert("Invalid preImage");
+        }
+        removeActiveHTLC(hashLock);
+        intermediary.transfer(htlc.amount);
+    }
+
+    function removeActiveHTLC(bytes32 hashLock) private {
+        for (uint i = 0; i < activeHTLCs.length; i++) {
+            if (activeHTLCs[i] == hashLock) {
+                // Shift elements over
+                for (uint j = i; j < activeHTLCs.length - 1; j++) {
+                    activeHTLCs[j] = activeHTLCs[j + 1];
+                }
+                // remove the duplicate at the end
+                activeHTLCs.pop();
+                break;
+            }
+        }
+    }
+
     function reclaim() public {
         if (latestExpiry < block.timestamp) {
             revert("Not all HTLCs have expired");
