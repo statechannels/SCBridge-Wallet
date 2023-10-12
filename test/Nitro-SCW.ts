@@ -16,8 +16,8 @@ describe('Nitro-SCW', function () {
     const intermediary = ethers.Wallet.createRandom()
     const hardhatFundedAccount = (await hre.ethers.getSigners())[0]
 
-    hardhatFundedAccount.sendTransaction({ to: owner.address, value: ethers.parseEther('1.0') })
-    hardhatFundedAccount.sendTransaction({ to: intermediary.address, value: ethers.parseEther('1.0') })
+    await hardhatFundedAccount.sendTransaction({ to: owner.address, value: ethers.parseEther('1.0') })
+    await hardhatFundedAccount.sendTransaction({ to: intermediary.address, value: ethers.parseEther('1.0') })
 
     const nitroSCW = await deployer.deploy(owner, intermediary)
     return { nitroSCW, owner, intermediary }
@@ -31,7 +31,7 @@ describe('Nitro-SCW', function () {
 
   describe('validateUserOp', function () {
     it('Should return success if the userOp is signed by the owner and the intermediary', async function () {
-      const { nitroSCW, owner } = await deployNitroSCW()
+      const { nitroSCW, owner, intermediary } = await deployNitroSCW()
       const n = await ethers.provider.getNetwork()
       const userOp: UserOperationStruct = {
         sender: owner.address,
@@ -48,10 +48,11 @@ describe('Nitro-SCW', function () {
       }
 
       const ownerSig = signUserOp(userOp, owner, ethers.ZeroAddress, Number(n.chainId))
+      const intermediarySig = signUserOp(userOp, intermediary, ethers.ZeroAddress, Number(n.chainId))
       const hash = getUserOpHash(userOp, ethers.ZeroAddress, Number(n.chainId))
 
-      userOp.signature = ethers.zeroPadBytes(ownerSig, 65 * 2)
-      console.log(userOp)
+      userOp.signature = ethers.concat([ownerSig, intermediarySig])
+
       // staticCall forces an eth_call, allowing us to easily check the result
       const result = await nitroSCW.getFunction('validateUserOp').staticCall(userOp, hash, 0)
       expect(result).to.equal(0)

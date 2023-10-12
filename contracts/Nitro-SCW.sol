@@ -28,10 +28,11 @@ contract NitroSmartContractWallet is IAccount {
 
     function _validateSignature(
         bytes32 userOpHash,
-        bytes memory signature
+        bytes memory signature,
+        address expectedSigner
     ) private view returns (uint256 validationData) {
         bytes32 hash = userOpHash.toEthSignedMessageHash();
-        if (owner != hash.recover(signature)) {
+        if (expectedSigner != hash.recover(signature)) {
             return SIG_VALIDATION_FAILED;
         }
         return 0;
@@ -56,11 +57,23 @@ contract NitroSmartContractWallet is IAccount {
         if (userOp.signature.length == 0x0) {
             revert("Empty signature");
         }
-        bytes memory ownerSig = userOp.signature[0:65];
-        // intermediarySig = userOp.signature[65:130];
 
-        if (!_isZero(ownerSig)) {
-            return _validateSignature(userOpHash, ownerSig);
+        bytes memory ownerSig = userOp.signature[0:65];
+        bytes memory intermediarySig = userOp.signature[65:130];
+
+        // We have a signature from BOTH participants
+        if (!_isZero(ownerSig) && !_isZero(intermediarySig)) {
+            return
+                _validateSignature(userOpHash, ownerSig, owner) |
+                _validateSignature(userOpHash, intermediarySig, intermediary);
+        } else if (!_isZero(ownerSig)) {
+            revert(
+                "TODO: Only owner signed. Should only allow specific functionality`"
+            );
+        } else if (!_isZero(intermediarySig)) {
+            revert(
+                "TODO: Only intermediary signed. Should only allow specific functionality`"
+            );
         }
 
         return SIG_VALIDATION_FAILED;
