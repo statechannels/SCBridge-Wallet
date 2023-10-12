@@ -59,10 +59,15 @@ type ChannelWallet struct {
 	HTLCs []HTLC
 }
 
-func (cw *ChannelWallet) IncrementTurnNumber() {
+// IncrementTurnNumber should be called after every state change a user initiates.
+// It returns a SignedChannelState, which can be communicated to the other party.
+func (cw *ChannelWallet) IncrementTurnNumber() SignedChannelState {
 	cw.TurnNumber++
 
-	// todo: abi-encode the state, sign it, and communicate it to the other party
+	return SignedChannelState{
+		ChannelState: *cw,
+		Signature:    []byte{}, // todo: sign the abi-encoded state
+	}
 }
 
 func (cw *ChannelWallet) ClearExpiredHTLCs() {
@@ -117,7 +122,7 @@ func (cw *ChannelWallet) ReleaseHTLC(preimage []byte) {
 
 // SignedChannelState is a ChannelState with a signature from the owner.
 type SignedChannelState struct {
-	ChannelState ChannelState
+	ChannelState ChannelWallet
 	Signature    []byte // todo: add type?
 }
 
