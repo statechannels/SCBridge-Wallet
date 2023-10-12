@@ -42,7 +42,7 @@ type ChannelWallet struct {
 	// Dynamic State  //
 	////////////////////
 
-	State      ChannelStatus
+	Status     ChannelStatus
 	TurnNumber uint64
 
 	///////////////////
