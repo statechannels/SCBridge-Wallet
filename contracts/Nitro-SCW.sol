@@ -5,7 +5,7 @@ pragma solidity 0.8.19;
 import {IAccount} from "contracts/interfaces/IAccount.sol";
 import {UserOperation} from "contracts/interfaces/UserOperation.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import {HTLC, State} from "./state.sol";
+import {HTLC, State, hashState, checkSignatures} from "./state.sol";
 enum WalletStatus {
     OPEN,
     CHALLENGE_RAISED,
@@ -130,5 +130,11 @@ contract NitroSmartContractWallet is IAccount {
         }
 
         return SIG_VALIDATION_FAILED;
+    }
+
+    // TODO: This is part of the contract so we can use it to hash the state in ts code
+    // We should update the ts code to hash the state on it's own
+    function getStateHash(State memory state) public pure returns (bytes32) {
+        return hashState(state);
     }
 }

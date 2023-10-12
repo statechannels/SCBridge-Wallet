@@ -1,10 +1,19 @@
 import hre, { ethers } from 'hardhat'
 import { type NitroSmartContractWallet } from '../typechain-types'
 import { type BaseWallet } from 'ethers'
-import { type UserOperationStruct } from '../typechain-types/Nitro-SCW.sol/NitroSmartContractWallet'
+import { type StateStruct, type UserOperationStruct } from '../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet'
 import { expect } from 'chai'
 import { getUserOpHash, signUserOp } from './UserOp'
+import { signStateHash } from './State'
 
+async function getBlockTimestamp (): Promise<number> {
+  const blockNum = (await hre.ethers.provider.getBlockNumber())
+  const block = await hre.ethers.provider.getBlock(blockNum)
+  if (block == null) {
+    throw new Error(`Block ${blockNum} not found`)
+  }
+  return block.timestamp
+}
 describe('Nitro-SCW', function () {
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
@@ -26,6 +35,35 @@ describe('Nitro-SCW', function () {
   describe('Deployment', function () {
     it('Should deploy the nitro SCW', async function () {
       await deployNitroSCW()
+    })
+  })
+
+  describe('Challenge', function () {
+    it('Should check the signatures', async function () {
+      const { nitroSCW, owner, intermediary } = await deployNitroSCW()
+
+      const state: StateStruct = {
+        owner: owner.address,
+        intermediary: intermediary.address,
+        turnNum: 0,
+        htlcs: [{
+          sender: owner.address,
+          receiver: intermediary.address,
+          amount: 0,
+          hashLock: ethers.ZeroHash,
+          timelock: (await getBlockTimestamp()) + 1000
+        }]
+
+      }
+
+      // TODO: Do this locally instead of calling the contract
+      const stateHash = await nitroSCW.getStateHash(state)
+
+      const [ownerSig, intermediarySig] = signStateHash(stateHash, owner, intermediary)
+      await nitroSCW.challenge(state, ownerSig, intermediarySig)
+
+      // Check that the the state is now challenged
+      expect(await nitroSCW.getStatus()).to.equal(1)
     })
   })
 
