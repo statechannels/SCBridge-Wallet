@@ -17,12 +17,23 @@ contract NitroSmartContractWallet is IAccount {
 
     address public owner;
     address public intermediary;
-    WalletStatus status;
 
     uint64 highestTurnNum;
     HTLC[] latestHtlcs;
+    uint latestExpiry;
+
+    function getStatus() public view returns (WalletStatus) {
+        if (latestExpiry == 0) {
+            return WalletStatus.OPEN;
+        }
+        if (block.timestamp > latestExpiry) {
+            return WalletStatus.FINALIZED;
+        }
+        return WalletStatus.CHALLENGE_RAISED;
+    }
 
     function challenge(State calldata state) external {
+        WalletStatus status = getStatus();
         if (status == WalletStatus.FINALIZED) {
             revert("Wallet already finalized");
         }
@@ -36,6 +47,12 @@ contract NitroSmartContractWallet is IAccount {
         latestHtlcs = state.htlcs;
         highestTurnNum = state.turnNum;
         status = WalletStatus.CHALLENGE_RAISED;
+        // Set the expiry to the latest HTLC value
+        for (uint256 i = 0; i < latestHtlcs.length; i++) {
+            if (latestHtlcs[i].timelock > latestExpiry) {
+                latestExpiry = latestHtlcs[i].timelock;
+            }
+        }
     }
 
     function validateUserOp(
