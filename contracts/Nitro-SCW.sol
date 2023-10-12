@@ -7,6 +7,7 @@ import {UserOperation} from "contracts/interfaces/UserOperation.sol";
 
 contract NitroSmartContractWallet is NitroAdjudicator, IAccount {
     address public owner;
+    address public intermediary;
 
     function validateUserOp(
         UserOperation calldata userOp,
@@ -16,7 +17,8 @@ contract NitroSmartContractWallet is NitroAdjudicator, IAccount {
         return 0;
     }
 
-    constructor(address o) {
+    constructor(address o, address i) {
         owner = o;
+        intermediary = i;
     }
 }
