@@ -15,8 +15,8 @@ enum WalletStatus {
 contract NitroSmartContractWallet is IAccount {
     using ECDSA for bytes32;
 
-    address public owner;
-    address public intermediary;
+    address payable public owner;
+    address payable public intermediary;
 
     bytes32[] activeHTLCs;
     mapping(bytes32 => HTLC) htlcs;
@@ -33,6 +33,18 @@ contract NitroSmartContractWallet is IAccount {
             return WalletStatus.FINALIZED;
         }
         return WalletStatus.CHALLENGE_RAISED;
+    }
+
+    function reclaim() public {
+        if (latestExpiry < block.timestamp) {
+            revert("Not all HTLCs have expired");
+        }
+        for (uint i = 0; i < activeHTLCs.length; i++) {
+            HTLC memory htlc = htlcs[activeHTLCs[i]];
+            intermediary.transfer(htlc.amount);
+        }
+
+        activeHTLCs = new bytes32[](0);
     }
 
     function challenge(
@@ -74,7 +86,7 @@ contract NitroSmartContractWallet is IAccount {
         return _validateSignatures(userOp, userOpHash);
     }
 
-    constructor(address o, address i) {
+    constructor(address payable o, address payable i) {
         owner = o;
         intermediary = i;
     }
