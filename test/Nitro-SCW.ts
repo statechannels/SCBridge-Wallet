@@ -2,6 +2,7 @@ import hre from 'hardhat'
 import { type NitroSmartContractWallet } from '../typechain-types'
 
 import { type UserOperationStruct } from '../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet'
+import { expect } from 'chai'
 
 describe('Nitro-SCW', function () {
   // We define a fixture to reuse the same setup in every test.
@@ -35,9 +36,8 @@ describe('Nitro-SCW', function () {
         paymasterAndData: hre.ethers.ZeroHash,
         signature: hre.ethers.ZeroHash
       }
-
       const result = await nitroSCW.validateUserOp(userOp, hre.ethers.ZeroHash, 0)
-      await result.wait()
+      expect(result).to.equal(0)
     })
     it.skip('Should only allow challenges if the userOp is signed by the owner', async function () {})
   })

@@ -10,5 +10,7 @@ contract NitroSmartContractWallet is NitroAdjudicator, IAccount {
         UserOperation calldata userOp,
         bytes32 userOpHash,
         uint256 missingAccountFunds
-    ) external returns (uint256 validationData) {}
+    ) external view returns (uint256 validationData) {
+        return 0;
+    }
 }
