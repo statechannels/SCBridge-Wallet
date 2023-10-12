@@ -126,7 +126,7 @@ type SignedChannelState struct {
 //
 // The payment is claimed by the payee with the reveal of the preimage of hash.
 type HTLC struct {
-	// the Amount of the payment. TODO: allow specified asset / multi-asset HTLCs
+	// the Amount of the payment.
 	Amount *big.Int
 	// 32 byte Hash of the preimage, either keccak256 (evm-only) or SHA256 (LN compatible).
 	Hash common.Hash
