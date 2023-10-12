@@ -1,4 +1,4 @@
-import hre from 'hardhat'
+import hre, { ethers } from 'hardhat'
 import { type NitroSmartContractWallet } from '../typechain-types'
 
 import { type UserOperationStruct } from '../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet'
@@ -36,7 +36,8 @@ describe('Nitro-SCW', function () {
         paymasterAndData: hre.ethers.ZeroHash,
         signature: hre.ethers.ZeroHash
       }
-      const result = await nitroSCW.validateUserOp(userOp, hre.ethers.ZeroHash, 0)
+      // staticCall forces an eth_call, allowing us to easily check the result
+      const result = await nitroSCW.getFunction('validateUserOp').staticCall(userOp, hre.ethers.ZeroHash, 0)
       expect(result).to.equal(0)
     })
     it.skip('Should only allow challenges if the userOp is signed by the owner', async function () {})
