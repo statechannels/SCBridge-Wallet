@@ -73,6 +73,7 @@ contract NitroSmartContractWallet is IAccount {
                 break;
             }
         }
+        delete htlcs[hashLock];
     }
 
     function updateLatestExpiry() private {
