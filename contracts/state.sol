@@ -10,6 +10,7 @@ struct State {
 }
 
 struct HTLC {
+    address payable to;
     uint amount;
     bytes32 hashLock;
     uint timelock;

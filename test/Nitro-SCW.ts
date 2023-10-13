@@ -50,6 +50,7 @@ describe('Nitro-SCW', function () {
         turnNum: 1,
         htlcs: [{
           amount: 0,
+          to: intermediary.address,
           hashLock: hash,
           timelock: (await getBlockTimestamp()) + 1000
         }]
@@ -82,6 +83,7 @@ describe('Nitro-SCW', function () {
         turnNum: 1,
         htlcs: [{
           amount: 0,
+          to: intermediary.address,
           hashLock: hash,
           timelock: (await getBlockTimestamp()) + 1000
         }]

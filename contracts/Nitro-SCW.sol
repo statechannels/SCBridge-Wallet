@@ -47,7 +47,7 @@ contract NitroSmartContractWallet is IAccount {
 
         removeActiveHTLC(hashLock);
 
-        intermediary.transfer(htlc.amount);
+        htlc.to.transfer(htlc.amount);
     }
 
     function removeActiveHTLC(bytes32 hashLock) private {
