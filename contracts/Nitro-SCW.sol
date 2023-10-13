@@ -94,10 +94,14 @@ contract NitroSmartContractWallet is IAccount {
     function reclaim() public {
         require(getStatus() == WalletStatus.FINALIZED, "Wallet not finalized");
 
-        // Disperse all the HTLC funds
+        // Release any expired funds back to the sender
         for (uint i = 0; i < activeHTLCs.length; i++) {
             HTLC memory htlc = htlcs[activeHTLCs[i]];
-            htlc.to.transfer(htlc.amount);
+            if (htlc.to == owner) {
+                intermediary.transfer(htlc.amount);
+            } else {
+                owner.transfer(htlc.amount);
+            }
         }
 
         intermediary.transfer(intermediaryBalance);
