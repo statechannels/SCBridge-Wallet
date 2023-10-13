@@ -175,12 +175,7 @@ contract NitroSmartContractWallet is IAccount {
         }
 
         // If we only have 1 signature then we only allow specific function calls
-        bytes4 functionSelector;
-        bytes memory callData = userOp.callData;
-        assembly {
-            // Load the first 4 bytes of calldata (function selector)
-            functionSelector := mload(add(callData, 32))
-        }
+        bytes4 functionSelector = bytes4(userOp.callData[0:4]);
         require(
             functionSelector == this.challenge.selector ||
                 functionSelector == this.reclaim.selector ||
