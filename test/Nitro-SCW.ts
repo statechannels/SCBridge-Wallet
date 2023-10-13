@@ -1,7 +1,7 @@
 import hre, { ethers } from 'hardhat'
 import { type NitroSmartContractWallet } from '../typechain-types'
 import { type BaseWallet } from 'ethers'
-import { type UserOperationStruct } from '../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet'
+import { type UserOperationStruct } from '../typechain-types/Nitro-SCW.sol/NitroSmartContractWallet'
 import { expect } from 'chai'
 import { getUserOpHash, signUserOp } from './UserOp'
 
