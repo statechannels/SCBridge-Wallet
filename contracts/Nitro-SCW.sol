@@ -12,6 +12,8 @@ enum WalletStatus {
     FINALIZED
 }
 
+uint constant CHALLENGE_WAIT = 1 days;
+
 contract NitroSmartContractWallet is IAccount {
     using ECDSA for bytes32;
 
@@ -22,18 +24,15 @@ contract NitroSmartContractWallet is IAccount {
     mapping(bytes32 => HTLC) htlcs;
 
     uint highestTurnNum = 0;
-    uint latestExpiry = 0;
+    uint challengeExpiry = 0;
     uint public intermediaryBalance = 0;
 
     function getStatus() public view returns (WalletStatus) {
-        if (latestExpiry == 0 && highestTurnNum == 0) {
+        if (challengeExpiry == 0) {
             return WalletStatus.OPEN;
         }
-        // If all the htlcs were unlocked afer the challenge was raised then we are finalized
-        if (latestExpiry == 0 && highestTurnNum != 0) {
-            return WalletStatus.FINALIZED;
-        }
-        if (block.timestamp > latestExpiry) {
+
+        if (block.timestamp > challengeExpiry) {
             return WalletStatus.FINALIZED;
         }
 
@@ -47,19 +46,12 @@ contract NitroSmartContractWallet is IAccount {
         require(htlc.hashLock == keccak256(preImage), "Invalid preImage");
 
         removeActiveHTLC(hashLock);
-        updateLatestExpiry();
 
         if (htlc.to == intermediary) {
             intermediaryBalance += htlc.amount;
         }
         if (htlc.to == owner) {
             intermediaryBalance -= htlc.amount;
-        }
-
-        // If we've cleared the last HTLC we are finalized and can send the funds to the intermediary
-        if (getStatus() == WalletStatus.FINALIZED) {
-            // If we are finalized then we can just send the funds to the owner
-            intermediary.transfer(intermediaryBalance);
         }
     }
 
@@ -78,19 +70,6 @@ contract NitroSmartContractWallet is IAccount {
         delete htlcs[hashLock];
     }
 
-    function updateLatestExpiry() private {
-        if (activeHTLCs.length == 0) {
-            latestExpiry = 0;
-            return;
-        }
-        for (uint i = 0; i < activeHTLCs.length; i++) {
-            HTLC memory htlc = htlcs[activeHTLCs[i]];
-            if (htlc.timelock > latestExpiry) {
-                latestExpiry = htlc.timelock;
-            }
-        }
-    }
-
     function reclaim() public {
         require(getStatus() == WalletStatus.FINALIZED, "Wallet not finalized");
 
@@ -107,7 +86,6 @@ contract NitroSmartContractWallet is IAccount {
         intermediary.transfer(intermediaryBalance);
 
         intermediaryBalance = 0;
-        latestExpiry = 0;
         activeHTLCs = new bytes32[](0);
     }
 
@@ -130,6 +108,7 @@ contract NitroSmartContractWallet is IAccount {
         highestTurnNum = state.turnNum;
         intermediaryBalance = state.intermediaryBalance;
 
+        uint largestTimeLock = 0;
         activeHTLCs = new bytes32[](state.htlcs.length);
         for (uint256 i = 0; i < state.htlcs.length; i++) {
             require(
@@ -139,8 +118,12 @@ contract NitroSmartContractWallet is IAccount {
 
             activeHTLCs[i] = state.htlcs[i].hashLock;
             htlcs[state.htlcs[i].hashLock] = state.htlcs[i];
+            if (state.htlcs[i].timelock > largestTimeLock) {
+                largestTimeLock = state.htlcs[i].timelock;
+            }
         }
-        updateLatestExpiry();
+
+        challengeExpiry = largestTimeLock + CHALLENGE_WAIT;
     }
 
     function validateUserOp(
