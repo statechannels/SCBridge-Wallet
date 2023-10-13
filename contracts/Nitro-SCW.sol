@@ -172,14 +172,27 @@ contract NitroSmartContractWallet is IAccount {
             return
                 validateSignature(userOpHash, ownerSig, owner) |
                 validateSignature(userOpHash, intermediarySig, intermediary);
-        } else if (!isZero(ownerSig)) {
-            revert(
-                "TODO: Only owner signed. Should only allow specific functionality`"
-            );
-        } else if (!isZero(intermediarySig)) {
-            revert(
-                "TODO: Only intermediary signed. Should only allow specific functionality`"
-            );
+        }
+
+        // If we only have 1 signature then we only allow specific function calls
+        bytes4 functionSelector;
+        bytes memory callData = userOp.callData;
+        assembly {
+            // Load the first 4 bytes of calldata (function selector)
+            functionSelector := mload(add(callData, 32))
+        }
+        require(
+            functionSelector == this.challenge.selector ||
+                functionSelector == this.reclaim.selector ||
+                functionSelector == this.unlockHTLC.selector,
+            "Invalid function selector"
+        );
+
+        if (!isZero(ownerSig)) {
+            return validateSignature(userOpHash, ownerSig, owner);
+        }
+        if (!isZero(intermediarySig)) {
+            return validateSignature(userOpHash, intermediarySig, intermediary);
         }
 
         return SIG_VALIDATION_FAILED;

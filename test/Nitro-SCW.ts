@@ -1,5 +1,5 @@
 import hre, { ethers } from 'hardhat'
-import { type NitroSmartContractWallet } from '../typechain-types'
+import { NitroSmartContractWallet__factory, type NitroSmartContractWallet } from '../typechain-types'
 import { type BaseWallet } from 'ethers'
 import { type StateStruct, type UserOperationStruct } from '../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet'
 import { expect } from 'chai'
@@ -137,6 +137,32 @@ describe('Nitro-SCW', function () {
       const result = await nitroSCW.getFunction('validateUserOp').staticCall(userOp, hash, 0)
       expect(result).to.equal(0)
     })
-    it.skip('Should only allow challenges if the userOp is signed by the owner', async function () {})
+    it('only allows specific functions to be called when signed by one actor', async function () {
+      const { nitroSCW, owner } = await deployNitroSCW()
+      const n = await ethers.provider.getNetwork()
+
+      const userOp: UserOperationStruct = {
+        sender: owner.address,
+        nonce: 0,
+        initCode: hre.ethers.ZeroHash,
+        callData: NitroSmartContractWallet__factory.createInterface().encodeFunctionData('reclaim'),
+        callGasLimit: 0,
+        verificationGasLimit: 0,
+        preVerificationGas: 0,
+        maxFeePerGas: 0,
+        maxPriorityFeePerGas: 0,
+        paymasterAndData: hre.ethers.ZeroHash,
+        signature: hre.ethers.ZeroHash
+      }
+
+      const ownerSig = signUserOp(userOp, owner, ethers.ZeroAddress, Number(n.chainId))
+
+      const hash = getUserOpHash(userOp, ethers.ZeroAddress, Number(n.chainId))
+      userOp.signature = ethers.zeroPadBytes(ownerSig, 130)
+
+      // staticCall forces an eth_call, allowing us to easily check the result
+      const result = await nitroSCW.getFunction('validateUserOp').staticCall(userOp, hash, 0)
+      expect(result).to.equal(0)
+    })
   })
 })
