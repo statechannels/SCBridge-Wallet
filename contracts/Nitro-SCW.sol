@@ -120,41 +120,6 @@ contract NitroSmartContractWallet is IAccount {
         bytes32 userOpHash,
         uint256 missingAccountFunds
     ) external returns (uint256 validationData) {
-        return validateSignatures(userOp, userOpHash);
-    }
-
-    constructor(address payable o, address payable i) {
-        owner = o;
-        intermediary = i;
-    }
-
-    uint256 internal constant SIG_VALIDATION_FAILED = 1;
-
-    function validateSignature(
-        bytes32 userOpHash,
-        bytes memory signature,
-        address expectedSigner
-    ) private view returns (uint256 validationData) {
-        bytes32 hash = userOpHash.toEthSignedMessageHash();
-        if (expectedSigner != hash.recover(signature)) {
-            return SIG_VALIDATION_FAILED;
-        }
-        return 0;
-    }
-
-    function isZero(bytes memory b) internal pure returns (bool) {
-        for (uint256 i = 0; i < b.length; i++) {
-            if (b[i] != 0) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    function validateSignatures(
-        UserOperation calldata userOp,
-        bytes32 userOpHash
-    ) internal virtual returns (uint256 validationData) {
         require(userOp.signature.length == 2 * 65, "Invalid signature length");
         require(userOp.signature.length != 0x0, "Empty signature");
 
@@ -184,6 +149,34 @@ contract NitroSmartContractWallet is IAccount {
             "Invalid function selector"
         );
         return validateSignature(userOpHash, ownerSig, owner);
+    }
+
+    constructor(address payable o, address payable i) {
+        owner = o;
+        intermediary = i;
+    }
+
+    uint256 internal constant SIG_VALIDATION_FAILED = 1;
+
+    function validateSignature(
+        bytes32 userOpHash,
+        bytes memory signature,
+        address expectedSigner
+    ) private view returns (uint256 validationData) {
+        bytes32 hash = userOpHash.toEthSignedMessageHash();
+        if (expectedSigner != hash.recover(signature)) {
+            return SIG_VALIDATION_FAILED;
+        }
+        return 0;
+    }
+
+    function isZero(bytes memory b) internal pure returns (bool) {
+        for (uint256 i = 0; i < b.length; i++) {
+            if (b[i] != 0) {
+                return false;
+            }
+        }
+        return true;
     }
 
     // TODO: This is part of the contract so we can use it to hash the state in ts code
