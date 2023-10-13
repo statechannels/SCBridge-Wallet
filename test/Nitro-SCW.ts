@@ -53,8 +53,9 @@ describe('Nitro-SCW', function () {
         }]
 
       }
+      // TODO: Get the correct hash of the state
+      // const stateHash = hashState(state)
 
-      // TODO: Do this locally instead of calling the contract
       const stateHash = await nitroSCW.getStateHash(state)
 
       const [ownerSig, intermediarySig] = signStateHash(stateHash, owner, intermediary)
