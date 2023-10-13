@@ -44,10 +44,11 @@ function encodeState (state: StateStruct): string {
     [
       'address',
       'address',
-      'uint64',
+      'uint',
+      'uint',
       {
         type: 'tuple[]',
-        components: ['address', 'uint256', 'bytes', 'uint256']
+        components: ['address', 'uint', 'bytes32', 'uint']
       } as any as ParamType
     ],
     [owner, intermediary, turnNum, intermediaryBalance, htlcs]
