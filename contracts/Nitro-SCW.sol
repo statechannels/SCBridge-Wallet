@@ -49,9 +49,11 @@ contract NitroSmartContractWallet is IAccount {
         removeActiveHTLC(hashLock);
         updateLatestExpiry();
 
-        // Only tranfer funds if they're targetted outside of this wallet
-        if (htlc.to != address(this)) {
-            htlc.to.transfer(htlc.amount);
+        if (htlc.to == intermediary) {
+            intermediaryBalance += htlc.amount;
+        }
+        if (htlc.to == owner) {
+            intermediaryBalance -= htlc.amount;
         }
 
         // If we've cleared the last HTLC we are finalized and can send the funds to the intermediary
@@ -92,10 +94,14 @@ contract NitroSmartContractWallet is IAccount {
     function reclaim() public {
         require(getStatus() == WalletStatus.FINALIZED, "Wallet not finalized");
 
-        // Disperse all the HTLC funds
+        // Release any expired funds back to the sender
         for (uint i = 0; i < activeHTLCs.length; i++) {
             HTLC memory htlc = htlcs[activeHTLCs[i]];
-            htlc.to.transfer(htlc.amount);
+            if (htlc.to == owner) {
+                intermediary.transfer(htlc.amount);
+            } else {
+                owner.transfer(htlc.amount);
+            }
         }
 
         intermediary.transfer(intermediaryBalance);
@@ -126,6 +132,11 @@ contract NitroSmartContractWallet is IAccount {
 
         activeHTLCs = new bytes32[](state.htlcs.length);
         for (uint256 i = 0; i < state.htlcs.length; i++) {
+            require(
+                state.htlcs[i].to == owner || state.htlcs[i].to == intermediary,
+                "HTLC to address must be owner or intermediary"
+            );
+
             activeHTLCs[i] = state.htlcs[i].hashLock;
             htlcs[state.htlcs[i].hashLock] = state.htlcs[i];
         }
