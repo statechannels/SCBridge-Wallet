@@ -22,7 +22,6 @@ contract NitroSmartContractWallet is IAccount {
     mapping(bytes32 => HTLC) htlcs;
 
     uint highestTurnNum = 0;
-    uint htlcCount = 0;
     uint latestExpiry = 0;
 
     function getStatus() public view returns (WalletStatus) {
