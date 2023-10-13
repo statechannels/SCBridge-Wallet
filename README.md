@@ -1,13 +1,7 @@
-# Sample Hardhat Project
-
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
-
-Try running some of the following tasks:
-
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.ts
-```
+<h1 align="center">
+<div><img src="./SCBridge-Wallet.png"><br>
+SCBridge-Wallet
+</h1>
+<h3 align="center">
+An L2 state channel bridge contract which is also an L1 smart contract wallet.
+</h3>
