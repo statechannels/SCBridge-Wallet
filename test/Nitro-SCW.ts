@@ -5,6 +5,7 @@ import { type StateStruct, type UserOperationStruct } from '../typechain-types/c
 import { expect } from 'chai'
 import { getUserOpHash, signUserOp } from './UserOp'
 import { signStateHash } from './State'
+import { time } from '@nomicfoundation/hardhat-network-helpers'
 
 async function getBlockTimestamp (): Promise<number> {
   const blockNum = (await hre.ethers.provider.getBlockNumber())
@@ -39,7 +40,7 @@ describe('Nitro-SCW', function () {
   })
 
   describe('Challenge', function () {
-    it('Should check the signatures', async function () {
+    it('Should handle a challenge', async function () {
       const { nitroSCW, owner, intermediary } = await deployNitroSCW()
 
       const state: StateStruct = {
@@ -53,6 +54,7 @@ describe('Nitro-SCW', function () {
         }]
 
       }
+
       // TODO: Get the correct hash of the state
       // const stateHash = hashState(state)
 
@@ -61,8 +63,14 @@ describe('Nitro-SCW', function () {
       const [ownerSig, intermediarySig] = signStateHash(stateHash, owner, intermediary)
       await nitroSCW.challenge(state, ownerSig, intermediarySig)
 
-      // Check that the the state is now challenged
+      // Check that the the status is now challenged
       expect(await nitroSCW.getStatus()).to.equal(1)
+
+      // Advance the block time
+      await time.increaseTo(Number(state.htlcs[0].timelock) + 1)
+
+      // Check that the the status is now finalized
+      expect(await nitroSCW.getStatus()).to.equal(2)
     })
   })
 
