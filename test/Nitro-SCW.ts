@@ -71,6 +71,8 @@ describe('Nitro-SCW', function () {
 
       // Check that the the status is now finalized
       expect(await nitroSCW.getStatus()).to.equal(2)
+
+      await nitroSCW.reclaim()
     })
   })
 
