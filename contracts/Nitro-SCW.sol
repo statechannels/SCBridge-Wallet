@@ -46,6 +46,7 @@ contract NitroSmartContractWallet is IAccount {
         require(htlc.hashLock == keccak256(preImage), "Invalid preImage");
 
         removeActiveHTLC(hashLock);
+        updateLatestExpiry();
 
         if (htlc.to == address(this)) {
             // If the HTLC is to the wallet itself then we don't bother transferring the funds
@@ -67,7 +68,6 @@ contract NitroSmartContractWallet is IAccount {
                 break;
             }
         }
-        updateLatestExpiry();
     }
 
     function updateLatestExpiry() private {
