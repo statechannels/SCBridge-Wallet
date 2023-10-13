@@ -6,7 +6,7 @@ import { expect } from 'chai'
 import { getUserOpHash, signUserOp } from './UserOp'
 import { signStateHash } from './State'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
-
+const ONE_DAY = 86400
 async function getBlockTimestamp (): Promise<number> {
   const blockNum = await hre.ethers.provider.getBlockNumber()
   const block = await hre.ethers.provider.getBlock(blockNum)
@@ -72,7 +72,11 @@ describe('Nitro-SCW', function () {
 
       await nitroSCW.unlockHTLC(hash, secret)
 
-      // Check that the the status is now finalized since all htlcs are cleared
+      // Even though all the HTLCs are cleared we still need to wait for the min challenge duration
+      expect(await nitroSCW.getStatus()).to.equal(1)
+
+      await time.increase(ONE_DAY)
+
       expect(await nitroSCW.getStatus()).to.equal(2)
     })
     it('Should handle a challenge and reclaim', async function () {
@@ -106,7 +110,7 @@ describe('Nitro-SCW', function () {
       expect(await nitroSCW.getStatus()).to.equal(1)
 
       // Advance the block time
-      await time.increaseTo(Number(state.htlcs[0].timelock) + 1)
+      await time.increase(ONE_DAY)
 
       await nitroSCW.reclaim()
 
