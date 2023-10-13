@@ -25,8 +25,6 @@ contract NitroSmartContractWallet is IAccount {
     uint htlcCount = 0;
     uint latestExpiry = 0;
 
-    bool finalized = false;
-
     function getStatus() public view returns (WalletStatus) {
         if (latestExpiry == 0 && highestTurnNum == 0) {
             return WalletStatus.OPEN;
