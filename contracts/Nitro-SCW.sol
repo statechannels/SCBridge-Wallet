@@ -110,13 +110,9 @@ contract NitroSmartContractWallet is IAccount {
         activeHTLCs = new bytes32[](state.htlcs.length);
         for (uint256 i = 0; i < state.htlcs.length; i++) {
             activeHTLCs[i] = state.htlcs[i].hashLock;
-
             htlcs[state.htlcs[i].hashLock] = state.htlcs[i];
-
-            if (state.htlcs[i].timelock > latestExpiry) {
-                latestExpiry = state.htlcs[i].timelock;
-            }
         }
+        updateLatestExpiry();
     }
 
     function validateUserOp(
