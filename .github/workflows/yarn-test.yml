@@ -1,0 +1,20 @@
+name: Yarn test
+
+on:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  build-and-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          cache: "yarn"
+          node-version: "20.5.0"
+      - name: Install dependencies
+        run: yarn
+      - name: Lint
+        run: yarn lint:check
+      - name: Test
+        run: yarn test
