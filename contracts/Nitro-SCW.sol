@@ -12,7 +12,7 @@ enum WalletStatus {
     FINALIZED
 }
 
-uint constant MIN_CHALLENGE_WAIT = 1 days;
+uint constant CHALLENGE_WAIT = 1 days;
 
 contract NitroSmartContractWallet is IAccount {
     using ECDSA for bytes32;
@@ -107,7 +107,6 @@ contract NitroSmartContractWallet is IAccount {
 
         highestTurnNum = state.turnNum;
         intermediaryBalance = state.intermediaryBalance;
-        challengeExpiry = block.timestamp + MIN_CHALLENGE_WAIT;
 
         uint largestTimeLock = 0;
         activeHTLCs = new bytes32[](state.htlcs.length);
@@ -124,10 +123,7 @@ contract NitroSmartContractWallet is IAccount {
             }
         }
 
-        // The challenge expiry is the max of the largest timelock and default challenge period
-        if (largestTimeLock > challengeExpiry) {
-            challengeExpiry = largestTimeLock;
-        }
+        challengeExpiry = largestTimeLock + CHALLENGE_WAIT;
     }
 
     function validateUserOp(
