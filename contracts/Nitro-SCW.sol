@@ -49,13 +49,12 @@ contract NitroSmartContractWallet is IAccount {
         removeActiveHTLC(hashLock);
         updateLatestExpiry();
 
-        if (htlc.to == address(this)) {
-            // If the HTLC is to the wallet itself then we don't bother transferring the funds
-            // since they are already in the wallet
-            return;
+        // Only tranfer funds if they're targetted outside of this wallet
+        if (htlc.to != address(this)) {
+            htlc.to.transfer(htlc.amount);
         }
-        htlc.to.transfer(htlc.amount);
 
+        // If we've cleared the last HTLC we are finalized and can send the funds to the intermediary
         if (getStatus() == WalletStatus.FINALIZED) {
             // If we are finalized then we can just send the funds to the owner
             intermediary.transfer(intermediaryBalance);
