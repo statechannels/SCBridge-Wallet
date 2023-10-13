@@ -1,15 +1,15 @@
 import { ethers } from 'ethers';
-import { UserOperation } from './types';
+import { type UserOperationStruct } from '../typechain-types/Nitro-SCW.sol/NitroSmartContractWallet';
+import { signUserOp } from '../test/UserOp';
 
 export class StateChannelWallet {
-  private intermediaryUrl: string;
-  private chainProvider: ethers.providers.JsonRpcProvider;
+  private chainProvider: ethers.Provider;
   private signer: ethers.Wallet;
+  private entrypointAddress: string;
 
-  constructor(params: { signingKey: string; chainRpcUrl: string; intermediaryUrl: string }) {
-    this.intermediaryUrl = params.intermediaryUrl;
-
-    this.chainProvider = new ethers.providers.JsonRpcProvider(params.chainRpcUrl);
+  constructor(params: { signingKey: string; chainRpcUrl: string; entryPointAddress: string }) {
+    this.entrypointAddress = params.entryPointAddress;
+    this.chainProvider = new ethers.JsonRpcProvider(params.chainRpcUrl);
 
     const wallet = new ethers.Wallet(params.signingKey);
     this.signer = wallet.connect(this.chainProvider);
@@ -17,38 +17,19 @@ export class StateChannelWallet {
 
   async getCurrentBlockNumber(): Promise<number> {
     try {
-      const blockNumber = this.chainProvider.getBlockNumber();
+      const blockNumber = await this.chainProvider.getBlockNumber();
       return blockNumber;
     } catch (error: any) {
       throw new Error(`Error fetching block number: ${error.message}`);
     }
   }
 
-  async signUserOperation(userOp: UserOperation): Promise<UserOperation> {
-    // Serialize the UserOperation into bytes
-    const serialized = ethers.utils.concat([
-      ethers.utils.arrayify(userOp.sender),
-      ethers.utils.arrayify(ethers.BigNumber.from(userOp.nonce)),
-      userOp.initCode,
-      userOp.callData,
-      ethers.utils.arrayify(ethers.BigNumber.from(userOp.callGasLimit)),
-      ethers.utils.arrayify(ethers.BigNumber.from(userOp.verificationGasLimit)),
-      ethers.utils.arrayify(ethers.BigNumber.from(userOp.preVerificationGas)),
-      ethers.utils.arrayify(ethers.BigNumber.from(userOp.maxFeePerGas)),
-      ethers.utils.arrayify(ethers.BigNumber.from(userOp.maxPriorityFeePerGas)),
-      userOp.paymasterAndData
-    ]);
-
-    // keccak256 hash the serialized bytes then sign the hash
-    const hash = ethers.utils.keccak256(serialized);
-    const signature = await this.signer.signMessage(ethers.utils.arrayify(hash));
-
-    // Append the signature to the user operation
-    userOp.signature = ethers.utils.arrayify(signature);
-
-    return userOp;
+  async signUserOperation(userOp: UserOperationStruct): Promise<string> {
+    const network = await this.chainProvider.getNetwork();
+    const signature = signUserOp(userOp, this.signer, this.entrypointAddress, Number(network.chainId));
+    return signature;
   }
 
-  //payL2(address, amount, hash); // use the hash to craft an HTLC, puts it inside a state, sign and returns it
+  //payL2(address, amount, hash); // use the hash to craft an HTLC, put it inside a state, sign and returns it
   //ingestSignedStateAndPreimage(signedState, preimage); // returns a signed state with updated balances and one fewer HTLC
 }
