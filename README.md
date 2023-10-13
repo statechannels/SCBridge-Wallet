@@ -3,7 +3,7 @@
 SCBridge-Wallet
 </h1>
 <h3 align="center">
-An L2 state channel bridge contract which is also an L1 smart contract wallet.
+An L2 state channel bridge contract which is also an EIP-4337 compliant smart contract wallet.
 </h3>
 
 ### Ingredients
