@@ -28,13 +28,10 @@ contract NitroSmartContractWallet is IAccount {
     uint public intermediaryBalance = 0;
 
     function getStatus() public view returns (WalletStatus) {
-        if (challengeExpiry == 0 && highestTurnNum == 0) {
+        if (challengeExpiry == 0) {
             return WalletStatus.OPEN;
         }
-        // If all the htlcs were unlocked afer the challenge was raised then we are finalized
-        if (challengeExpiry == 0 && highestTurnNum != 0) {
-            return WalletStatus.FINALIZED;
-        }
+
         if (block.timestamp > challengeExpiry) {
             return WalletStatus.FINALIZED;
         }
@@ -85,7 +82,6 @@ contract NitroSmartContractWallet is IAccount {
         intermediary.transfer(intermediaryBalance);
 
         intermediaryBalance = 0;
-        challengeExpiry = 0;
         activeHTLCs = new bytes32[](0);
     }
 
