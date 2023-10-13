@@ -1,6 +1,6 @@
 import hre, { ethers } from 'hardhat'
 import { type NitroSmartContractWallet } from '../typechain-types'
-import { type BaseWallet } from 'ethers'
+import { getBytes, type BaseWallet } from 'ethers'
 import { type StateStruct, type UserOperationStruct } from '../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet'
 import { expect } from 'chai'
 import { getUserOpHash, signUserOp } from './UserOp'
@@ -40,7 +40,39 @@ describe('Nitro-SCW', function () {
   })
 
   describe('Challenge', function () {
-    it('Should handle a challenge', async function () {
+    it('Should handle a htlc unlock', async function () {
+      const { nitroSCW, owner, intermediary } = await deployNitroSCW()
+      const secret = ethers.toUtf8Bytes('Super secret preimage for the hashlock')
+      const hash = ethers.keccak256(secret)
+      const state: StateStruct = {
+        owner: owner.address,
+        intermediary: intermediary.address,
+        turnNum: 1,
+        htlcs: [{
+          amount: 0,
+          hashLock: hash,
+          timelock: (await getBlockTimestamp()) + 1000
+        }]
+
+      }
+
+      // TODO: Get the correct hash of the state
+      // const stateHash = hashState(state)
+
+      const stateHash = await nitroSCW.getStateHash(state)
+
+      const [ownerSig, intermediarySig] = signStateHash(stateHash, owner, intermediary)
+      await nitroSCW.challenge(state, ownerSig, intermediarySig)
+
+      // Check that the the status is now challenged
+      expect(await nitroSCW.status()).to.equal(1)
+
+      await nitroSCW.unlockHTLC(hash, secret)
+
+      // Check that the the status is now finalized since all htlcs are cleared
+      expect(await nitroSCW.status()).to.equal(2)
+    })
+    it('Should handle a challenge and reclaim', async function () {
       const { nitroSCW, owner, intermediary } = await deployNitroSCW()
 
       const state: StateStruct = {
@@ -64,15 +96,15 @@ describe('Nitro-SCW', function () {
       await nitroSCW.challenge(state, ownerSig, intermediarySig)
 
       // Check that the the status is now challenged
-      expect(await nitroSCW.getStatus()).to.equal(1)
+      expect(await nitroSCW.status()).to.equal(1)
 
       // Advance the block time
       await time.increaseTo(Number(state.htlcs[0].timelock) + 1)
 
-      // Check that the the status is now finalized
-      expect(await nitroSCW.getStatus()).to.equal(2)
-
       await nitroSCW.reclaim()
+      
+      // Check that the the status is now finalized
+      expect(await nitroSCW.status()).to.equal(2)
     })
   })
 
