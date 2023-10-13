@@ -47,6 +47,11 @@ contract NitroSmartContractWallet is IAccount {
 
         removeActiveHTLC(hashLock);
 
+        if (htlc.to == address(this)) {
+            // If the HTLC is to the wallet itself then we don't bother transferring the funds
+            // since they are already in the wallet
+            return;
+        }
         htlc.to.transfer(htlc.amount);
     }
 
