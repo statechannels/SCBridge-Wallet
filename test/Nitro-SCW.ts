@@ -74,14 +74,15 @@ describe('Nitro-SCW', function () {
     })
     it('Should handle a challenge and reclaim', async function () {
       const { nitroSCW, owner, intermediary } = await deployNitroSCW()
-
+      const secret = ethers.toUtf8Bytes('Super secret preimage for the hashlock')
+      const hash = ethers.keccak256(secret)
       const state: StateStruct = {
         owner: owner.address,
         intermediary: intermediary.address,
-        turnNum: 0,
+        turnNum: 1,
         htlcs: [{
           amount: 0,
-          hashLock: ethers.ZeroHash,
+          hashLock: hash,
           timelock: (await getBlockTimestamp()) + 1000
         }]
 
@@ -102,7 +103,7 @@ describe('Nitro-SCW', function () {
       await time.increaseTo(Number(state.htlcs[0].timelock) + 1)
 
       await nitroSCW.reclaim()
-      
+
       // Check that the the status is now finalized
       expect(await nitroSCW.status()).to.equal(2)
     })
