@@ -4,7 +4,7 @@ import { type BaseWallet } from 'ethers'
 
 import { expect } from 'chai'
 import { getUserOpHash, signUserOp } from '../clients/UserOp'
-import { signStateHash } from './State'
+import { hashState, signStateHash } from './State'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
 import { type UserOperationStruct, type StateStruct } from '../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet'
 const ONE_DAY = 86400
@@ -62,10 +62,7 @@ describe('Nitro-SCW', function () {
         ]
       }
 
-      // TODO: Get the correct hash of the state
-      // const stateHash = hashState(state)
-
-      const stateHash = await nitroSCW.getStateHash(state)
+      const stateHash = hashState(state)
 
       const [ownerSig, intermediarySig] = signStateHash(stateHash, owner, intermediary)
       await nitroSCW.challenge(state, ownerSig, intermediarySig)
@@ -101,10 +98,7 @@ describe('Nitro-SCW', function () {
         ]
       }
 
-      // TODO: Get the correct hash of the state
-      // const stateHash = hashState(state)
-
-      const stateHash = await nitroSCW.getStateHash(state)
+      const stateHash = hashState(state)
 
       const [ownerSig, intermediarySig] = signStateHash(stateHash, owner, intermediary)
       await nitroSCW.challenge(state, ownerSig, intermediarySig)
