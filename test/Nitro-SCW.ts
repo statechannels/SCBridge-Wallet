@@ -47,6 +47,7 @@ describe('Nitro-SCW', function () {
       const state: StateStruct = {
         owner: owner.address,
         intermediary: intermediary.address,
+        intermediaryBalance: 0,
         turnNum: 1,
         htlcs: [{
           amount: 0,
@@ -81,6 +82,7 @@ describe('Nitro-SCW', function () {
         owner: owner.address,
         intermediary: intermediary.address,
         turnNum: 1,
+        intermediaryBalance: 0,
         htlcs: [{
           amount: 0,
           to: intermediary.address,

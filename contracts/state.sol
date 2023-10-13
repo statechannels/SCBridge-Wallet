@@ -5,7 +5,8 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 struct State {
     address payable owner;
     address payable intermediary;
-    uint64 turnNum;
+    uint turnNum;
+    uint intermediaryBalance;
     HTLC[] htlcs;
 }
 
