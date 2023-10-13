@@ -37,12 +37,10 @@ contract NitroSmartContractWallet is IAccount {
 
     function unlockHTLC(bytes32 hashLock, bytes memory preImage) public {
         HTLC memory htlc = htlcs[hashLock];
-        if (htlc.timelock > block.timestamp) {
-            revert("HTLC already expired");
-        }
-        if (htlc.hashLock != keccak256(preImage)) {
-            revert("Invalid preImage");
-        }
+
+        require(htlc.timelock > block.timestamp, "HTLC already expired");
+        require(htlc.hashLock != keccak256(preImage), "Invalid preImage");
+
         removeActiveHTLC(hashLock);
         intermediary.transfer(htlc.amount);
     }
@@ -62,9 +60,7 @@ contract NitroSmartContractWallet is IAccount {
     }
 
     function reclaim() public {
-        if (latestExpiry < block.timestamp) {
-            revert("Not all HTLCs have expired");
-        }
+        require(block.timestamp > latestExpiry, "HTLCs not expired yet");
         for (uint i = 0; i < activeHTLCs.length; i++) {
             HTLC memory htlc = htlcs[activeHTLCs[i]];
             intermediary.transfer(htlc.amount);
@@ -81,15 +77,13 @@ contract NitroSmartContractWallet is IAccount {
         checkSignatures(state, ownerSignature, intermediarySignature);
 
         WalletStatus status = getStatus();
-        if (status == WalletStatus.FINALIZED) {
-            revert("Wallet already finalized");
-        }
-        if (
-            status == WalletStatus.CHALLENGE_RAISED &&
-            state.turnNum <= highestTurnNum
-        ) {
-            revert("Challenge already exists with a larger TurnNum");
-        }
+        require(status != WalletStatus.FINALIZED, "Wallet already finalized");
+        require(
+            status != WalletStatus.CHALLENGE_RAISED ||
+                state.turnNum > highestTurnNum,
+            "Challenge already exists with a larger TurnNum"
+        );
+
         highestTurnNum = state.turnNum;
 
         activeHTLCs = new bytes32[](state.htlcs.length);
@@ -144,12 +138,8 @@ contract NitroSmartContractWallet is IAccount {
         UserOperation calldata userOp,
         bytes32 userOpHash
     ) internal virtual returns (uint256 validationData) {
-        if (userOp.signature.length != 2 * 65) {
-            revert("Invalid signature length");
-        }
-        if (userOp.signature.length == 0x0) {
-            revert("Empty signature");
-        }
+        require(userOp.signature.length == 2 * 65, "Invalid signature length");
+        require(userOp.signature.length != 0x0, "Empty signature");
 
         bytes memory ownerSig = userOp.signature[0:65];
         bytes memory intermediarySig = userOp.signature[65:130];
