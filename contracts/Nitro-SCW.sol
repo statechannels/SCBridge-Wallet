@@ -23,7 +23,7 @@ contract NitroSmartContractWallet is IAccount {
 
     uint highestTurnNum = 0;
     uint latestExpiry = 0;
-    uint intermediaryBalance = 0;
+    uint public intermediaryBalance = 0;
 
     function getStatus() public view returns (WalletStatus) {
         if (latestExpiry == 0 && highestTurnNum == 0) {

@@ -1,122 +1,124 @@
-import hre, { ethers } from 'hardhat'
-import { NitroSmartContractWallet__factory, type NitroSmartContractWallet } from '../typechain-types'
-import { type BaseWallet } from 'ethers'
-import { type StateStruct, type UserOperationStruct } from '../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet'
-import { expect } from 'chai'
-import { getUserOpHash, signUserOp } from './UserOp'
-import { signStateHash } from './State'
-import { time } from '@nomicfoundation/hardhat-network-helpers'
+import hre, { ethers } from 'hardhat';
+import { NitroSmartContractWallet__factory, type NitroSmartContractWallet } from '../typechain-types';
+import { type BaseWallet } from 'ethers';
+import { type StateStruct, type UserOperationStruct } from '../typechain-types/Nitro-SCW.sol/NitroSmartContractWallet';
+import { expect } from 'chai';
+import { getUserOpHash, signUserOp } from './UserOp';
+import { signStateHash } from './State';
+import { time } from '@nomicfoundation/hardhat-network-helpers';
 
-async function getBlockTimestamp (): Promise<number> {
-  const blockNum = (await hre.ethers.provider.getBlockNumber())
-  const block = await hre.ethers.provider.getBlock(blockNum)
+async function getBlockTimestamp(): Promise<number> {
+  const blockNum = await hre.ethers.provider.getBlockNumber();
+  const block = await hre.ethers.provider.getBlock(blockNum);
   if (block == null) {
-    throw new Error(`Block ${blockNum} not found`)
+    throw new Error(`Block ${blockNum} not found`);
   }
-  return block.timestamp
+  return block.timestamp;
 }
 describe('Nitro-SCW', function () {
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
   // and reset Hardhat Network to that snapshot in every test.
-  async function deployNitroSCW (): Promise<{ nitroSCW: NitroSmartContractWallet, owner: BaseWallet, intermediary: BaseWallet }> {
-    const deployer = await hre.ethers.getContractFactory('NitroSmartContractWallet')
+  async function deployNitroSCW(): Promise<{ nitroSCW: NitroSmartContractWallet; owner: BaseWallet; intermediary: BaseWallet }> {
+    const deployer = await hre.ethers.getContractFactory('NitroSmartContractWallet');
 
-    const owner = ethers.Wallet.createRandom()
-    const intermediary = ethers.Wallet.createRandom()
-    const hardhatFundedAccount = (await hre.ethers.getSigners())[0]
+    const owner = ethers.Wallet.createRandom();
+    const intermediary = ethers.Wallet.createRandom();
+    const hardhatFundedAccount = (await hre.ethers.getSigners())[0];
 
-    await hardhatFundedAccount.sendTransaction({ to: owner.address, value: ethers.parseEther('1.0') })
-    await hardhatFundedAccount.sendTransaction({ to: intermediary.address, value: ethers.parseEther('1.0') })
+    await hardhatFundedAccount.sendTransaction({ to: owner.address, value: ethers.parseEther('1.0') });
+    await hardhatFundedAccount.sendTransaction({ to: intermediary.address, value: ethers.parseEther('1.0') });
 
-    const nitroSCW = await deployer.deploy(owner, intermediary)
-    return { nitroSCW, owner, intermediary }
+    const nitroSCW = await deployer.deploy(owner, intermediary);
+    return { nitroSCW, owner, intermediary };
   }
 
   describe('Deployment', function () {
     it('Should deploy the nitro SCW', async function () {
-      await deployNitroSCW()
-    })
-  })
+      await deployNitroSCW();
+    });
+  });
 
   describe('Challenge', function () {
     it('Should handle a htlc unlock', async function () {
-      const { nitroSCW, owner, intermediary } = await deployNitroSCW()
-      const secret = ethers.toUtf8Bytes('Super secret preimage for the hashlock')
-      const hash = ethers.keccak256(secret)
+      const { nitroSCW, owner, intermediary } = await deployNitroSCW();
+      const secret = ethers.toUtf8Bytes('Super secret preimage for the hashlock');
+      const hash = ethers.keccak256(secret);
       const state: StateStruct = {
         owner: owner.address,
         intermediary: intermediary.address,
         intermediaryBalance: 0,
         turnNum: 1,
-        htlcs: [{
-          amount: 0,
-          to: intermediary.address,
-          hashLock: hash,
-          timelock: (await getBlockTimestamp()) + 1000
-        }]
-
-      }
+        htlcs: [
+          {
+            amount: 0,
+            to: intermediary.address,
+            hashLock: hash,
+            timelock: (await getBlockTimestamp()) + 1000
+          }
+        ]
+      };
 
       // TODO: Get the correct hash of the state
       // const stateHash = hashState(state)
 
-      const stateHash = await nitroSCW.getStateHash(state)
+      const stateHash = await nitroSCW.getStateHash(state);
 
-      const [ownerSig, intermediarySig] = signStateHash(stateHash, owner, intermediary)
-      await nitroSCW.challenge(state, ownerSig, intermediarySig)
+      const [ownerSig, intermediarySig] = signStateHash(stateHash, owner, intermediary);
+      await nitroSCW.challenge(state, ownerSig, intermediarySig);
 
       // Check that the the status is now challenged
-      expect(await nitroSCW.getStatus()).to.equal(1)
+      expect(await nitroSCW.getStatus()).to.equal(1);
 
-      await nitroSCW.unlockHTLC(hash, secret)
+      await nitroSCW.unlockHTLC(hash, secret);
 
       // Check that the the status is now finalized since all htlcs are cleared
-      expect(await nitroSCW.getStatus()).to.equal(2)
-    })
+      expect(await nitroSCW.getStatus()).to.equal(2);
+    });
     it('Should handle a challenge and reclaim', async function () {
-      const { nitroSCW, owner, intermediary } = await deployNitroSCW()
-      const secret = ethers.toUtf8Bytes('Super secret preimage for the hashlock')
-      const hash = ethers.keccak256(secret)
+      const { nitroSCW, owner, intermediary } = await deployNitroSCW();
+      const secret = ethers.toUtf8Bytes('Super secret preimage for the hashlock');
+      const hash = ethers.keccak256(secret);
       const state: StateStruct = {
         owner: owner.address,
         intermediary: intermediary.address,
         turnNum: 1,
         intermediaryBalance: 0,
-        htlcs: [{
-          amount: 0,
-          to: intermediary.address,
-          hashLock: hash,
-          timelock: (await getBlockTimestamp()) + 1000
-        }]
-
-      }
+        htlcs: [
+          {
+            amount: 0,
+            to: intermediary.address,
+            hashLock: hash,
+            timelock: (await getBlockTimestamp()) + 1000
+          }
+        ]
+      };
 
       // TODO: Get the correct hash of the state
       // const stateHash = hashState(state)
 
-      const stateHash = await nitroSCW.getStateHash(state)
+      const stateHash = await nitroSCW.getStateHash(state);
 
-      const [ownerSig, intermediarySig] = signStateHash(stateHash, owner, intermediary)
-      await nitroSCW.challenge(state, ownerSig, intermediarySig)
+      const [ownerSig, intermediarySig] = signStateHash(stateHash, owner, intermediary);
+      await nitroSCW.challenge(state, ownerSig, intermediarySig);
 
       // Check that the the status is now challenged
-      expect(await nitroSCW.getStatus()).to.equal(1)
+      expect(await nitroSCW.getStatus()).to.equal(1);
 
       // Advance the block time
-      await time.increaseTo(Number(state.htlcs[0].timelock) + 1)
+      await time.increaseTo(Number(state.htlcs[0].timelock) + 1);
 
-      await nitroSCW.reclaim()
+      await nitroSCW.reclaim();
 
       // Check that the the status is now finalized
-      expect(await nitroSCW.getStatus()).to.equal(2)
-    })
-  })
+      expect(await nitroSCW.getStatus()).to.equal(2);
+    });
+  });
 
   describe('validateUserOp', function () {
     it('Should return success if the userOp is signed by the owner and the intermediary', async function () {
-      const { nitroSCW, owner, intermediary } = await deployNitroSCW()
-      const n = await ethers.provider.getNetwork()
+      const { nitroSCW, owner, intermediary } = await deployNitroSCW();
+      const n = await ethers.provider.getNetwork();
       const userOp: UserOperationStruct = {
         sender: owner.address,
         nonce: 0,
@@ -129,21 +131,21 @@ describe('Nitro-SCW', function () {
         maxPriorityFeePerGas: 0,
         paymasterAndData: hre.ethers.ZeroHash,
         signature: hre.ethers.ZeroHash
-      }
+      };
 
-      const ownerSig = signUserOp(userOp, owner, ethers.ZeroAddress, Number(n.chainId))
-      const intermediarySig = signUserOp(userOp, intermediary, ethers.ZeroAddress, Number(n.chainId))
-      const hash = getUserOpHash(userOp, ethers.ZeroAddress, Number(n.chainId))
+      const ownerSig = signUserOp(userOp, owner, ethers.ZeroAddress, Number(n.chainId));
+      const intermediarySig = signUserOp(userOp, intermediary, ethers.ZeroAddress, Number(n.chainId));
+      const hash = getUserOpHash(userOp, ethers.ZeroAddress, Number(n.chainId));
 
-      userOp.signature = ethers.concat([ownerSig, intermediarySig])
+      userOp.signature = ethers.concat([ownerSig, intermediarySig]);
 
       // staticCall forces an eth_call, allowing us to easily check the result
-      const result = await nitroSCW.getFunction('validateUserOp').staticCall(userOp, hash, 0)
-      expect(result).to.equal(0)
-    })
+      const result = await nitroSCW.getFunction('validateUserOp').staticCall(userOp, hash, 0);
+      expect(result).to.equal(0);
+    });
     it('only allows specific functions to be called when signed by one actor', async function () {
-      const { nitroSCW, owner } = await deployNitroSCW()
-      const n = await ethers.provider.getNetwork()
+      const { nitroSCW, owner } = await deployNitroSCW();
+      const n = await ethers.provider.getNetwork();
 
       const userOp: UserOperationStruct = {
         sender: owner.address,
@@ -157,16 +159,16 @@ describe('Nitro-SCW', function () {
         maxPriorityFeePerGas: 0,
         paymasterAndData: hre.ethers.ZeroHash,
         signature: hre.ethers.ZeroHash
-      }
+      };
 
-      const ownerSig = signUserOp(userOp, owner, ethers.ZeroAddress, Number(n.chainId))
+      const ownerSig = signUserOp(userOp, owner, ethers.ZeroAddress, Number(n.chainId));
 
-      const hash = getUserOpHash(userOp, ethers.ZeroAddress, Number(n.chainId))
-      userOp.signature = ethers.zeroPadBytes(ownerSig, 130)
+      const hash = getUserOpHash(userOp, ethers.ZeroAddress, Number(n.chainId));
+      userOp.signature = ethers.zeroPadBytes(ownerSig, 130);
 
       // staticCall forces an eth_call, allowing us to easily check the result
-      const result = await nitroSCW.getFunction('validateUserOp').staticCall(userOp, hash, 0)
-      expect(result).to.equal(0)
-    })
-  })
-})
+      const result = await nitroSCW.getFunction('validateUserOp').staticCall(userOp, hash, 0);
+      expect(result).to.equal(0);
+    });
+  });
+});
