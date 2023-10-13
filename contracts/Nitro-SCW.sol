@@ -103,7 +103,7 @@ contract NitroSmartContractWallet is IAccount {
         bytes32 userOpHash,
         uint256 missingAccountFunds
     ) external returns (uint256 validationData) {
-        return _validateSignatures(userOp, userOpHash);
+        return validateSignatures(userOp, userOpHash);
     }
 
     constructor(address payable o, address payable i) {
@@ -113,7 +113,7 @@ contract NitroSmartContractWallet is IAccount {
 
     uint256 internal constant SIG_VALIDATION_FAILED = 1;
 
-    function _validateSignature(
+    function validateSignature(
         bytes32 userOpHash,
         bytes memory signature,
         address expectedSigner
@@ -125,7 +125,7 @@ contract NitroSmartContractWallet is IAccount {
         return 0;
     }
 
-    function _isZero(bytes memory b) internal pure returns (bool) {
+    function isZero(bytes memory b) internal pure returns (bool) {
         for (uint256 i = 0; i < b.length; i++) {
             if (b[i] != 0) {
                 return false;
@@ -134,7 +134,7 @@ contract NitroSmartContractWallet is IAccount {
         return true;
     }
 
-    function _validateSignatures(
+    function validateSignatures(
         UserOperation calldata userOp,
         bytes32 userOpHash
     ) internal virtual returns (uint256 validationData) {
@@ -145,15 +145,15 @@ contract NitroSmartContractWallet is IAccount {
         bytes memory intermediarySig = userOp.signature[65:130];
 
         // We have a signature from BOTH participants
-        if (!_isZero(ownerSig) && !_isZero(intermediarySig)) {
+        if (!isZero(ownerSig) && !isZero(intermediarySig)) {
             return
-                _validateSignature(userOpHash, ownerSig, owner) |
-                _validateSignature(userOpHash, intermediarySig, intermediary);
-        } else if (!_isZero(ownerSig)) {
+                validateSignature(userOpHash, ownerSig, owner) |
+                validateSignature(userOpHash, intermediarySig, intermediary);
+        } else if (!isZero(ownerSig)) {
             revert(
                 "TODO: Only owner signed. Should only allow specific functionality`"
             );
-        } else if (!_isZero(intermediarySig)) {
+        } else if (!isZero(intermediarySig)) {
             revert(
                 "TODO: Only intermediary signed. Should only allow specific functionality`"
             );
