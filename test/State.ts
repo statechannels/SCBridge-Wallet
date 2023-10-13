@@ -51,7 +51,7 @@ function encodeState (state: StateStruct): string {
         components: ['address', 'uint', 'bytes32', 'uint']
       } as any as ParamType
     ],
-    [owner, intermediary, turnNum, intermediaryBalance, htlcs]
+    [owner, intermediary, turnNum, intermediaryBalance, htlcs.map(htlc => [htlc.to, htlc.amount, htlc.hashLock, htlc.timelock])]
   )
 }
 
