@@ -10,8 +10,13 @@ struct State {
     HTLC[] htlcs;
 }
 
+enum Payee {
+    OWNER,
+    INTERMEDIARY
+}
+
 struct HTLC {
-    address payable to;
+    Payee to;
     uint amount;
     bytes32 hashLock;
     uint timelock;
