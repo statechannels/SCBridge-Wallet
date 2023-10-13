@@ -104,7 +104,7 @@ describe('Nitro-SCW', function () {
       }
 
       // submit the userOp that initiates the SCBridgeAccount
-      await infra.entryPoint.handleOps([userOp], '0x00000000000000000000')
+      await infra.entryPoint.handleOps([userOp], ethers.ZeroAddress)
 
       const code = await ethers.provider.getCode(expectedAddress)
       assert(code === SCBridgeWallet.bytecode, 'SCBridgeAccount not deployed')
