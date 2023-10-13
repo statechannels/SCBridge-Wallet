@@ -50,9 +50,6 @@ contract NitroSmartContractWallet is IAccount {
         if (htlc.to == intermediary) {
             intermediaryBalance += htlc.amount;
         }
-        if (htlc.to == owner) {
-            intermediaryBalance -= htlc.amount;
-        }
     }
 
     function removeActiveHTLC(bytes32 hashLock) private {
