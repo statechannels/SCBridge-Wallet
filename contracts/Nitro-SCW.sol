@@ -14,7 +14,7 @@ enum WalletStatus {
 
 contract NitroSmartContractWallet is IAccount {
     using ECDSA for bytes32;
-    WalletStatus public status;
+
     address payable public owner;
     address payable public intermediary;
 
@@ -25,6 +25,23 @@ contract NitroSmartContractWallet is IAccount {
     uint htlcCount = 0;
     uint latestExpiry = 0;
 
+    bool finalized = false;
+
+    function getStatus() public view returns (WalletStatus) {
+        if (latestExpiry == 0 && highestTurnNum == 0) {
+            return WalletStatus.OPEN;
+        }
+        // If all the htlcs were unlocked afer the challenge was raised then we are finalized
+        if (latestExpiry == 0 && highestTurnNum != 0) {
+            return WalletStatus.FINALIZED;
+        }
+        if (block.timestamp > latestExpiry) {
+            return WalletStatus.FINALIZED;
+        }
+
+        return WalletStatus.CHALLENGE_RAISED;
+    }
+
     function unlockHTLC(bytes32 hashLock, bytes memory preImage) public {
         HTLC memory htlc = htlcs[hashLock];
 
@@ -32,14 +49,8 @@ contract NitroSmartContractWallet is IAccount {
         require(htlc.hashLock == keccak256(preImage), "Invalid preImage");
 
         removeActiveHTLC(hashLock);
+
         intermediary.transfer(htlc.amount);
-
-        if (activeHTLCs.length == 0) {
-            status = WalletStatus.FINALIZED;
-            return;
-        }
-
-        updateLatestExpiry();
     }
 
     function removeActiveHTLC(bytes32 hashLock) private {
@@ -54,6 +65,7 @@ contract NitroSmartContractWallet is IAccount {
                 break;
             }
         }
+        updateLatestExpiry();
     }
 
     function updateLatestExpiry() private {
@@ -77,7 +89,6 @@ contract NitroSmartContractWallet is IAccount {
         }
 
         activeHTLCs = new bytes32[](0);
-        status = WalletStatus.FINALIZED;
     }
 
     function challenge(
@@ -87,6 +98,8 @@ contract NitroSmartContractWallet is IAccount {
     ) external {
         checkSignatures(state, ownerSignature, intermediarySignature);
 
+        WalletStatus status = getStatus();
+
         require(status != WalletStatus.FINALIZED, "Wallet already finalized");
         require(
             status != WalletStatus.CHALLENGE_RAISED ||
@@ -95,11 +108,6 @@ contract NitroSmartContractWallet is IAccount {
         );
 
         highestTurnNum = state.turnNum;
-
-        status = WalletStatus.CHALLENGE_RAISED;
-        if (state.htlcs.length == 0) {
-            status = WalletStatus.FINALIZED;
-        }
 
         activeHTLCs = new bytes32[](state.htlcs.length);
         for (uint256 i = 0; i < state.htlcs.length; i++) {

@@ -65,12 +65,12 @@ describe('Nitro-SCW', function () {
       await nitroSCW.challenge(state, ownerSig, intermediarySig)
 
       // Check that the the status is now challenged
-      expect(await nitroSCW.status()).to.equal(1)
+      expect(await nitroSCW.getStatus()).to.equal(1)
 
       await nitroSCW.unlockHTLC(hash, secret)
 
       // Check that the the status is now finalized since all htlcs are cleared
-      expect(await nitroSCW.status()).to.equal(2)
+      expect(await nitroSCW.getStatus()).to.equal(2)
     })
     it('Should handle a challenge and reclaim', async function () {
       const { nitroSCW, owner, intermediary } = await deployNitroSCW()
@@ -97,7 +97,7 @@ describe('Nitro-SCW', function () {
       await nitroSCW.challenge(state, ownerSig, intermediarySig)
 
       // Check that the the status is now challenged
-      expect(await nitroSCW.status()).to.equal(1)
+      expect(await nitroSCW.getStatus()).to.equal(1)
 
       // Advance the block time
       await time.increaseTo(Number(state.htlcs[0].timelock) + 1)
@@ -105,7 +105,7 @@ describe('Nitro-SCW', function () {
       await nitroSCW.reclaim()
 
       // Check that the the status is now finalized
-      expect(await nitroSCW.status()).to.equal(2)
+      expect(await nitroSCW.getStatus()).to.equal(2)
     })
   })
 
