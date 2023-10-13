@@ -1,14 +1,14 @@
 import hre, { ethers } from 'hardhat'
 import { NitroSmartContractWallet__factory, type NitroSmartContractWallet } from '../typechain-types'
 import { type BaseWallet } from 'ethers'
-import { type StateStruct, type UserOperationStruct } from '../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet'
+import { type StateStruct, type UserOperationStruct } from '../typechain-types/Nitro-SCW.sol/NitroSmartContractWallet'
 import { expect } from 'chai'
 import { getUserOpHash, signUserOp } from './UserOp'
 import { signStateHash } from './State'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
 
 async function getBlockTimestamp (): Promise<number> {
-  const blockNum = (await hre.ethers.provider.getBlockNumber())
+  const blockNum = await hre.ethers.provider.getBlockNumber()
   const block = await hre.ethers.provider.getBlock(blockNum)
   if (block == null) {
     throw new Error(`Block ${blockNum} not found`)
@@ -49,13 +49,14 @@ describe('Nitro-SCW', function () {
         intermediary: intermediary.address,
         intermediaryBalance: 0,
         turnNum: 1,
-        htlcs: [{
-          amount: 0,
-          to: intermediary.address,
-          hashLock: hash,
-          timelock: (await getBlockTimestamp()) + 1000
-        }]
-
+        htlcs: [
+          {
+            amount: 0,
+            to: intermediary.address,
+            hashLock: hash,
+            timelock: (await getBlockTimestamp()) + 1000
+          }
+        ]
       }
 
       // TODO: Get the correct hash of the state
@@ -83,13 +84,14 @@ describe('Nitro-SCW', function () {
         intermediary: intermediary.address,
         turnNum: 1,
         intermediaryBalance: 0,
-        htlcs: [{
-          amount: 0,
-          to: intermediary.address,
-          hashLock: hash,
-          timelock: (await getBlockTimestamp()) + 1000
-        }]
-
+        htlcs: [
+          {
+            amount: 0,
+            to: intermediary.address,
+            hashLock: hash,
+            timelock: (await getBlockTimestamp()) + 1000
+          }
+        ]
       }
 
       // TODO: Get the correct hash of the state
