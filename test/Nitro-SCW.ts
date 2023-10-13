@@ -67,4 +67,47 @@ describe('Nitro-SCW', function () {
     })
     it.skip('Should only allow challenges if the userOp is signed by the owner', async function () {})
   })
+
+  describe('initiating an SCBridgeAccount', function () {
+    it('Should deploy an SCBridgeAccount at the expected address', async function () {
+      // salt is user-supplied to create a specific address unknowable to others in advance
+      const salt = ethers.randomBytes(32)
+      const SCBridgeWallet = await ethers.getContractFactory('NitroSmartContractWallet')
+
+      const someOwner = ethers.Wallet.createRandom()
+      const someIntermediary = ethers.Wallet.createRandom()
+
+      // This is the precomputed address of the SCBridgeAccount.
+      const expectedAddress = ethers.getCreate2Address(
+        await infra.entryPoint.getAddress(),
+        salt,
+        ethers.keccak256(SCBridgeWallet.bytecode)
+      )
+
+      console.log('expectedAddress', expectedAddress)
+
+      const userOp: UserOperationStruct = {
+        initCode: (await infra.SCBridgeFactory.getAddress()) +
+         someOwner.address.slice(2) +
+         someIntermediary.address.slice(2) +
+         salt.toString(),
+        sender: expectedAddress,
+        nonce: 0,
+        callData: hre.ethers.ZeroHash,
+        callGasLimit: 0,
+        verificationGasLimit: 0,
+        preVerificationGas: 0,
+        maxFeePerGas: 0,
+        maxPriorityFeePerGas: 0,
+        paymasterAndData: hre.ethers.ZeroHash,
+        signature: hre.ethers.ZeroHash
+      }
+
+      // submit the userOp that initiates the SCBridgeAccount
+      await infra.entryPoint.handleOps([userOp], '0x00000000000000000000')
+
+      const code = await ethers.provider.getCode(expectedAddress)
+      assert(code === SCBridgeWallet.bytecode, 'SCBridgeAccount not deployed')
+    })
+  })
 })
