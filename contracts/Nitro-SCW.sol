@@ -161,14 +161,21 @@ contract NitroSmartContractWallet is IAccount {
         bytes memory ownerSig = userOp.signature[0:65];
         bytes memory intermediarySig = userOp.signature[65:130];
 
-        // We have a signature from BOTH participants
+        // The owner of the wallet must always approve of any user operation to execute on it's behalf
+        require(!isZero(ownerSig), "Must be signed by owner");
+
+        // If the wallet is finalized then the owner can do whatever they want with the remaining funds
+        if (getStatus() == WalletStatus.FINALIZED) {
+            return validateSignature(userOpHash, ownerSig, owner);
+        }
+        // If the user op is doubly-signed then the wallet is allowed to do whatever it wants since everyone has approved it
         if (!isZero(ownerSig) && !isZero(intermediarySig)) {
             return
                 validateSignature(userOpHash, ownerSig, owner) |
                 validateSignature(userOpHash, intermediarySig, intermediary);
         }
 
-        // If we only have 1 signature then we only allow specific function calls
+        // Otherwise the wallet is open or has a challenge raised and the owner is only allowed to do certain things
         bytes4 functionSelector = bytes4(userOp.callData[0:4]);
         require(
             functionSelector == this.challenge.selector ||
@@ -176,15 +183,7 @@ contract NitroSmartContractWallet is IAccount {
                 functionSelector == this.unlockHTLC.selector,
             "Invalid function selector"
         );
-
-        if (!isZero(ownerSig)) {
-            return validateSignature(userOpHash, ownerSig, owner);
-        }
-        if (!isZero(intermediarySig)) {
-            return validateSignature(userOpHash, intermediarySig, intermediary);
-        }
-
-        return SIG_VALIDATION_FAILED;
+        return validateSignature(userOpHash, ownerSig, owner);
     }
 
     // TODO: This is part of the contract so we can use it to hash the state in ts code
