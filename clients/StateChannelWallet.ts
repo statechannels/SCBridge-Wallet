@@ -9,6 +9,8 @@ export class StateChannelWallet {
   private readonly chainProvider: ethers.Provider
   private readonly signer: ethers.Wallet
   private readonly entrypointAddress: string
+  private intermediaryAddress: string
+  private intermediaryBalance: bigint
   private readonly scwAddress: string
   private readonly hashStore: Map<string, Uint8Array> // maps hash-->preimage
 
@@ -20,6 +22,20 @@ export class StateChannelWallet {
 
     const wallet = new ethers.Wallet(params.signingKey)
     this.signer = wallet.connect(this.chainProvider)
+
+    // These values should be set in 'create' method
+    this.intermediaryAddress = '0x0'
+    this.intermediaryBalance = BigInt(0)
+  }
+
+  static async create (params: { signingKey: string, chainRpcUrl: string, entrypointAddress: string, scwAddress: string }): Promise<StateChannelWallet> {
+    const instance = new StateChannelWallet(params)
+
+    const scw = NitroSmartContractWallet__factory.connect(instance.scwAddress, instance.chainProvider)
+    instance.intermediaryAddress = await scw.intermediary()
+    instance.intermediaryBalance = await scw.intermediaryBalance()
+
+    return instance
   }
 
   async getCurrentBlockNumber (): Promise<number> {
@@ -50,19 +66,17 @@ export class StateChannelWallet {
       timelock: currentTimestamp + HTLC_TIMEOUT * 2 // payment creator always uses TIMEOUT * 2
     }
 
-    const scw = NitroSmartContractWallet__factory.connect(this.scwAddress, this.chainProvider)
-    const intermediaryAddress = await scw.intermediary()
-    const intermediaryBalance = await scw.intermediaryBalance()
-
     const htlcState: StateStruct = {
       owner: this.signer.address,
-      intermediary: intermediaryAddress,
+      intermediary: this.intermediaryAddress,
       turnNum: 0,
-      intermediaryBalance,
+      intermediaryBalance: this.intermediaryBalance,
       htlcs: [htlc]
     }
 
+    const scw = NitroSmartContractWallet__factory.connect(this.scwAddress, this.chainProvider)
     const stateHash = await scw.getStateHash(htlcState)
+
     const signature = await this.signer.signMessage(stateHash)
     return signature
   }
