@@ -4,8 +4,8 @@ import "./Nitro-SCW.sol";
 
 contract SCBridgeAccountFactory {
     function createAccount(
-        address owner,
-        address intermediary,
+        address payable owner,
+        address payable intermediary,
         bytes32 salt
     ) public returns (address) {
         return
