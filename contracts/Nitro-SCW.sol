@@ -21,7 +21,7 @@ contract NitroSmartContractWallet is IAccount {
     bytes32[] activeHTLCs;
     mapping(bytes32 => HTLC) htlcs;
 
-    uint64 highestTurnNum = 0;
+    uint highestTurnNum = 0;
     uint htlcCount = 0;
     uint latestExpiry = 0;
 
