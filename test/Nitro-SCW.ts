@@ -4,6 +4,14 @@ import { type BaseWallet } from 'ethers'
 import { type UserOperationStruct } from '../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet'
 import { expect } from 'chai'
 import { getUserOpHash, signUserOp } from './UserOp'
+import { deploy4337Infrastructure, type eip4337Infra } from './setup'
+import { assert } from 'console'
+
+let infra: eip4337Infra
+
+before(async () => {
+  infra = await deploy4337Infrastructure()
+})
 
 describe('Nitro-SCW', function () {
   // We define a fixture to reuse the same setup in every test.
