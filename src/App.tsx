@@ -1,35 +1,64 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState } from "react";
+import logo from "./assets/logo.png";
+import "./App.css";
+import {
+  Button,
+  ButtonGroup,
+  InputAdornment,
+  OutlinedInput,
+  TextField,
+  ThemeProvider,
+  createTheme,
+  useMediaQuery,
+} from "@mui/material";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [intermediary, setIntermediary] = useState("0xabc");
+  const [inboundCapacity, setInboundCapacity] = useState(0);
+  const [balance, setBalance] = useState(0);
+  const [recipient, setRecipient] = useState("0xbob");
+
+  const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
+  const theme = React.useMemo(
+    () =>
+      createTheme({
+        palette: {
+          mode: prefersDarkMode ? "dark" : "light",
+        },
+      }),
+    [prefersDarkMode]
+  );
 
   return (
-    <>
+    <ThemeProvider theme={theme}>
       <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+        <img
+          src={logo}
+          className="logo"
+          alt="SCBridge-Wallet Logo"
+          style={{ height: "25vh" }}
+        />
       </div>
-      <h1>Vite + React</h1>
+      <h1>SCBridge-Wallet</h1>
       <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+        <p>Balance: {balance}</p>
+        <p> Inbound Capacity: {inboundCapacity}</p>
+        <TextField
+          label="Payee"
+          id="outlined-start-adornment"
+          defaultValue="0xbob"
+          onChange={(e) => setRecipient(e.target.value)}
+          sx={{ m: 1, width: "25ch" }}
+        />{" "}
+        <ButtonGroup variant="outlined" aria-label="outlined button group">
+          <Button>L1 Pay</Button>
+          <Button>L2 Pay</Button>
+        </ButtonGroup>
+        <p>Intermediary: {intermediary}</p>
+        <Button>Eject</Button>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </ThemeProvider>
+  );
 }
 
-export default App
+export default App;
