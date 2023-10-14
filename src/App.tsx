@@ -17,6 +17,7 @@ function App() {
   const [inboundCapacity, setInboundCapacity] = useState(0);
   const [balance, setBalance] = useState(0);
   const [recipient, setRecipient] = useState("0xbob");
+  const [hostNetwork, setHostNetwork] = useState("Scroll");
 
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
   const theme = React.useMemo(
@@ -41,6 +42,7 @@ function App() {
       </div>
       <h1>SCBridge-Wallet</h1>
       <div className="card">
+        <p> Host Network: {hostNetwork}</p>
         <p>Balance: {balance}</p>
         <p> Inbound Capacity: {inboundCapacity}</p>
         <TextField
