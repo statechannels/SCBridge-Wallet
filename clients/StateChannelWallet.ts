@@ -1,5 +1,5 @@
 import { ethers } from 'ethers'
-import { type UserOperationStruct, type HTLCStruct, type StateStruct } from '../typechain-types/Nitro-SCW.sol/NitroSmartContractWallet'
+import { type UserOperationStruct, type HTLCStruct, type StateStruct, type NitroSmartContractWallet } from '../typechain-types/Nitro-SCW.sol/NitroSmartContractWallet'
 import { signUserOp } from './UserOp'
 import { NitroSmartContractWallet__factory } from '../typechain-types'
 
@@ -12,6 +12,7 @@ export class StateChannelWallet {
   private intermediaryAddress: string
   private intermediaryBalance: bigint
   private readonly scwAddress: string
+  private readonly contract: NitroSmartContractWallet
   private readonly hashStore: Map<string, Uint8Array> // maps hash-->preimage
 
   constructor (params: { signingKey: string, chainRpcUrl: string, entrypointAddress: string, scwAddress: string }) {
@@ -23,6 +24,8 @@ export class StateChannelWallet {
     const wallet = new ethers.Wallet(params.signingKey)
     this.signer = wallet.connect(this.chainProvider)
 
+    this.contract = NitroSmartContractWallet__factory.connect(this.scwAddress, this.chainProvider)
+
     // These values should be set in 'create' method
     this.intermediaryAddress = '0x0'
     this.intermediaryBalance = BigInt(0)
@@ -31,11 +34,20 @@ export class StateChannelWallet {
   static async create (params: { signingKey: string, chainRpcUrl: string, entrypointAddress: string, scwAddress: string }): Promise<StateChannelWallet> {
     const instance = new StateChannelWallet(params)
 
-    const scw = NitroSmartContractWallet__factory.connect(instance.scwAddress, instance.chainProvider)
-    instance.intermediaryAddress = await scw.intermediary()
-    instance.intermediaryBalance = await scw.intermediaryBalance()
+    instance.intermediaryAddress = await instance.contract.intermediary()
+    instance.intermediaryBalance = await instance.contract.intermediaryBalance()
 
     return instance
+  }
+
+  async getBalance (): Promise<number> {
+    const balance = await this.chainProvider.getBalance(this.scwAddress)
+    const balanceEther = ethers.formatEther(balance)
+    return Number(balanceEther)
+  }
+
+  async getIntermediaryBalance (): Promise<number> {
+    return Number(this.intermediaryBalance)
   }
 
   async getCurrentBlockNumber (): Promise<number> {
@@ -74,10 +86,9 @@ export class StateChannelWallet {
       htlcs: [htlc]
     }
 
-    const scw = NitroSmartContractWallet__factory.connect(this.scwAddress, this.chainProvider)
-    const stateHash = await scw.getStateHash(htlcState)
-
+    const stateHash = await this.contract.getStateHash(htlcState)
     const signature = await this.signer.signMessage(stateHash)
+
     return signature
   }
   // ingestSignedStateAndPreimage(signedState, preimage); // returns a signed state with updated balances and one fewer HTLC
