@@ -182,6 +182,14 @@ contract NitroSmartContractWallet is IAccount {
         return true;
     }
 
+    // TODO: This is part of the contract so we can use it to encode the state in ts code
+    // We should update the ts code to encode the state on it's own
+    function getEncodedState(
+        State memory state
+    ) public pure returns (bytes memory) {
+        return abi.encode(state);
+    }
+
     // TODO: This is part of the contract so we can use it to hash the state in ts code
     // We should update the ts code to hash the state on it's own
     function getStateHash(State memory state) public pure returns (bytes32) {

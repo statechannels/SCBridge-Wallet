@@ -4,7 +4,7 @@ import { type BaseWallet } from 'ethers'
 
 import { expect } from 'chai'
 import { getUserOpHash, signUserOp } from '../clients/UserOp'
-import { signStateHash } from './State'
+import { encodeState, hashState, signStateHash } from './State'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
 import { type UserOperationStruct, type StateStruct } from '../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet'
 const ONE_DAY = 86400
@@ -42,6 +42,57 @@ describe('Nitro-SCW', function () {
     })
   })
 
+  describe('State utilites', function () {
+    it('encodes a state on and off chain , and they match', async function () {
+      const { nitroSCW, owner, intermediary } = await deployNitroSCW()
+
+      const state: StateStruct = {
+        owner: owner.address,
+        intermediary: intermediary.address,
+        intermediaryBalance: 0,
+        turnNum: 1,
+        htlcs: [
+          {
+            amount: 0,
+            to: Payee.Intermediary,
+            hashLock: ethers.ZeroHash,
+            timelock: (await getBlockTimestamp()) + 1000
+          }
+        ]
+      }
+
+      const onchain = await nitroSCW.getEncodedState(state)
+
+      const offchain = encodeState(state)
+
+      expect(onchain).to.equal(offchain)
+    })
+    it('hashes a state on and off chain , and they match', async function () {
+      const { nitroSCW, owner, intermediary } = await deployNitroSCW()
+
+      const state: StateStruct = {
+        owner: owner.address,
+        intermediary: intermediary.address,
+        intermediaryBalance: 0,
+        turnNum: 1,
+        htlcs: [
+          {
+            amount: 0,
+            to: Payee.Intermediary,
+            hashLock: ethers.ZeroHash,
+            timelock: (await getBlockTimestamp()) + 1000
+          }
+        ]
+      }
+
+      const onchainHash = await nitroSCW.getStateHash(state)
+
+      const offchainHash = hashState(state)
+
+      expect(onchainHash).to.equal(offchainHash)
+    })
+  })
+
   describe('Challenge', function () {
     it('Should handle a htlc unlock', async function () {
       const { nitroSCW, owner, intermediary } = await deployNitroSCW()
@@ -62,10 +113,7 @@ describe('Nitro-SCW', function () {
         ]
       }
 
-      // TODO: Get the correct hash of the state
-      // const stateHash = hashState(state)
-
-      const stateHash = await nitroSCW.getStateHash(state)
+      const stateHash = hashState(state)
 
       const [ownerSig, intermediarySig] = signStateHash(stateHash, owner, intermediary)
       await nitroSCW.challenge(state, ownerSig, intermediarySig)
@@ -101,10 +149,7 @@ describe('Nitro-SCW', function () {
         ]
       }
 
-      // TODO: Get the correct hash of the state
-      // const stateHash = hashState(state)
-
-      const stateHash = await nitroSCW.getStateHash(state)
+      const stateHash = hashState(state)
 
       const [ownerSig, intermediarySig] = signStateHash(stateHash, owner, intermediary)
       await nitroSCW.challenge(state, ownerSig, intermediarySig)
