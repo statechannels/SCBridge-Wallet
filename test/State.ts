@@ -60,7 +60,7 @@ export function encodeState (state: StateStruct): string {
           type: 'tuple[]',
           name: 'htlcs',
           components: [
-            { name: 'to', type: 'address' },
+            { name: 'to', type: 'uint8' },
             { name: 'amount', type: 'uint' },
             { name: 'hashLock', type: 'bytes32' },
             { name: 'timelock', type: 'uint' }

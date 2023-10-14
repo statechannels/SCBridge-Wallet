@@ -54,7 +54,7 @@ describe('Nitro-SCW', function () {
         htlcs: [
           {
             amount: 0,
-            to: intermediary.address,
+            to: Payee.Intermediary,
             hashLock: ethers.ZeroHash,
             timelock: (await getBlockTimestamp()) + 1000
           }
@@ -78,7 +78,7 @@ describe('Nitro-SCW', function () {
         htlcs: [
           {
             amount: 0,
-            to: intermediary.address,
+            to: Payee.Intermediary,
             hashLock: ethers.ZeroHash,
             timelock: (await getBlockTimestamp()) + 1000
           }
