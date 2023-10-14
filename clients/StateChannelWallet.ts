@@ -1,6 +1,6 @@
 import { ethers } from 'ethers'
 import { type UserOperationStruct, type HTLCStruct, type StateStruct } from '../typechain-types/Nitro-SCW.sol/NitroSmartContractWallet'
-import { signUserOp } from '../test/UserOp'
+import { signUserOp } from './UserOp'
 import { NitroSmartContractWallet__factory } from '../typechain-types'
 
 const HTLC_TIMEOUT = 5 * 60 // 5 minutes
