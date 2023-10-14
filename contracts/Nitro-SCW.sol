@@ -5,7 +5,7 @@ pragma solidity 0.8.19;
 import {IAccount} from "contracts/interfaces/IAccount.sol";
 import {UserOperation} from "contracts/interfaces/UserOperation.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import {HTLC, State, hashState, checkSignatures} from "./state.sol";
+import {HTLC, State, hashState, checkSignatures, Payee} from "./state.sol";
 enum WalletStatus {
     OPEN,
     CHALLENGE_RAISED,
@@ -47,7 +47,7 @@ contract NitroSmartContractWallet is IAccount {
 
         removeActiveHTLC(hashLock);
 
-        if (htlc.to == intermediary) {
+        if (htlc.to == Payee.INTERMEDIARY) {
             intermediaryBalance += htlc.amount;
         }
     }
@@ -73,7 +73,7 @@ contract NitroSmartContractWallet is IAccount {
         // Release any expired funds back to the sender
         for (uint i = 0; i < activeHTLCs.length; i++) {
             HTLC memory htlc = htlcs[activeHTLCs[i]];
-            if (htlc.to == owner) {
+            if (htlc.to == Payee.OWNER) {
                 intermediary.transfer(htlc.amount);
             } else {
                 owner.transfer(htlc.amount);
@@ -108,11 +108,6 @@ contract NitroSmartContractWallet is IAccount {
         uint largestTimeLock = 0;
         activeHTLCs = new bytes32[](state.htlcs.length);
         for (uint256 i = 0; i < state.htlcs.length; i++) {
-            require(
-                state.htlcs[i].to == owner || state.htlcs[i].to == intermediary,
-                "HTLC to address must be owner or intermediary"
-            );
-
             activeHTLCs[i] = state.htlcs[i].hashLock;
             htlcs[state.htlcs[i].hashLock] = state.htlcs[i];
             if (state.htlcs[i].timelock > largestTimeLock) {
