@@ -38,21 +38,39 @@ export function signStateHash (
   ]
 }
 
-function encodeState (state: StateStruct): string {
-  const { owner, intermediary, turnNum, intermediaryBalance, htlcs } = state
-  return AbiCoder.defaultAbiCoder().encode(
-    [
-      'address',
-      'address',
-      'uint',
-      'uint',
-      {
-        type: 'tuple[]',
-        components: ['address', 'uint', 'bytes32', 'uint']
-      } as any as ParamType
-    ],
-    [owner, intermediary, turnNum, intermediaryBalance, htlcs.map(htlc => [htlc.to, htlc.amount, htlc.hashLock, htlc.timelock])]
-  )
+export function encodeState (state: StateStruct): string {
+  const ABI = [
+    {
+      type: 'tuple',
+      components: [
+        { name: 'owner', type: 'address' },
+        {
+          name: 'intermediary',
+          type: 'address'
+        },
+        {
+          name: 'turnNum',
+          type: 'uint'
+        },
+        {
+          name: 'intermediaryBalance',
+          type: 'uint'
+        },
+        {
+          type: 'tuple[]',
+          name: 'htlcs',
+          components: [
+            { name: 'to', type: 'address' },
+            { name: 'amount', type: 'uint' },
+            { name: 'hashLock', type: 'bytes32' },
+            { name: 'timelock', type: 'uint' }
+          ]
+        } as any as ParamType
+      ]
+    } as any as ParamType
+  ]
+
+  return AbiCoder.defaultAbiCoder().encode(ABI, [state])
 }
 
 export function hashState (state: StateStruct): string {
