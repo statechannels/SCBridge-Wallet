@@ -3,7 +3,7 @@ import { NitroSmartContractWallet__factory, type NitroSmartContractWallet } from
 import { type BaseWallet } from 'ethers'
 
 import { expect } from 'chai'
-import { getUserOpHash, signUserOp } from './UserOp'
+import { getUserOpHash, signUserOp } from '../clients/UserOp'
 import { signStateHash } from './State'
 import { time } from '@nomicfoundation/hardhat-network-helpers'
 import { type UserOperationStruct, type StateStruct } from '../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet'
