@@ -7,6 +7,7 @@ import {
 } from "../typechain-types/Nitro-SCW.sol/NitroSmartContractWallet";
 import { signUserOp } from "./UserOp";
 import { NitroSmartContractWallet__factory } from "../typechain-types";
+import { hashState } from "../test/State";
 
 const HTLC_TIMEOUT = 5 * 60; // 5 minutes
 
@@ -114,7 +115,7 @@ export class StateChannelWallet {
       htlcs: [htlc],
     };
 
-    const stateHash = await this.contract.getStateHash(htlcState);
+    const stateHash = hashState(htlcState);
     const signature = await this.signer.signMessage(stateHash);
 
     return signature;

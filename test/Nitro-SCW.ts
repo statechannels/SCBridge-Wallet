@@ -7,7 +7,7 @@ import { type BaseWallet } from "ethers";
 
 import { expect } from "chai";
 import { getUserOpHash, signUserOp } from "../clients/UserOp";
-import { encodeState, hashState, signStateHash } from "./State";
+import { hashState, signStateHash } from "./State";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 import {
   type UserOperationStruct,
@@ -27,6 +27,14 @@ async function getBlockTimestamp(): Promise<number> {
   }
   return block.timestamp;
 }
+async function getBlockTimestamp(): Promise<number> {
+  const blockNum = await hre.ethers.provider.getBlockNumber();
+  const block = await hre.ethers.provider.getBlock(blockNum);
+  if (block == null) {
+    throw new Error(`Block ${blockNum} not found`);
+  }
+  return block.timestamp;
+}
 describe("Nitro-SCW", function () {
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
@@ -37,7 +45,7 @@ describe("Nitro-SCW", function () {
     intermediary: BaseWallet;
   }> {
     const deployer = await hre.ethers.getContractFactory(
-      "NitroSmartContractWallet",
+      "NitroSmartContractWallet"
     );
 
     const owner = ethers.Wallet.createRandom();
@@ -63,62 +71,11 @@ describe("Nitro-SCW", function () {
     });
   });
 
-  describe("State utilites", function () {
-    it("encodes a state on and off chain , and they match", async function () {
-      const { nitroSCW, owner, intermediary } = await deployNitroSCW();
-
-      const state: StateStruct = {
-        owner: owner.address,
-        intermediary: intermediary.address,
-        intermediaryBalance: 0,
-        turnNum: 1,
-        htlcs: [
-          {
-            amount: 0,
-            to: Payee.Intermediary,
-            hashLock: ethers.ZeroHash,
-            timelock: (await getBlockTimestamp()) + 1000,
-          },
-        ],
-      };
-
-      const onchain = await nitroSCW.getEncodedState(state);
-
-      const offchain = encodeState(state);
-
-      expect(onchain).to.equal(offchain);
-    });
-    it("hashes a state on and off chain , and they match", async function () {
-      const { nitroSCW, owner, intermediary } = await deployNitroSCW();
-
-      const state: StateStruct = {
-        owner: owner.address,
-        intermediary: intermediary.address,
-        intermediaryBalance: 0,
-        turnNum: 1,
-        htlcs: [
-          {
-            amount: 0,
-            to: Payee.Intermediary,
-            hashLock: ethers.ZeroHash,
-            timelock: (await getBlockTimestamp()) + 1000,
-          },
-        ],
-      };
-
-      const onchainHash = await nitroSCW.getStateHash(state);
-
-      const offchainHash = hashState(state);
-
-      expect(onchainHash).to.equal(offchainHash);
-    });
-  });
-
   describe("Challenge", function () {
     it("Should handle a htlc unlock", async function () {
       const { nitroSCW, owner, intermediary } = await deployNitroSCW();
       const secret = ethers.toUtf8Bytes(
-        "Super secret preimage for the hashlock",
+        "Super secret preimage for the hashlock"
       );
       const hash = ethers.keccak256(secret);
       const state: StateStruct = {
@@ -141,7 +98,7 @@ describe("Nitro-SCW", function () {
       const [ownerSig, intermediarySig] = signStateHash(
         stateHash,
         owner,
-        intermediary,
+        intermediary
       );
       await nitroSCW.challenge(state, ownerSig, intermediarySig);
 
@@ -160,7 +117,7 @@ describe("Nitro-SCW", function () {
     it("Should handle a challenge and reclaim", async function () {
       const { nitroSCW, owner, intermediary } = await deployNitroSCW();
       const secret = ethers.toUtf8Bytes(
-        "Super secret preimage for the hashlock",
+        "Super secret preimage for the hashlock"
       );
       const hash = ethers.keccak256(secret);
       const state: StateStruct = {
@@ -183,7 +140,7 @@ describe("Nitro-SCW", function () {
       const [ownerSig, intermediarySig] = signStateHash(
         stateHash,
         owner,
-        intermediary,
+        intermediary
       );
       await nitroSCW.challenge(state, ownerSig, intermediarySig);
 
@@ -222,13 +179,13 @@ describe("Nitro-SCW", function () {
         userOp,
         owner,
         ethers.ZeroAddress,
-        Number(n.chainId),
+        Number(n.chainId)
       );
       const intermediarySig = signUserOp(
         userOp,
         intermediary,
         ethers.ZeroAddress,
-        Number(n.chainId),
+        Number(n.chainId)
       );
       const hash = getUserOpHash(userOp, ethers.ZeroAddress, Number(n.chainId));
 
@@ -250,7 +207,7 @@ describe("Nitro-SCW", function () {
         initCode: hre.ethers.ZeroHash,
         callData:
           NitroSmartContractWallet__factory.createInterface().encodeFunctionData(
-            "reclaim",
+            "reclaim"
           ),
         callGasLimit: 0,
         verificationGasLimit: 0,
@@ -265,7 +222,7 @@ describe("Nitro-SCW", function () {
         userOp,
         owner,
         ethers.ZeroAddress,
-        Number(n.chainId),
+        Number(n.chainId)
       );
 
       const hash = getUserOpHash(userOp, ethers.ZeroAddress, Number(n.chainId));
