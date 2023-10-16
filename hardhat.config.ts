@@ -1,19 +1,18 @@
-import { type HardhatUserConfig } from 'hardhat/config'
+import { type HardhatUserConfig } from "hardhat/config";
 
-import '@typechain/hardhat'
-import '@nomicfoundation/hardhat-ethers'
-import '@nomicfoundation/hardhat-chai-matchers'
+import "@typechain/hardhat";
+import "@nomicfoundation/hardhat-ethers";
+import "@nomicfoundation/hardhat-chai-matchers";
 const config: HardhatUserConfig = {
   solidity: {
-    version: '0.8.19',
+    version: "0.8.19",
     settings: {
       optimizer: {
         enabled: true,
-        runs: 1000
-      }
-    }
-  }
+        runs: 1000,
+      },
+    },
+  },
+};
 
-}
-
-export default config
+export default config;
