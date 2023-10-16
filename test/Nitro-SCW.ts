@@ -9,7 +9,7 @@ import { time } from '@nomicfoundation/hardhat-network-helpers'
 import { type UserOperationStruct, type StateStruct } from '../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet'
 const ONE_DAY = 86400
 const TIMELOCK_DELAY = 1000
-const enum Payee { Owner = 0, Intermediary = 1 }
+const enum Participant { Owner = 0, Intermediary = 1 }
 async function getBlockTimestamp (): Promise<number> {
   const blockNum = await hre.ethers.provider.getBlockNumber()
   const block = await hre.ethers.provider.getBlock(blockNum)
@@ -54,7 +54,7 @@ describe('Nitro-SCW', function () {
         htlcs: [
           {
             amount: 0,
-            to: Payee.Intermediary,
+            to: Participant.Intermediary,
             hashLock: ethers.ZeroHash,
             timelock: (await getBlockTimestamp()) + 1000
           }
@@ -78,7 +78,7 @@ describe('Nitro-SCW', function () {
         htlcs: [
           {
             amount: 0,
-            to: Payee.Intermediary,
+            to: Participant.Intermediary,
             hashLock: ethers.ZeroHash,
             timelock: (await getBlockTimestamp()) + 1000
           }
@@ -106,7 +106,7 @@ describe('Nitro-SCW', function () {
         htlcs: [
           {
             amount: 0,
-            to: Payee.Intermediary,
+            to: Participant.Intermediary,
             hashLock: hash,
             timelock: (await getBlockTimestamp()) + TIMELOCK_DELAY
           }
@@ -142,7 +142,7 @@ describe('Nitro-SCW', function () {
         htlcs: [
           {
             amount: 0,
-            to: Payee.Intermediary,
+            to: Participant.Intermediary,
             hashLock: hash,
             timelock: (await getBlockTimestamp()) + 1000
           }

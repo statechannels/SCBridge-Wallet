@@ -5,7 +5,7 @@ pragma solidity 0.8.19;
 import {IAccount} from "contracts/interfaces/IAccount.sol";
 import {UserOperation} from "contracts/interfaces/UserOperation.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import {HTLC, State, hashState, checkSignatures, Payee} from "./state.sol";
+import {HTLC, State, hashState, checkSignatures, Participant} from "./state.sol";
 enum WalletStatus {
     OPEN,
     CHALLENGE_RAISED,
@@ -47,7 +47,7 @@ contract NitroSmartContractWallet is IAccount {
 
         removeActiveHTLC(hashLock);
 
-        if (htlc.to == Payee.INTERMEDIARY) {
+        if (htlc.to == Participant.INTERMEDIARY) {
             intermediaryBalance += htlc.amount;
         }
     }
@@ -73,7 +73,7 @@ contract NitroSmartContractWallet is IAccount {
         // Release any expired funds back to the sender
         for (uint i = 0; i < activeHTLCs.length; i++) {
             HTLC memory htlc = htlcs[activeHTLCs[i]];
-            if (htlc.to == Payee.OWNER) {
+            if (htlc.to == Participant.OWNER) {
                 intermediary.transfer(htlc.amount);
             } else {
                 owner.transfer(htlc.amount);
