@@ -128,8 +128,8 @@ contract NitroSmartContractWallet is IAccount {
         uint256 value,
         bytes calldata func
     ) external {
-        if (getStatus() == WalletStatus.FINALIZED) {
-            // If the wallet has finalized then the owner can do whatever they want with the remaining funds
+        if (getStatus() == WalletStatus.FINALIZED && activeHTLCs.length == 0) {
+            // If the wallet has finalized and all the funds have been reclaimed then the owner can do whatever they want with the remaining funds
             // The owner can call this function directly or the entrypoint can call it on their behalf
             require(
                 msg.sender == entrypoint || msg.sender == owner,
