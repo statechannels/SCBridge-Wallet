@@ -12,7 +12,7 @@ const WalletContainer: React.FunctionComponent<{ role: Role }> = (props: {
   const [role, setRole] = useState<Role>(undefined);
   return (
     <div>
-      {role != undefined ? (
+      {role !== undefined ? (
         <Wallet role={role} />
       ) : (
         <ChooseRole setRole={setRole} />
@@ -26,8 +26,6 @@ export default WalletContainer;
 const ChooseRole: React.FunctionComponent<{
   setRole: (r: Role) => void;
 }> = (props: { setRole: (r: Role) => void }) => {
-  type role = "alice" | "bob" | "irene" | undefined;
-
   return (
     <div>
       <Button

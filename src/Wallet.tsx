@@ -40,7 +40,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
           mode: prefersDarkMode ? "dark" : "light",
         },
       }),
-    [prefersDarkMode]
+    [prefersDarkMode],
   );
 
   return (

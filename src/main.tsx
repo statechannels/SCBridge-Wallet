@@ -7,5 +7,5 @@ import WalletContainer from "./WalletContainer";
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <WalletContainer />
-  </React.StrictMode>
+  </React.StrictMode>,
 );
