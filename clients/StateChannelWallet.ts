@@ -10,6 +10,13 @@ enum Participant {
   Intermediary = 1
 }
 
+interface StateChannelWalletParams {
+  signingKey: string
+  chainRpcUrl: string
+  entrypointAddress: string
+  scwAddress: string
+}
+
 export class StateChannelWallet {
   private readonly chainProvider: ethers.Provider
   private readonly signer: ethers.Wallet
@@ -21,7 +28,7 @@ export class StateChannelWallet {
   private readonly contract: NitroSmartContractWallet
   private readonly hashStore: Map<string, Uint8Array> // maps hash-->preimage
 
-  constructor (params: { signingKey: string, chainRpcUrl: string, entrypointAddress: string, scwAddress: string }) {
+  constructor (params: StateChannelWalletParams) {
     this.hashStore = new Map<string, Uint8Array>()
     this.entrypointAddress = params.entrypointAddress
     this.scwAddress = params.scwAddress
@@ -38,7 +45,7 @@ export class StateChannelWallet {
     this.intermediaryBalance = BigInt(0)
   }
 
-  static async create (params: { signingKey: string, chainRpcUrl: string, entrypointAddress: string, scwAddress: string }): Promise<StateChannelWallet> {
+  static async create (params: StateChannelWalletParams): Promise<StateChannelWallet> {
     const instance = new StateChannelWallet(params)
 
     instance.intermediaryAddress = await instance.contract.intermediary()
