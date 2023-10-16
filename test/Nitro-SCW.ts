@@ -2,8 +2,9 @@ import hre, { ethers } from "hardhat";
 import {
   NitroSmartContractWallet__factory,
   type NitroSmartContractWallet,
+  type EntryPoint,
 } from "../typechain-types";
-import { type BaseWallet } from "ethers";
+import { ZeroHash, type BaseWallet } from "ethers";
 
 import { expect } from "chai";
 import { getUserOpHash, signUserOp } from "../clients/UserOp";
@@ -30,7 +31,8 @@ describe("Nitro-SCW", function () {
     nitroSCW: NitroSmartContractWallet;
     owner: BaseWallet;
     intermediary: BaseWallet;
-    entrypoint: string;
+    entrypointAddress: string;
+    entrypoint: EntryPoint;
   }> {
     const deployer = await hre.ethers.getContractFactory(
       "NitroSmartContractWallet",
@@ -50,7 +52,8 @@ describe("Nitro-SCW", function () {
     });
 
     const entryPointDeployer = await ethers.getContractFactory("EntryPoint");
-    const entrypoint = await (await entryPointDeployer.deploy()).getAddress();
+    const entrypoint = await entryPointDeployer.deploy();
+    const entrypointAddress = await entrypoint.getAddress();
 
     const nitroSCW = await deployer.deploy(owner, intermediary, entrypoint);
 
@@ -59,13 +62,72 @@ describe("Nitro-SCW", function () {
       value: ethers.parseEther("1.0"),
     });
 
+    // The entrypoint contract requires a deposit from the submitter if not using a paymaster
+    await entrypoint.depositTo(await nitroSCW.getAddress(), {
+      value: ethers.parseEther("1.0"),
+    });
+
     return {
       nitroSCW: nitroSCW as unknown as NitroSmartContractWallet,
       owner,
       intermediary,
-      entrypoint,
+      entrypointAddress,
+      entrypoint: entrypoint as unknown as EntryPoint,
     };
   }
+
+  it("should support executing a simple L1 transfer through the entrypoint", async function () {
+    const { owner, intermediary, nitroSCW, entrypoint } =
+      await deployNitroSCW();
+
+    const n = await ethers.provider.getNetwork();
+
+    // Generate a random payee address that we can use for the transfer.
+    const payee = hre.ethers.Wallet.createRandom().address;
+
+    // Encode calldata that calls the execute function to perform a simple transfer of ether to the payee.
+    const callData = nitroSCW.interface.encodeFunctionData("execute", [
+      payee,
+      ethers.parseEther("0.5"),
+      ZeroHash,
+    ]);
+
+    const userOp: UserOperationStruct = {
+      sender: await nitroSCW.getAddress(),
+      nonce: 0,
+      initCode: "0x",
+      callData,
+      callGasLimit: 40_000,
+      verificationGasLimit: 150000,
+      preVerificationGas: 21000,
+      maxFeePerGas: 40_000,
+      maxPriorityFeePerGas: 40_000,
+      paymasterAndData: hre.ethers.ZeroHash,
+      signature: hre.ethers.ZeroHash,
+    };
+
+    const ownerSig = signUserOp(
+      userOp,
+      owner,
+      await entrypoint.getAddress(),
+      Number(n.chainId),
+    );
+    const intermediarySig = signUserOp(
+      userOp,
+      intermediary,
+      await entrypoint.getAddress(),
+      Number(n.chainId),
+    );
+    userOp.signature = ethers.concat([ownerSig, intermediarySig]);
+
+    // Submit the userOp to the entrypoint and wait for it to be mined.
+    const res = await entrypoint.handleOps([userOp], owner.address);
+    await res.wait();
+
+    // Check that the transfer executed.
+    const balance = await hre.ethers.provider.getBalance(payee);
+    expect(balance).to.equal(ethers.parseEther("0.5"));
+  });
 
   describe("Deployment", function () {
     it("Should deploy the nitro SCW", async function () {
