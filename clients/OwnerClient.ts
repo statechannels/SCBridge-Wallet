@@ -52,7 +52,7 @@ export class OwnerClient extends StateChannelWallet {
    */
   async pay(payee: string, amount: number): Promise<void> {
     // contact `payee` and request a hashlock
-    const requestChannel = this.sendGlobalMessage(payee, {type: MessageType.RequestInvoice, amount, from: this.scwAddress})
+    const requestChannel = this.sendGlobalMessage(payee, {type: MessageType.RequestInvoice, amount})
 
     const invoice: Invoice = await new Promise((resolve, reject) => {
       // todo: resolve failure on a timeout
