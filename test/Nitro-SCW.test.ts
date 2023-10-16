@@ -97,7 +97,7 @@ describe("Nitro-SCW", function () {
 
       const stateHash = hashState(state);
 
-      const [ownerSig, intermediarySig] = signStateHash(
+      const [ownerSig, intermediarySig] = await signStateHash(
         stateHash,
         owner,
         intermediary,
@@ -139,7 +139,7 @@ describe("Nitro-SCW", function () {
 
       const stateHash = hashState(state);
 
-      const [ownerSig, intermediarySig] = signStateHash(
+      const [ownerSig, intermediarySig] = await signStateHash(
         stateHash,
         owner,
         intermediary,
@@ -177,13 +177,13 @@ describe("Nitro-SCW", function () {
         signature: hre.ethers.ZeroHash,
       };
 
-      const ownerSig = signUserOp(
+      const ownerSig = await signUserOp(
         userOp,
         owner,
         ethers.ZeroAddress,
         Number(n.chainId),
       );
-      const intermediarySig = signUserOp(
+      const intermediarySig = await signUserOp(
         userOp,
         intermediary,
         ethers.ZeroAddress,
@@ -220,7 +220,7 @@ describe("Nitro-SCW", function () {
         signature: hre.ethers.ZeroHash,
       };
 
-      const ownerSig = signUserOp(
+      const ownerSig = await signUserOp(
         userOp,
         owner,
         ethers.ZeroAddress,

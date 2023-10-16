@@ -1,8 +1,8 @@
 // FYI: Based on https://github.com/eth-infinitism/account-abstraction/blob/5b7b9715fa0c3743108982cf8826e6262fef6d68/test/UserOp.ts#L56-L105
-import { AbiCoder, keccak256, getBytes, ZeroAddress } from "ethers";
+import { AbiCoder, getBytes, keccak256, ZeroAddress } from "ethers";
 import { type BaseWallet } from "ethers";
 
-import { type UserOperationStruct } from "../typechain-types/Nitro-SCW.sol/NitroSmartContractWallet";
+import { type UserOperationStruct } from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
 
 export function packUserOp(
   op: UserOperationStruct,
@@ -124,15 +124,14 @@ export const DefaultsForUserOp: UserOperationStruct = {
   signature: "0x",
 };
 
-export function signUserOp(
+export async function signUserOp(
   op: UserOperationStruct,
   signer: BaseWallet,
   entryPoint: string,
   chainId: number,
-): string {
+): Promise<string> {
   const message = getUserOpHash(op, entryPoint, chainId);
-
-  return signer.signMessageSync(getBytes(message));
+  return await signer.signMessage(getBytes(message));
 }
 
 export function fillUserOpDefaults(

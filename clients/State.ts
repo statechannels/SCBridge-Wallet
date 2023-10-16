@@ -6,17 +6,17 @@ import {
   getBytes,
 } from "ethers";
 
-import { type StateStruct } from "../typechain-types/Nitro-SCW.sol/NitroSmartContractWallet";
+import { type StateStruct } from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
 
-export function signStateHash(
+export async function signStateHash(
   stateHash: string,
   owner: BaseWallet,
   intermediary: BaseWallet,
-): [string, string] {
-  return [
-    owner.signMessageSync(getBytes(stateHash)),
-    intermediary.signMessageSync(getBytes(stateHash)),
-  ];
+): Promise<[string, string]> {
+  const ownerSig = await owner.signMessage(getBytes(stateHash));
+  const intermediarySig = await intermediary.signMessage(getBytes(stateHash));
+
+  return [ownerSig, intermediarySig];
 }
 
 export function encodeState(state: StateStruct): string {
