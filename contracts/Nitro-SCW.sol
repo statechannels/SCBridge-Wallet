@@ -17,7 +17,9 @@ uint constant CHALLENGE_WAIT = 1 days;
 contract NitroSmartContractWallet is IAccount {
     using ECDSA for bytes32;
 
-    address payable public owner;
+    address entrypoint;
+
+    address public owner;
     address payable public intermediary;
 
     bytes32[] activeHTLCs;
@@ -78,9 +80,9 @@ contract NitroSmartContractWallet is IAccount {
             HTLC memory htlc = htlcs[activeHTLCs[i]];
             if (htlc.to == Participant.OWNER) {
                 intermediary.transfer(htlc.amount);
-            } else {
-                owner.transfer(htlc.amount);
             }
+
+            // Any funds that are left over are defacto controlled by the owner
         }
 
         intermediary.transfer(intermediaryBalance);
@@ -121,6 +123,32 @@ contract NitroSmartContractWallet is IAccount {
         challengeExpiry = largestTimeLock + CHALLENGE_WAIT;
     }
 
+    function execute(
+        address dest,
+        uint256 value,
+        bytes calldata func
+    ) external {
+        if (getStatus() == WalletStatus.FINALIZED && activeHTLCs.length == 0) {
+            // If the wallet has finalized and all the funds have been reclaimed then the owner can do whatever they want with the remaining funds
+            // The owner can call this function directly or the entrypoint can call it on their behalf
+            require(
+                msg.sender == entrypoint || msg.sender == owner,
+                "account: not Owner or EntryPoint"
+            );
+        } else {
+            // If the wallet is not finalized then the owner isn't allowed to spend funds however they want
+            // Any interaction with the wallet must be done by signing and submitting a userOp to the entrypoint
+            require(msg.sender == entrypoint, "account: not EntryPoint");
+        }
+
+        (bool success, bytes memory result) = dest.call{value: value}(func);
+        if (!success) {
+            assembly {
+                revert(add(result, 32), mload(result))
+            }
+        }
+    }
+
     function validateUserOp(
         UserOperation calldata userOp,
         bytes32 userOpHash,
@@ -157,9 +185,10 @@ contract NitroSmartContractWallet is IAccount {
         return validateSignature(userOpHash, ownerSig, owner);
     }
 
-    constructor(address payable o, address payable i) {
+    constructor(address o, address payable i, address e) {
         owner = o;
         intermediary = i;
+        entrypoint = e;
     }
 
     uint256 internal constant SIG_VALIDATION_FAILED = 1;
