@@ -32,9 +32,6 @@ describe("UserOP submission", function () {
   });
 });
 describe("Nitro-SCW", function () {
-  // We define a fixture to reuse the same setup in every test.
-  // We use loadFixture to run this setup once, snapshot that state,
-  // and reset Hardhat Network to that snapshot in every test.
   async function deployNitroSCW(): Promise<{
     nitroSCW: NitroSmartContractWallet;
     owner: BaseWallet;
@@ -58,6 +55,12 @@ describe("Nitro-SCW", function () {
     });
 
     const nitroSCW = await deployer.deploy(owner, intermediary);
+
+    await hardhatFundedAccount.sendTransaction({
+      to: await nitroSCW.getAddress(),
+      value: ethers.parseEther("1.0"),
+    });
+
     return {
       nitroSCW: nitroSCW as unknown as NitroSmartContractWallet,
       owner,

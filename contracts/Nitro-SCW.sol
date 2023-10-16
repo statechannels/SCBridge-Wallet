@@ -39,6 +39,9 @@ contract NitroSmartContractWallet is IAccount {
         return WalletStatus.CHALLENGE_RAISED;
     }
 
+    // Define the fallback function so that the wallet can receive funds
+    receive() external payable {}
+
     function unlockHTLC(bytes32 hashLock, bytes memory preImage) public {
         HTLC memory htlc = htlcs[hashLock];
 
