@@ -8,6 +8,10 @@ export enum MessageType {
   UserOperation = "userOperation",
 }
 
+export interface GlobalMessage {
+  to: string;
+  message: Message;
+}
 export type Message =
   | Invoice
   | RequestInvoice
@@ -17,6 +21,7 @@ export interface Invoice {
   type: MessageType.Invoice;
   amount: number;
   hashLock: string;
+  from: string;
 }
 interface RequestInvoice {
   type: MessageType.RequestInvoice;

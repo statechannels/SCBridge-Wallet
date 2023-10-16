@@ -1,4 +1,10 @@
-import { type Invoice, type scwMessageEvent, MessageType } from "./Messages";
+import {
+  type Invoice,
+  type scwMessageEvent,
+  MessageType,
+  type Message,
+  type GlobalMessage,
+} from "./Messages";
 import { ethers } from "ethers";
 import {
   Participant,
@@ -12,31 +18,42 @@ const accountABI = ["function execute(address to, uint256 value, bytes data)"];
 const account = new ethers.Interface(accountABI);
 
 export class OwnerClient extends StateChannelWallet {
-  constructor(params: StateChannelWalletParams) {
-    super(params);
+  public async receiveMessage(
+    ev: scwMessageEvent,
+  ): Promise<Message | GlobalMessage | undefined> {
+    const req = ev.data;
+    console.log("received message: " + JSON.stringify(req));
 
-    this.attachMessageHandlers();
-    console.log("listening on " + this.globalBroadcastChannel.name);
-  }
-
-  private attachMessageHandlers(): void {
-    // These handlers are for messages from parties outside of our wallet / channel.
-    this.globalBroadcastChannel.onmessage = async (ev: scwMessageEvent) => {
-      const req = ev.data;
-      console.log("received message: " + JSON.stringify(req));
-
-      if (req.type === MessageType.RequestInvoice) {
+    switch (req.type) {
+      case MessageType.RequestInvoice: {
         const hash = await this.createNewHash();
         const invoice: Invoice = {
           type: MessageType.Invoice,
           hashLock: hash,
           amount: req.amount,
+          from: this.ownerAddress,
         };
-
-        // return the invoice to the payer
-        this.sendGlobalMessage(req.from, invoice);
+        return { to: req.from, message: invoice };
       }
-    };
+      case MessageType.Invoice: {
+        // create a state update with the hashlock
+        const signedUpdate = await this.addHTLC(req.amount, req.hashLock);
+
+        return {
+          to: req.from,
+          message: {
+            type: MessageType.ForwardPayment,
+            target: req.from,
+            amount: req.amount,
+            hashLock: req.hashLock,
+            timelock: 0, // todo
+            updatedState: signedUpdate,
+          },
+        };
+      }
+      default:
+        return undefined;
+    }
   }
 
   static async create(params: StateChannelWalletParams): Promise<OwnerClient> {
@@ -58,42 +75,23 @@ export class OwnerClient extends StateChannelWallet {
    * @param payee the SCBridgeWallet address we want to pay to
    * @param amount the amount we want to pay
    */
-  async pay(payee: string, amount: number): Promise<void> {
+  async pay(
+    payee: string,
+    amount: number,
+  ): Promise<Message | GlobalMessage | undefined> {
     // contact `payee` and request a hashlock
-    const requestChannel = this.sendGlobalMessage(payee, {
-      type: MessageType.RequestInvoice,
-      amount,
-      from: this.ownerAddress,
-    });
-
-    const invoice: Invoice = await new Promise((resolve, reject) => {
-      // todo: resolve failure on a timeout
-      requestChannel.onmessage = (ev: scwMessageEvent) => {
-        if (ev.data.type === MessageType.Invoice) {
-          resolve(ev.data);
-        } else {
-          // todo: fallback to L1 payment ?
-          reject(new Error("Unexpected message type"));
-        }
-      };
-    });
-
-    // create a state update with the hashlock
-    const signedUpdate = await this.addHTLC(amount, invoice.hashLock);
-
-    // send the state update to the intermediary
-    this.sendPeerMessage({
-      type: MessageType.ForwardPayment,
-      target: payee,
-      amount,
-      hashLock: invoice.hashLock,
-      timelock: 0, // todo
-      updatedState: signedUpdate,
-    });
+    return {
+      to: payee,
+      message: {
+        type: MessageType.RequestInvoice,
+        amount,
+        from: this.ownerAddress,
+      },
+    };
   }
 
   // Create L1 payment UserOperation and forward to intermediary
-  async payL1(payee: string, amount: number): Promise<void> {
+  async payL1(payee: string, amount: number): Promise<Message | undefined> {
     // Only need to encode 'to' and 'amount' fields (i.e. no 'data') for basic eth transfer
     const callData = account.encodeFunctionData("execute", [
       payee,
@@ -109,10 +107,10 @@ export class OwnerClient extends StateChannelWallet {
       ...userOp,
       signature,
     };
-    this.sendPeerMessage({
+    return {
       type: MessageType.UserOperation,
       ...signedUserOp,
-    });
+    };
   }
 
   // todo: add listener for invoice requests (always accept - they want to pay us)

@@ -11,7 +11,7 @@ import {
   NitroSmartContractWallet__factory,
   EntryPoint__factory,
 } from "../typechain-types";
-import { type Message } from "./Messages";
+
 import { hashState } from "./State";
 
 const HTLC_TIMEOUT = 5 * 60; // 5 minutes
@@ -45,8 +45,7 @@ export class StateChannelWallet {
   protected readonly scwContract: NitroSmartContractWallet;
   protected readonly entrypointContract: EntryPoint;
   protected readonly hashStore: Map<string, Uint8Array>; // maps hash-->preimage
-  protected readonly peerBroadcastChannel: BroadcastChannel;
-  protected readonly globalBroadcastChannel: BroadcastChannel;
+
   /**
    * Signed states are stored as long as they are deemed useful. All stored
    * signatures are valid.
@@ -59,12 +58,6 @@ export class StateChannelWallet {
     this.scwAddress = params.scwAddress;
     this.ownerAddress = new ethers.Wallet(params.signingKey).address;
     this.chainProvider = new ethers.JsonRpcProvider(params.chainRpcUrl);
-    this.peerBroadcastChannel = new BroadcastChannel(
-      this.ownerAddress + "-peer",
-    );
-    this.globalBroadcastChannel = new BroadcastChannel(
-      this.ownerAddress + "-global",
-    );
 
     const wallet = new ethers.Wallet(params.signingKey);
     this.signer = wallet.connect(this.chainProvider);
@@ -100,26 +93,6 @@ export class StateChannelWallet {
     instance.intermediaryBalance =
       await instance.scwContract.intermediaryBalance();
     instance.ownerAddress = await instance.scwContract.owner();
-  }
-
-  sendPeerMessage(message: Message): void {
-    this.peerBroadcastChannel.postMessage(message);
-  }
-
-  /**
-   * Sends a message to a network participant who is *not* our channel peer.
-   *
-   * Convention: send outgoing requests to a peer via this method, and listen for
-   * request-scoped responses on the returned channel.
-   *
-   * @param to the scwAddress of the recipient
-   * @param message the protocol message to send
-   * @returns the broadcast channel used to send the message, in order to listen for replies
-   */
-  sendGlobalMessage(to: string, message: Message): BroadcastChannel {
-    const toChannel = new BroadcastChannel(to + "-global");
-    toChannel.postMessage(message);
-    return toChannel;
   }
 
   myRole(): Participant {

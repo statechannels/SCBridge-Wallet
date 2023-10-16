@@ -3,6 +3,7 @@ import {
   type scwMessageEvent,
   MessageType,
   type ForwardPaymentRequest,
+  type Message,
 } from "./Messages";
 import {
   Participant,
@@ -40,7 +41,7 @@ export class IntermediaryCoordinator {
    *
    * @param htlc the HTLC to forward
    */
-  async forwardHTLC(htlc: ForwardPaymentRequest): Promise<void> {
+  async forwardHTLC(htlc: ForwardPaymentRequest): Promise<Message | undefined> {
     // Locate the target client
     const targetClient = this.channelClients.find(
       (c) => c.getAddress() === htlc.target,
@@ -57,14 +58,14 @@ export class IntermediaryCoordinator {
       htlc.hashLock,
     );
 
-    targetClient.sendPeerMessage({
+    return {
       type: MessageType.ForwardPayment,
       target: htlc.target,
       amount: htlc.amount,
       hashLock: htlc.hashLock,
       timelock: 0, // todo
       updatedState,
-    });
+    };
   }
 }
 
@@ -73,38 +74,34 @@ export class IntermediaryClient extends StateChannelWallet {
     [],
   );
 
-  constructor(params: StateChannelWalletParams) {
-    super(params);
-    this.attachMessageHandlers();
-  }
-
   public registerCoordinator(coordinator: IntermediaryCoordinator): void {
     this.coordinator = coordinator;
   }
 
-  private attachMessageHandlers(): void {
+  public async receiveMessage(
+    ev: scwMessageEvent,
+  ): Promise<Message | undefined> {
     // peer channel
-    this.peerBroadcastChannel.onmessage = async (ev: scwMessageEvent) => {
-      const req = ev.data;
+    const req = ev.data;
 
-      switch (req.type) {
-        case MessageType.ForwardPayment:
-          // todo: more robust checks. EG: signature of counterparty
-          if (req.amount > (await this.getOwnerBalance())) {
-            throw new Error("Insufficient balance");
-          }
-          void this.coordinator.forwardHTLC(req);
-          break;
-        case MessageType.UserOperation:
-          void this.handleUserOp(req);
-          break;
-        default:
-          throw new Error(`Message type ${req.type} not yet handled`);
-      }
-    };
+    switch (req.type) {
+      case MessageType.ForwardPayment:
+        // todo: more robust checks. EG: signature of counterparty
+        if (req.amount > (await this.getOwnerBalance())) {
+          throw new Error("Insufficient balance");
+        }
+        return await this.coordinator.forwardHTLC(req);
+      case MessageType.UserOperation:
+        return await this.handleUserOp(req);
+
+      default:
+        throw new Error(`Message type ${req.type} not yet handled`);
+    }
   }
 
-  private async handleUserOp(userOp: UserOperationStruct): Promise<void> {
+  private async handleUserOp(
+    userOp: UserOperationStruct,
+  ): Promise<Message | undefined> {
     // TODO: Decode the calldata of the user op and only sign if the amount transferred is under intermediaryBalance
 
     const ownerSig = userOp.signature.slice(0, 65);
@@ -112,6 +109,7 @@ export class IntermediaryClient extends StateChannelWallet {
     userOp.signature = ethers.concat([ownerSig, intermediarySig]);
 
     await this.entrypointContract.handleOps([userOp], this.getAddress());
+    return undefined; // TODO: Return a transaction receipt to the owner
   }
 
   static async create(
