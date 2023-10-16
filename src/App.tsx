@@ -11,6 +11,17 @@ import {
   useMediaQuery,
 } from "@mui/material";
 
+let myAddress: string = "placholder";
+
+switch (import.meta.env.VITE_IDENTITY) {
+  case "alice":
+    myAddress = import.meta.env.VITE_ALICE_ADDRESS ?? "";
+    break;
+  case "bob":
+    myAddress = import.meta.env.VITE_BOB_ADDRESS ?? "";
+    break;
+}
+
 const App: React.FunctionComponent = () => {
   const [intermediary, setIntermediary] = useState("0xabc");
   const [inboundCapacity, setInboundCapacity] = useState(0);
@@ -26,7 +37,7 @@ const App: React.FunctionComponent = () => {
           mode: prefersDarkMode ? "dark" : "light",
         },
       }),
-    [prefersDarkMode],
+    [prefersDarkMode]
   );
 
   return (
@@ -40,6 +51,7 @@ const App: React.FunctionComponent = () => {
         />
       </div>
       <h1>SCBridge-Wallet</h1>
+      <h2>{myAddress}</h2>
       <div className="card">
         <p> Host Network: {hostNetwork}</p>
         <p>Balance: {balance}</p>
