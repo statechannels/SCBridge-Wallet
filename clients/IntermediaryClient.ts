@@ -1,3 +1,4 @@
+import { ethers } from "ethers";
 import {
   type scwMessageEvent,
   MessageType,
@@ -8,6 +9,7 @@ import {
   StateChannelWallet,
   type StateChannelWalletParams,
 } from "./StateChannelWallet";
+import { type UserOperationStruct } from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
 
 /**
  * The IntermediaryCoordinator orchestrates an intermediary's participation in the network. It contains
@@ -85,15 +87,31 @@ export class IntermediaryClient extends StateChannelWallet {
     this.peerBroadcastChannel.onmessage = async (ev: scwMessageEvent) => {
       const req = ev.data;
 
-      if (req.type === MessageType.ForwardPayment) {
-        // todo: more robust checks. EG: signature of counterparty
-        if (req.amount > (await this.getOwnerBalance())) {
-          throw new Error("Insufficient balance");
-        }
-        void this.coordinator.forwardHTLC(req);
+      switch (req.type) {
+        case MessageType.ForwardPayment:
+          // todo: more robust checks. EG: signature of counterparty
+          if (req.amount > (await this.getOwnerBalance())) {
+            throw new Error("Insufficient balance");
+          }
+          void this.coordinator.forwardHTLC(req);
+          break;
+        case MessageType.UserOperation:
+          void this.handleUserOp(req);
+          break;
+        default:
+          throw new Error(`Message type ${req.type} not yet handled`);
       }
-      // todo: add listener for UserOperations that the channel owner wants us to forward to L1
     };
+  }
+
+  private async handleUserOp(userOp: UserOperationStruct): Promise<void> {
+    // TODO: Decode the calldata of the user op and only sign if the amount transferred is under intermediaryBalance
+
+    const ownerSig = userOp.signature.slice(0, 65);
+    const intermediarySig = await this.signUserOperation(userOp);
+    userOp.signature = ethers.concat([ownerSig, intermediarySig]);
+
+    await this.entrypointContract.handleOps([userOp], this.getAddress());
   }
 
   static async create(

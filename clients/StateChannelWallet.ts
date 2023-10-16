@@ -6,7 +6,11 @@ import {
   type NitroSmartContractWallet,
 } from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
 import { signUserOp } from "./UserOp";
-import { NitroSmartContractWallet__factory } from "../typechain-types";
+import {
+  type EntryPoint,
+  NitroSmartContractWallet__factory,
+  EntryPoint__factory,
+} from "../typechain-types";
 import { type Message } from "./Messages";
 import { hashState } from "../test/State";
 
@@ -39,6 +43,7 @@ export class StateChannelWallet {
   protected intermediaryBalance: bigint;
   protected readonly scwAddress: string;
   protected readonly scwContract: NitroSmartContractWallet;
+  protected readonly entrypointContract: EntryPoint;
   protected readonly hashStore: Map<string, Uint8Array>; // maps hash-->preimage
   protected readonly peerBroadcastChannel: BroadcastChannel;
   protected readonly globalBroadcastChannel: BroadcastChannel;
@@ -60,6 +65,11 @@ export class StateChannelWallet {
 
     const wallet = new ethers.Wallet(params.signingKey);
     this.signer = wallet.connect(this.chainProvider);
+
+    this.entrypointContract = EntryPoint__factory.connect(
+      this.entrypointAddress,
+      this.chainProvider,
+    );
 
     this.scwContract = NitroSmartContractWallet__factory.connect(
       this.scwAddress,
