@@ -7,6 +7,15 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true
-  }
+    "resolveJsonModule": true,
+    "noEmit": true
+  },
+  "include": [
+    "src",
+    "clients",
+    "test",
+    "hardhat.config.ts",
+    "tsconfig.json",
+    "vite.config.ts"
+  ]
 }

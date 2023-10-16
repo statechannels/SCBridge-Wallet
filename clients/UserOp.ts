@@ -1,5 +1,5 @@
 // FYI: Based on https://github.com/eth-infinitism/account-abstraction/blob/5b7b9715fa0c3743108982cf8826e6262fef6d68/test/UserOp.ts#L56-L105
-import { AbiCoder, keccak256, getBytes } from "ethers";
+import { AbiCoder, keccak256, getBytes, ZeroAddress } from "ethers";
 import { type BaseWallet } from "ethers";
 
 import {
@@ -9,7 +9,6 @@ import {
 } from "ethereumjs-util";
 
 import { type UserOperationStruct } from "../typechain-types/Nitro-SCW.sol/NitroSmartContractWallet";
-import { ethers } from "hardhat";
 
 export function packUserOp(
   op: UserOperationStruct,
@@ -118,7 +117,7 @@ export function getUserOpHash(
 }
 
 export const DefaultsForUserOp: UserOperationStruct = {
-  sender: ethers.ZeroAddress,
+  sender: ZeroAddress,
   nonce: 0,
   initCode: "0x",
   callData: "0x",

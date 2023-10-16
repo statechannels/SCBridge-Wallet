@@ -4,7 +4,7 @@ import {
   type HTLCStruct,
   type StateStruct,
   type NitroSmartContractWallet,
-} from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
+} from "../typechain-types/Nitro-SCW.sol/NitroSmartContractWallet";
 import { signUserOp } from "./UserOp";
 import { NitroSmartContractWallet__factory } from "../typechain-types";
 import { type Message } from "./Messages";
