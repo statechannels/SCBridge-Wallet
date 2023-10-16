@@ -5,12 +5,8 @@ import {
   type StateStruct,
   type NitroSmartContractWallet,
 } from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
-import { type EntryPoint } from "../typechain-types/contracts/core/EntryPoint";
 import { signUserOp } from "./UserOp";
-import {
-  EntryPoint__factory,
-  NitroSmartContractWallet__factory,
-} from "../typechain-types";
+import { NitroSmartContractWallet__factory } from "../typechain-types";
 import { type Message } from "./Messages";
 import { hashState } from "../test/State";
 
@@ -43,7 +39,6 @@ export class StateChannelWallet {
   protected intermediaryBalance: bigint;
   protected readonly scwAddress: string;
   protected readonly scwContract: NitroSmartContractWallet;
-  protected readonly entryContract: EntryPoint;
   protected readonly hashStore: Map<string, Uint8Array>; // maps hash-->preimage
   protected readonly peerBroadcastChannel: BroadcastChannel;
   protected readonly globalBroadcastChannel: BroadcastChannel;
@@ -68,10 +63,6 @@ export class StateChannelWallet {
 
     this.scwContract = NitroSmartContractWallet__factory.connect(
       this.scwAddress,
-      this.chainProvider,
-    );
-    this.entryContract = EntryPoint__factory.connect(
-      this.entrypointAddress,
       this.chainProvider,
     );
 
