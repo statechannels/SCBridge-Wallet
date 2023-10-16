@@ -2,13 +2,7 @@
 import { AbiCoder, keccak256, getBytes, ZeroAddress } from "ethers";
 import { type BaseWallet } from "ethers";
 
-import {
-  ecsign,
-  toRpcSig,
-  keccak256 as keccak256_buffer,
-} from "ethereumjs-util";
-
-import { type UserOperationStruct } from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
+import { type UserOperationStruct } from "../typechain-types/Nitro-SCW.sol/NitroSmartContractWallet";
 
 export function packUserOp(
   op: UserOperationStruct,
@@ -137,18 +131,8 @@ export function signUserOp(
   chainId: number,
 ): string {
   const message = getUserOpHash(op, entryPoint, chainId);
-  const msg1 = Buffer.concat([
-    Buffer.from("\x19Ethereum Signed Message:\n32", "ascii"),
-    Buffer.from(getBytes(message)),
-  ]);
 
-  const sig = ecsign(
-    keccak256_buffer(msg1),
-    Buffer.from(getBytes(signer.privateKey)),
-  );
-  // that's equivalent of:  await signer.signMessage(message);
-  // (but without "async"
-  return toRpcSig(sig.v, sig.r, sig.s);
+  return signer.signMessageSync(getBytes(message));
 }
 
 export function fillUserOpDefaults(
