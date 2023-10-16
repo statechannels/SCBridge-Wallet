@@ -70,6 +70,11 @@ export class StateChannelWallet {
     return Number(this.intermediaryBalance);
   }
 
+  async getOwnerBalance(): Promise<number> {
+    const walletBalance = await this.getBalance();
+    return walletBalance - (await this.getIntermediaryBalance());
+  }
+
   async getCurrentBlockNumber(): Promise<number> {
     const blockNumber = await this.chainProvider.getBlockNumber();
     return blockNumber;
