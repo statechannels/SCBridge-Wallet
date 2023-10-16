@@ -15,7 +15,7 @@ import {
 } from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
 const ONE_DAY = 86400;
 const TIMELOCK_DELAY = 1000;
-const enum Payee {
+const enum Participant {
   Owner = 0,
   Intermediary = 1,
 }
@@ -79,7 +79,7 @@ describe("Nitro-SCW", function () {
         htlcs: [
           {
             amount: 0,
-            to: Payee.Intermediary,
+            to: Participant.Intermediary,
             hashLock: hash,
             timelock: (await getBlockTimestamp()) + TIMELOCK_DELAY,
           },
@@ -121,7 +121,7 @@ describe("Nitro-SCW", function () {
         htlcs: [
           {
             amount: 0,
-            to: Payee.Intermediary,
+            to: Participant.Intermediary,
             hashLock: hash,
             timelock: (await getBlockTimestamp()) + 1000,
           },

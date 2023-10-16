@@ -4,17 +4,22 @@ import {
   type HTLCStruct,
   type StateStruct,
   type NitroSmartContractWallet,
-} from "../typechain-types/Nitro-SCW.sol/NitroSmartContractWallet";
+} from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
 import { signUserOp } from "./UserOp";
 import { NitroSmartContractWallet__factory } from "../typechain-types";
-import { hashState } from "../test/State";
 
 const HTLC_TIMEOUT = 5 * 60; // 5 minutes
+
+enum Participant {
+  Owner = 0,
+  Intermediary = 1,
+}
 
 export class StateChannelWallet {
   private readonly chainProvider: ethers.Provider;
   private readonly signer: ethers.Wallet;
   private readonly entrypointAddress: string;
+  private ownerAddress: string;
   private intermediaryAddress: string;
   private intermediaryBalance: bigint;
   private readonly scwAddress: string;
@@ -41,6 +46,7 @@ export class StateChannelWallet {
     );
 
     // These values should be set in 'create' method
+    this.ownerAddress = "0x0";
     this.intermediaryAddress = "0x0";
     this.intermediaryBalance = BigInt(0);
   }
@@ -56,11 +62,31 @@ export class StateChannelWallet {
     instance.intermediaryAddress = await instance.contract.intermediary();
     instance.intermediaryBalance =
       await instance.contract.intermediaryBalance();
+    instance.ownerAddress = await instance.contract.owner();
 
     return instance;
   }
 
+  myRole(): Participant {
+    if (this.signer.address === this.ownerAddress) {
+      return Participant.Owner;
+    } else if (this.signer.address === this.intermediaryAddress) {
+      return Participant.Intermediary;
+    } else {
+      throw new Error("Signer is neither owner nor intermediary");
+    }
+  }
+
+  theirRole(): Participant {
+    if (this.myRole() === Participant.Owner) {
+      return Participant.Intermediary;
+    } else {
+      return Participant.Owner;
+    }
+  }
+
   async getBalance(): Promise<number> {
+    // todo: caching, block event based updating, etc
     const balance = await this.chainProvider.getBalance(this.scwAddress);
     const balanceEther = ethers.formatEther(balance);
     return Number(balanceEther);
@@ -68,6 +94,11 @@ export class StateChannelWallet {
 
   async getIntermediaryBalance(): Promise<number> {
     return Number(this.intermediaryBalance);
+  }
+
+  async getOwnerBalance(): Promise<number> {
+    const walletBalance = await this.getBalance();
+    return walletBalance - (await this.getIntermediaryBalance());
   }
 
   async getCurrentBlockNumber(): Promise<number> {
@@ -100,8 +131,12 @@ export class StateChannelWallet {
     hash: string,
   ): Promise<string> {
     const currentTimestamp: number = Math.floor(Date.now() / 1000); // Unix timestamp in seconds
+    if (toAddress === this.signer.address) {
+      throw new Error("Cannot create HTLC to self");
+    }
+
     const htlc: HTLCStruct = {
-      to: toAddress,
+      to: this.theirRole(),
       amount,
       hashLock: hash,
       timelock: currentTimestamp + HTLC_TIMEOUT * 2, // payment creator always uses TIMEOUT * 2

@@ -10,13 +10,13 @@ struct State {
     HTLC[] htlcs;
 }
 
-enum Payee {
+enum Participant {
     OWNER,
     INTERMEDIARY
 }
 
 struct HTLC {
-    Payee to;
+    Participant to;
     uint amount;
     bytes32 hashLock;
     uint timelock;
