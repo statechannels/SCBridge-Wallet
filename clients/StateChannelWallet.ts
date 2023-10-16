@@ -24,6 +24,8 @@ export interface SignedState {
 }
 
 export class StateChannelWallet {
+  protected readonly peerBroadcastChannel: BroadcastChannel
+  protected readonly globalBroadcastChannel: BroadcastChannel
   /**
    * Signed states are stored as long as they are deemed useful. All stored
    * signatures are valid.
@@ -35,6 +37,8 @@ export class StateChannelWallet {
     this.entrypointAddress = params.entrypointAddress
     this.scwAddress = params.scwAddress
     this.chainProvider = new ethers.JsonRpcProvider(params.chainRpcUrl)
+    this.peerBroadcastChannel = new BroadcastChannel(this.scwAddress + '-peer')
+    this.globalBroadcastChannel = new BroadcastChannel(this.scwAddress + '-global')
 
     const wallet = new ethers.Wallet(params.signingKey)
     this.signer = wallet.connect(this.chainProvider)
@@ -55,6 +59,10 @@ export class StateChannelWallet {
     instance.ownerAddress = await instance.contract.owner()
 
     return instance
+  }
+
+  sendPeerMessage (message: Message): void {
+    this.peerBroadcastChannel.postMessage(message)
   }
 
   myRole (): Participant {
