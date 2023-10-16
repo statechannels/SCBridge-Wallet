@@ -12,7 +12,7 @@ import { type UserOperationStruct } from "../typechain-types/Nitro-SCW.sol/Nitro
 
 export function packUserOp(
   op: UserOperationStruct,
-  forSignature = true
+  forSignature = true,
 ): string {
   if (forSignature) {
     return AbiCoder.defaultAbiCoder().encode(
@@ -39,7 +39,7 @@ export function packUserOp(
         op.maxFeePerGas,
         op.maxPriorityFeePerGas,
         keccak256(op.paymasterAndData),
-      ]
+      ],
     );
   } else {
     // for the purpose of calculating gas cost encode also signature (and no keccak of bytes)
@@ -69,7 +69,7 @@ export function packUserOp(
         op.maxPriorityFeePerGas,
         op.paymasterAndData,
         op.signature,
-      ]
+      ],
     );
   }
 }
@@ -99,19 +99,19 @@ export function packUserOp1(op: UserOperationStruct): string {
       op.maxFeePerGas,
       op.maxPriorityFeePerGas,
       keccak256(op.paymasterAndData),
-    ]
+    ],
   );
 }
 
 export function getUserOpHash(
   op: UserOperationStruct,
   entryPoint: string,
-  chainId: number
+  chainId: number,
 ): string {
   const userOpHash = keccak256(packUserOp(op, true));
   const enc = AbiCoder.defaultAbiCoder().encode(
     ["bytes32", "address", "uint256"],
-    [userOpHash, entryPoint, chainId]
+    [userOpHash, entryPoint, chainId],
   );
   return keccak256(enc);
 }
@@ -134,7 +134,7 @@ export function signUserOp(
   op: UserOperationStruct,
   signer: BaseWallet,
   entryPoint: string,
-  chainId: number
+  chainId: number,
 ): string {
   const message = getUserOpHash(op, entryPoint, chainId);
   const msg1 = Buffer.concat([
@@ -144,7 +144,7 @@ export function signUserOp(
 
   const sig = ecsign(
     keccak256_buffer(msg1),
-    Buffer.from(getBytes(signer.privateKey))
+    Buffer.from(getBytes(signer.privateKey)),
   );
   // that's equivalent of:  await signer.signMessage(message);
   // (but without "async"
@@ -153,7 +153,7 @@ export function signUserOp(
 
 export function fillUserOpDefaults(
   op: Partial<UserOperationStruct>,
-  defaults = DefaultsForUserOp
+  defaults = DefaultsForUserOp,
 ): UserOperationStruct {
   const partial: any = { ...op };
   // we want "item:undefined" to be used from defaults, and not override defaults, so we must explicitly

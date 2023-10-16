@@ -52,7 +52,11 @@ describe("Nitro-SCW", function () {
     });
 
     const nitroSCW = await deployer.deploy(owner, intermediary);
-    return { nitroSCW, owner, intermediary };
+    return {
+      nitroSCW: nitroSCW as unknown as NitroSmartContractWallet,
+      owner,
+      intermediary,
+    };
   }
 
   describe("Deployment", function () {

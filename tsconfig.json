@@ -10,5 +10,12 @@
     "resolveJsonModule": true,
     "noEmit": true
   },
-  "include": ["src", "clients"]
+  "include": [
+    "src",
+    "clients",
+    "test",
+    "hardhat.config.ts",
+    "tsconfig.json",
+    "vite.config.ts"
+  ]
 }
