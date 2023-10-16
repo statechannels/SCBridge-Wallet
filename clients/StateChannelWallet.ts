@@ -17,16 +17,18 @@ interface StateChannelWalletParams {
   scwAddress: string
 }
 
+export interface SignedState {
+  state: StateStruct
+  ownerSignature: string
+  intermediarySignature: string
+}
+
 export class StateChannelWallet {
-  private readonly chainProvider: ethers.Provider
-  private readonly signer: ethers.Wallet
-  private readonly entrypointAddress: string
-  private ownerAddress: string
-  private intermediaryAddress: string
-  private intermediaryBalance: bigint
-  private readonly scwAddress: string
-  private readonly contract: NitroSmartContractWallet
-  private readonly hashStore: Map<string, Uint8Array> // maps hash-->preimage
+  /**
+   * Signed states are stored as long as they are deemed useful. All stored
+   * signatures are valid.
+   */
+  protected signedStates: SignedState[] = []
 
   constructor (params: StateChannelWalletParams) {
     this.hashStore = new Map<string, Uint8Array>()
@@ -108,10 +110,17 @@ export class StateChannelWallet {
   }
 
   // Craft an HTLC struct, put it inside a state, hash the state, sign and return it
-  async createHTLCPayment (toAddress: string, amount: number, hash: string): Promise<string> {
+  async addHTLC (amount: number, hash: string): Promise<SignedState> {
     const currentTimestamp: number = Math.floor(Date.now() / 1000) // Unix timestamp in seconds
-    if (toAddress === this.signer.address) {
-      throw new Error('Cannot create HTLC to self')
+
+    if (this.myRole() === Participant.Intermediary &&
+        this.intermediaryBalance < BigInt(amount)) {
+      throw new Error('Insufficient balance')
+    }
+
+    if (this.myRole() === Participant.Owner &&
+        Number(this.getOwnerBalance()) < BigInt(amount)) {
+      throw new Error('Insufficient balance')
     }
 
     const htlc: HTLCStruct = {
@@ -121,18 +130,24 @@ export class StateChannelWallet {
       timelock: currentTimestamp + HTLC_TIMEOUT * 2 // payment creator always uses TIMEOUT * 2
     }
 
-    const htlcState: StateStruct = {
-      owner: this.signer.address,
+    const updated: StateStruct = {
+      owner: this.ownerAddress,
       intermediary: this.intermediaryAddress,
-      turnNum: 0,
+      turnNum: Number(this.currentState().turnNum) + 1,
       intermediaryBalance: this.intermediaryBalance,
-      htlcs: [htlc]
+      htlcs: [...this.currentState().htlcs, htlc]
     }
 
-    const stateHash = await this.contract.getStateHash(htlcState)
+    const stateHash = await this.contract.getStateHash(updated)
     const signature = await this.signer.signMessage(stateHash)
 
-    return signature
+    const signedState: SignedState = {
+      state: updated,
+      ownerSignature: this.myRole() === Participant.Owner ? signature : '',
+      intermediarySignature: this.myRole() === Participant.Intermediary ? signature : ''
+    }
+
+    return signedState
   }
   // ingestSignedStateAndPreimage(signedState, preimage); // returns a signed state with updated balances and one fewer HTLC
 }
