@@ -8,7 +8,7 @@
   "license": "MIT",
   "scripts": {
     "test": "yarn hardhat test",
-    "build": "yarn hardhat compile && yarn tsc",
+    "build": "yarn hardhat compile && yarn hardhat typechain && yarn tsc",
     "lint:check": "eslint . --ext tsm,tsx",
     "lint:write": "eslint . --ext ts,tsx --fix",
     "prepack": "yarn build",
