@@ -121,8 +121,8 @@ contract NitroSmartContractWallet is IAccount {
     function validateUserOp(
         UserOperation calldata userOp,
         bytes32 userOpHash,
-        uint256 missingAccountFunds
-    ) external returns (uint256 validationData) {
+        uint256 // missingAccountFunds
+    ) external view returns (uint256 validationData) {
         require(userOp.signature.length == 2 * 65, "Invalid signature length");
         require(userOp.signature.length != 0x0, "Empty signature");
 
@@ -165,7 +165,7 @@ contract NitroSmartContractWallet is IAccount {
         bytes32 userOpHash,
         bytes memory signature,
         address expectedSigner
-    ) private view returns (uint256 validationData) {
+    ) private pure returns (uint256 validationData) {
         bytes32 hash = userOpHash.toEthSignedMessageHash();
         if (expectedSigner != hash.recover(signature)) {
             return SIG_VALIDATION_FAILED;
@@ -181,5 +181,4 @@ contract NitroSmartContractWallet is IAccount {
         }
         return true;
     }
-
 }
