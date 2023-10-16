@@ -9,6 +9,10 @@ import {
   type StateChannelWalletParams,
 } from "./StateChannelWallet";
 
+/**
+ * The IntermediaryCoordinator orchestrates an intermediary's participation in the network. It contains
+ * a collection of IntermediaryClients, each of which is the intermediary's view into a single channelWallet.
+ */
 export class IntermediaryCoordinator {
   /**
    * The collection of channel clients that this coordinator is responsible for.
@@ -37,7 +41,7 @@ export class IntermediaryCoordinator {
   async forwardHTLC(htlc: ForwardPaymentRequest): Promise<void> {
     // Locate the target client
     const targetClient = this.channelClients.find(
-      (c) => c.getAddress() === htlc.target,
+      (c) => c.getAddress() === htlc.target
     );
 
     if (targetClient === undefined) {
@@ -48,7 +52,7 @@ export class IntermediaryCoordinator {
     const fee = 0; // for example
     const updatedState = await targetClient.addHTLC(
       htlc.amount - fee,
-      htlc.hashLock,
+      htlc.hashLock
     );
 
     targetClient.sendPeerMessage({
@@ -64,7 +68,7 @@ export class IntermediaryCoordinator {
 
 export class IntermediaryClient extends StateChannelWallet {
   private coordinator: IntermediaryCoordinator = new IntermediaryCoordinator(
-    [],
+    []
   );
 
   constructor(params: StateChannelWalletParams) {
@@ -98,7 +102,7 @@ export class IntermediaryClient extends StateChannelWallet {
   }
 
   static async create(
-    params: StateChannelWalletParams,
+    params: StateChannelWalletParams
   ): Promise<IntermediaryClient> {
     const instance = new IntermediaryClient(params);
 
