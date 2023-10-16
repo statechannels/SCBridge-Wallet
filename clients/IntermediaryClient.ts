@@ -85,7 +85,6 @@ export class IntermediaryClient extends StateChannelWallet {
     // todo: add listener for incoming HTLCs which correspond to some preimage we know.
 
     // peer channel
-    // todo: add listener for HTLCs that the channel owner wants us to forward
     // todo: add listener for UserOperations that the channel owner wants us to forward to L1
 
     this.peerBroadcastChannel.onmessage = async (ev: scwMessageEvent) => {
