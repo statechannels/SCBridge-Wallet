@@ -102,9 +102,12 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
           <Button
             onClick={() => {
               console.log(
-                "sending: " + JSON.stringify(message) + " to: " + myPeer,
+                "pretending to be sending: " +
+                  JSON.stringify(message) +
+                  " to: " +
+                  myPeer,
               );
-              wallet.sendGlobalMessage(myPeer, message);
+              //   wallet.sendGlobalMessage(myPeer, message);
             }}
           >
             L2 Pay
