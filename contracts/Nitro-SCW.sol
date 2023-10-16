@@ -17,7 +17,7 @@ uint constant CHALLENGE_WAIT = 1 days;
 contract NitroSmartContractWallet is IAccount {
     using ECDSA for bytes32;
 
-    address payable public owner;
+    address public owner;
     address payable public intermediary;
 
     bytes32[] activeHTLCs;
@@ -78,9 +78,9 @@ contract NitroSmartContractWallet is IAccount {
             HTLC memory htlc = htlcs[activeHTLCs[i]];
             if (htlc.to == Participant.OWNER) {
                 intermediary.transfer(htlc.amount);
-            } else {
-                owner.transfer(htlc.amount);
             }
+
+            // Any funds that are left over are defacto controlled by the owner
         }
 
         intermediary.transfer(intermediaryBalance);
@@ -121,6 +121,25 @@ contract NitroSmartContractWallet is IAccount {
         challengeExpiry = largestTimeLock + CHALLENGE_WAIT;
     }
 
+    function execute(
+        address dest,
+        uint256 value,
+        bytes calldata func
+    ) external {
+        //directly from an EOA owner, or through the account itself
+        require(
+            msg.sender == owner || msg.sender == address(this),
+            "only owner"
+        );
+
+        (bool success, bytes memory result) = dest.call{value: value}(func);
+        if (!success) {
+            assembly {
+                revert(add(result, 32), mload(result))
+            }
+        }
+    }
+
     function validateUserOp(
         UserOperation calldata userOp,
         bytes32 userOpHash,
@@ -157,7 +176,7 @@ contract NitroSmartContractWallet is IAccount {
         return validateSignature(userOpHash, ownerSig, owner);
     }
 
-    constructor(address payable o, address payable i) {
+    constructor(address o, address payable i) {
         owner = o;
         intermediary = i;
     }
