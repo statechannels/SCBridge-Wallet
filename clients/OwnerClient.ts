@@ -1,9 +1,15 @@
 import { type Invoice, type scwMessageEvent, MessageType } from "./Messages";
+import { ethers } from "ethers";
 import {
   Participant,
   StateChannelWallet,
   type StateChannelWalletParams,
 } from "./StateChannelWallet";
+import { type UserOperationStruct } from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
+import { fillUserOpDefaults } from "./UserOp";
+
+const accountABI = ["function execute(address to, uint256 value, bytes data)"];
+const account = new ethers.Interface(accountABI);
 
 export class OwnerClient extends StateChannelWallet {
   constructor(params: StateChannelWalletParams) {
@@ -83,10 +89,30 @@ export class OwnerClient extends StateChannelWallet {
     });
   }
 
-  // todo: add listener for invoice requests (always accept - they want to pay us)
+  // Create L1 payment UserOperation and forward to intermediary
+  async payL1(payee: string, amount: number): Promise<void> {
+    // Only need to encode 'to' and 'amount' fields (i.e. no 'data') for basic eth transfer
+    const callData = account.encodeFunctionData("execute", [
+      payee,
+      ethers.parseEther(amount.toString()),
+    ]);
+    const partialUserOp: Partial<UserOperationStruct> = {
+      sender: this.signer.address,
+      callData,
+    };
+    const userOp = fillUserOpDefaults(partialUserOp);
+    const signature = await this.signUserOperation(userOp);
+    const signedUserOp: UserOperationStruct = {
+      ...userOp,
+      signature,
+    };
+    this.sendPeerMessage({
+      type: MessageType.UserOperation,
+      ...signedUserOp,
+    });
+  }
 
-  // todo: add function to direct L1 payments / general transactions to UserOperations
-  //       and forward to intermediary
+  // todo: add listener for invoice requests (always accept - they want to pay us)
 
   // todo: add listener for incoming HTLCs which correspond to some preimage we know.
   //       When they arrive, we claim the funds and maybe clear the invoice in some way.

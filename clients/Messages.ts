@@ -1,12 +1,18 @@
 import { type SignedState } from "./StateChannelWallet";
+import { type UserOperationStruct } from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
 
 export enum MessageType {
   RequestInvoice = "requestInvoice",
   Invoice = "invoice",
   ForwardPayment = "forwardPayment",
+  UserOperation = "userOperation",
 }
 
-export type Message = Invoice | RequestInvoice | ForwardPaymentRequest;
+export type Message =
+  | Invoice
+  | RequestInvoice
+  | ForwardPaymentRequest
+  | UserOperation;
 export interface Invoice {
   type: MessageType.Invoice;
   amount: number;
@@ -23,6 +29,10 @@ interface ForwardPaymentRequest {
   hashLock: string;
   timelock: number;
   updatedState: SignedState; // includes the "source" HTLC which makes the payment safe for the intermediary
+}
+
+interface UserOperation extends UserOperationStruct {
+  type: MessageType.UserOperation;
 }
 
 /**

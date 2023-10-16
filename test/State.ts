@@ -11,7 +11,7 @@ import {
   toRpcSig,
   keccak256 as keccak256_buffer,
 } from "ethereumjs-util";
-import { type StateStruct } from "../typechain-types/Nitro-SCW.sol/NitroSmartContractWallet";
+import { type StateStruct } from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
 
 export function signStateHash(
   stateHash: string,
