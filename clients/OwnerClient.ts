@@ -15,6 +15,7 @@ export class OwnerClient extends StateChannelWallet {
   constructor(params: StateChannelWalletParams) {
     super(params);
 
+    console.log("listening on " + this.globalBroadcastChannel.name);
     this.attachMessageHandlers();
   }
 
@@ -22,6 +23,7 @@ export class OwnerClient extends StateChannelWallet {
     // These handlers are for messages from parties outside of our wallet / channel.
     this.globalBroadcastChannel.onmessage = async (ev: scwMessageEvent) => {
       const req = ev.data;
+      console.log("received message: " + JSON.stringify(req));
 
       if (req.type === MessageType.RequestInvoice) {
         const hash = await this.createNewHash();
