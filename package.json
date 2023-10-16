@@ -9,7 +9,7 @@
   "scripts": {
     "test": "yarn hardhat test",
     "build": "yarn hardhat compile && yarn hardhat typechain && yarn tsc",
-    "lint:check": "eslint . --ext tsm,tsx",
+    "lint:check": "eslint . --ext ts,tsx",
     "lint:write": "eslint . --ext ts,tsx --fix",
     "prepack": "yarn build",
     "start": "yarn vite --open"
