@@ -128,6 +128,13 @@ export class StateChannelWallet {
     }
   }
 
+  /**
+   * @returns the contract address of the SCW.
+   */
+  getAddress(): string {
+    return this.scwAddress;
+  }
+
   async getBalance(): Promise<number> {
     // todo: caching, block event based updating, etc
     const balance = await this.chainProvider.getBalance(this.scwAddress);
