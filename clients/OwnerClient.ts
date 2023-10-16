@@ -34,6 +34,7 @@ export class OwnerClient extends StateChannelWallet {
         if (ev.data.type === MessageType.Invoice) {
           resolve(ev.data);
         } else {
+          // todo: fallback to L1 payment ?
           reject(new Error("Unexpected message type"));
         }
       };
