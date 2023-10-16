@@ -12,8 +12,8 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import { type Role } from "./WalletContainer";
-import { StateChannelWallet } from "../clients/StateChannelWallet";
 import { MessageType, type Message } from "../clients/Messages";
+import { OwnerClient } from "../clients/OwnerClient";
 
 let myAddress: string = "placholder";
 let mySigningKey: string;
@@ -35,7 +35,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
       // @ts-expect-error
       myAddress = import.meta.env.VITE_ALICE_ADDRESS ?? "";
       // @ts-expect-error
-      myPeer = import.meta.env.VITE_BOB_SK ?? "";
+      myPeer = import.meta.env.VITE_BOB_ADDRESS ?? "";
       // @ts-expect-error
       mySigningKey = import.meta.env.VITE_ALICE_SK ?? "";
 
@@ -44,13 +44,13 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
       // @ts-expect-error
       myAddress = import.meta.env.VITE_BOB_ADDRESS ?? "";
       // @ts-expect-error
-      myPeer = import.meta.env.VITE_ALICE_SK ?? "";
+      myPeer = import.meta.env.VITE_ALICE_ADDRESS ?? "";
       // @ts-expect-error
       mySigningKey = import.meta.env.VITE_BOB_SK ?? "";
       break;
   }
 
-  const wallet = new StateChannelWallet({
+  const wallet = new OwnerClient({
     signingKey: mySigningKey,
     chainRpcUrl: "",
     entrypointAddress: "",
@@ -94,14 +94,17 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
           sx={{ m: 1, width: "25ch" }}
         />{" "}
         <ButtonGroup variant="outlined" aria-label="outlined button group">
+          <Button>L1 Pay</Button>
           <Button
             onClick={() => {
+              console.log(
+                "sending: " + JSON.stringify(message) + " to: " + myPeer,
+              );
               wallet.sendGlobalMessage(myPeer, message);
             }}
           >
-            L1 Pay
+            L2 Pay
           </Button>
-          <Button>L2 Pay</Button>
         </ButtonGroup>
         <p>Intermediary: {intermediary}</p>
         <Button>Eject</Button>
