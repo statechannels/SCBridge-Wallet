@@ -63,6 +63,7 @@ export class OwnerClient extends StateChannelWallet {
     const requestChannel = this.sendGlobalMessage(payee, {
       type: MessageType.RequestInvoice,
       amount,
+      from: this.ownerAddress,
     });
 
     const invoice: Invoice = await new Promise((resolve, reject) => {

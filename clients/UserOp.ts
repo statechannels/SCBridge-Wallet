@@ -2,7 +2,7 @@
 import { AbiCoder, keccak256, getBytes, ZeroAddress } from "ethers";
 import { type BaseWallet } from "ethers";
 
-import { type UserOperationStruct } from "../typechain-types/Nitro-SCW.sol/NitroSmartContractWallet";
+import { type UserOperationStruct } from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
 
 export function packUserOp(
   op: UserOperationStruct,
