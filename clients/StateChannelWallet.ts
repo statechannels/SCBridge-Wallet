@@ -52,8 +52,8 @@ export class StateChannelWallet {
   }
 
   async getOwnerBalance (): Promise<number> {
-    const walletBalance = await this.getBalance();
-    return walletBalance - await this.getIntermediaryBalance();
+    const walletBalance = await this.getBalance()
+    return walletBalance - await this.getIntermediaryBalance()
   }
 
   async getCurrentBlockNumber (): Promise<number> {
