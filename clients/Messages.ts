@@ -29,4 +29,6 @@ interface ForwardPaymentRequest {
  * A shim type on top of BroadcastChannel's MessageEvent, which passes
  * message payload through the `data` property.
  */
-export type scwMessageEvent = MessageEvent & { data: Message };
+export interface scwMessageEvent {
+  data: Message;
+}
