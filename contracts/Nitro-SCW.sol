@@ -128,7 +128,18 @@ contract NitroSmartContractWallet is IAccount {
         uint256 value,
         bytes calldata func
     ) external {
-        requireFromEntryPointOrOwner();
+        if (getStatus() == WalletStatus.FINALIZED) {
+            // If the wallet has finalized then the owner can do whatever they want with the remaining funds
+            // The owner can call this function directly or the entrypoint can call it on their behalf
+            require(
+                msg.sender == entrypoint || msg.sender == owner,
+                "account: not Owner or EntryPoint"
+            );
+        } else {
+            // If the wallet is not finalized then the owner isn't allowed to spend funds however they want
+            // Any interaction with the wallet must be done by signing and submitting a userOp to the entrypoint
+            require(msg.sender == entrypoint, "account: not EntryPoint");
+        }
 
         (bool success, bytes memory result) = dest.call{value: value}(func);
         if (!success) {
@@ -201,13 +212,5 @@ contract NitroSmartContractWallet is IAccount {
             }
         }
         return true;
-    }
-
-    // Based on https://github.com/eth-infinitism/account-abstraction/blob/5b7b9715fa0c3743108982cf8826e6262fef6d68/contracts/samples/SimpleAccount.sol#L95
-    function requireFromEntryPointOrOwner() internal view {
-        require(
-            msg.sender == entrypoint || msg.sender == owner,
-            "account: not Owner or EntryPoint"
-        );
     }
 }
