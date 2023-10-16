@@ -2,15 +2,16 @@ import { ethers } from 'ethers'
 import { type UserOperationStruct, type HTLCStruct, type StateStruct, type NitroSmartContractWallet } from '../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet'
 import { signUserOp } from './UserOp'
 import { NitroSmartContractWallet__factory } from '../typechain-types'
+import { type Message } from './Messages'
 
 const HTLC_TIMEOUT = 5 * 60 // 5 minutes
 
-enum Participant {
+export enum Participant {
   Owner = 0,
   Intermediary = 1
 }
 
-interface StateChannelWalletParams {
+export interface StateChannelWalletParams {
   signingKey: string
   chainRpcUrl: string
   entrypointAddress: string
@@ -24,6 +25,15 @@ export interface SignedState {
 }
 
 export class StateChannelWallet {
+  protected readonly chainProvider: ethers.Provider
+  protected readonly signer: ethers.Wallet
+  protected readonly entrypointAddress: string
+  protected ownerAddress: string
+  protected intermediaryAddress: string
+  protected intermediaryBalance: bigint
+  protected readonly scwAddress: string
+  protected readonly contract: NitroSmartContractWallet
+  protected readonly hashStore: Map<string, Uint8Array> // maps hash-->preimage
   protected readonly peerBroadcastChannel: BroadcastChannel
   protected readonly globalBroadcastChannel: BroadcastChannel
   /**
