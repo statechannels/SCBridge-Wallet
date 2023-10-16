@@ -12,7 +12,7 @@ import { time } from "@nomicfoundation/hardhat-network-helpers";
 import {
   type UserOperationStruct,
   type StateStruct,
-} from "../typechain-types/Nitro-SCW.sol/NitroSmartContractWallet";
+} from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
 import { Participant } from "../clients/StateChannelWallet";
 const ONE_DAY = 86400;
 const TIMELOCK_DELAY = 1000;
@@ -25,6 +25,13 @@ async function getBlockTimestamp(): Promise<number> {
   return block.timestamp;
 }
 
+describe("UserOP submission", function () {
+    
+    it("should deploy the entrypoint", async function () {
+      const entryPointDeployer = await ethers.getContractFactory('EntryPoint')
+       await entryPointDeployer.deploy()
+})
+})
 describe("Nitro-SCW", function () {
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
