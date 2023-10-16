@@ -109,6 +109,17 @@ export class StateChannelWallet {
     return hash
   }
 
+  // returns the state with largest turnNum that is signed by both parties
+  currentState (): StateStruct {
+    for (let i = this.signedStates.length - 1; i >= 0; i--) {
+      const signedState = this.signedStates[i]
+      if (signedState.intermediarySignature !== '' && signedState.ownerSignature !== '') {
+        return signedState.state
+      }
+    }
+    throw new Error('No signed state found')
+  }
+
   // Craft an HTLC struct, put it inside a state, hash the state, sign and return it
   async addHTLC (amount: number, hash: string): Promise<SignedState> {
     const currentTimestamp: number = Math.floor(Date.now() / 1000) // Unix timestamp in seconds
