@@ -1,18 +1,17 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from "react";
 import logo from "./assets/logo.png";
 import "./App.css";
 import {
   Button,
   ButtonGroup,
-  InputAdornment,
-  OutlinedInput,
   TextField,
   ThemeProvider,
   createTheme,
   useMediaQuery,
 } from "@mui/material";
 
-function App() {
+const App: React.FunctionComponent = () => {
   const [intermediary, setIntermediary] = useState("0xabc");
   const [inboundCapacity, setInboundCapacity] = useState(0);
   const [balance, setBalance] = useState(0);
@@ -27,7 +26,7 @@ function App() {
           mode: prefersDarkMode ? "dark" : "light",
         },
       }),
-    [prefersDarkMode]
+    [prefersDarkMode],
   );
 
   return (
@@ -49,7 +48,9 @@ function App() {
           label="Payee"
           id="outlined-start-adornment"
           defaultValue="0xbob"
-          onChange={(e) => setRecipient(e.target.value)}
+          onChange={(e) => {
+            setRecipient(e.target.value);
+          }}
           sx={{ m: 1, width: "25ch" }}
         />{" "}
         <ButtonGroup variant="outlined" aria-label="outlined button group">
@@ -61,6 +62,6 @@ function App() {
       </div>
     </ThemeProvider>
   );
-}
+};
 
 export default App;

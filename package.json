@@ -9,8 +9,8 @@
   "scripts": {
     "test": "yarn hardhat test",
     "build": "yarn hardhat compile",
-    "lint:check": "eslint . --ext ts",
-    "lint:write": "eslint . --ext ts --fix",
+    "lint:check": "eslint . --ext tsm,tsx",
+    "lint:write": "eslint . --ext ts,tsx --fix",
     "prepack": "yarn build"
   },
   "packageManager": "yarn@1.22.19",
@@ -28,6 +28,7 @@
     "@types/chai-as-promised": "^7.1.6",
     "@types/mocha": ">=9.1.0",
     "@types/node": ">=16.0.0",
+    "@types/react-dom": "^18.2.13",
     "@typescript-eslint/eslint-plugin": "^6.4.0",
     "@typescript-eslint/parser": "^6.7.5",
     "@vitejs/plugin-react": "^4.1.0",
