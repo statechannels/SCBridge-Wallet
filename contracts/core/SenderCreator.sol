@@ -18,6 +18,7 @@ contract SenderCreator {
         address factory = address(bytes20(initCode[0:20]));
         bytes memory initCallData = initCode[20:];
         bool success;
+        // revert("createSenderReached"); // hits this
         /* solhint-disable no-inline-assembly */
         assembly {
             success := call(

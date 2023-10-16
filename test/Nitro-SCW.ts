@@ -6,6 +6,7 @@ import { expect } from 'chai'
 import { getUserOpHash, signUserOp } from './UserOp'
 import { deploy4337Infrastructure, type eip4337Infra } from './setup'
 import { assert } from 'console'
+import { hexConcat, hexValue } from '@ethersproject/bytes'
 
 let infra: eip4337Infra
 
@@ -17,15 +18,27 @@ describe('Nitro-SCW', function () {
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
   // and reset Hardhat Network to that snapshot in every test.
-  async function deployNitroSCW (): Promise<{ nitroSCW: NitroSmartContractWallet, owner: BaseWallet, intermediary: BaseWallet }> {
-    const deployer = await hre.ethers.getContractFactory('NitroSmartContractWallet')
+  async function deployNitroSCW (): Promise<{
+    nitroSCW: NitroSmartContractWallet
+    owner: BaseWallet
+    intermediary: BaseWallet
+  }> {
+    const deployer = await hre.ethers.getContractFactory(
+      'NitroSmartContractWallet'
+    )
 
     const owner = ethers.Wallet.createRandom()
     const intermediary = ethers.Wallet.createRandom()
     const hardhatFundedAccount = (await hre.ethers.getSigners())[0]
 
-    await hardhatFundedAccount.sendTransaction({ to: owner.address, value: ethers.parseEther('1.0') })
-    await hardhatFundedAccount.sendTransaction({ to: intermediary.address, value: ethers.parseEther('1.0') })
+    await hardhatFundedAccount.sendTransaction({
+      to: owner.address,
+      value: ethers.parseEther('1.0')
+    })
+    await hardhatFundedAccount.sendTransaction({
+      to: intermediary.address,
+      value: ethers.parseEther('1.0')
+    })
 
     const nitroSCW = await deployer.deploy(owner, intermediary)
     return { nitroSCW, owner, intermediary }
@@ -55,14 +68,26 @@ describe('Nitro-SCW', function () {
         signature: hre.ethers.ZeroHash
       }
 
-      const ownerSig = signUserOp(userOp, owner, ethers.ZeroAddress, Number(n.chainId))
-      const intermediarySig = signUserOp(userOp, intermediary, ethers.ZeroAddress, Number(n.chainId))
+      const ownerSig = signUserOp(
+        userOp,
+        owner,
+        ethers.ZeroAddress,
+        Number(n.chainId)
+      )
+      const intermediarySig = signUserOp(
+        userOp,
+        intermediary,
+        ethers.ZeroAddress,
+        Number(n.chainId)
+      )
       const hash = getUserOpHash(userOp, ethers.ZeroAddress, Number(n.chainId))
 
       userOp.signature = ethers.concat([ownerSig, intermediarySig])
 
       // staticCall forces an eth_call, allowing us to easily check the result
-      const result = await nitroSCW.getFunction('validateUserOp').staticCall(userOp, hash, 0)
+      const result = await nitroSCW
+        .getFunction('validateUserOp')
+        .staticCall(userOp, hash, 0)
       expect(result).to.equal(0)
     })
     it.skip('Should only allow challenges if the userOp is signed by the owner', async function () {})
@@ -72,42 +97,74 @@ describe('Nitro-SCW', function () {
     it('Should deploy an SCBridgeAccount at the expected address', async function () {
       // salt is user-supplied to create a specific address unknowable to others in advance
       const salt = ethers.randomBytes(32)
-      const SCBridgeWallet = await ethers.getContractFactory('NitroSmartContractWallet')
+      const SCBridgeWallet = await ethers.getContractFactory(
+        'NitroSmartContractWallet'
+      )
 
-      const someOwner = ethers.Wallet.createRandom()
-      const someIntermediary = ethers.Wallet.createRandom()
+      const someOwner = hexValue(ethers.Wallet.createRandom().address)
+      const someIntermediary = hexValue(ethers.Wallet.createRandom().address)
+
+      // const epAddress = await infra.entryPoint.getAddress()
+      const factoryAddress = await infra.SCBridgeFactory.getAddress()
+
+      /*
+      todo:
+      - what is contract initCode? It is what needs to be 
+      - is there existing test of the same functionality that can be referenced?
+        - maybe: "sanity: check deployer" in account-abstraction repo
+      - do I need the SenderCreator's address?
+      */
 
       // This is the precomputed address of the SCBridgeAccount.
       const expectedAddress = ethers.getCreate2Address(
-        await infra.entryPoint.getAddress(),
+        // await infra.entryPoint.getAddress(),
+        factoryAddress,
+        // '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
         salt,
+        // ethers.keccak256(SCBridgeWallet.bytecode) // this is the runtime bytecode - need initCode?
         ethers.keccak256(SCBridgeWallet.bytecode)
       )
+      
+      console.table([
+        ['owner', someOwner],
+        ['intermediary', someIntermediary],
+        ['salt', hexValue(salt)],
+        ['expectedAddress', expectedAddress]
+      ])
 
-      console.log('expectedAddress', expectedAddress)
+      const initCode = hexConcat([
+        factoryAddress,
+        someOwner,
+        someIntermediary,
+        salt
+      ])
+      console.log('initcode', initCode)
 
       const userOp: UserOperationStruct = {
-        initCode: (await infra.SCBridgeFactory.getAddress()) +
-         someOwner.address.slice(2) +
-         someIntermediary.address.slice(2) +
-         salt.toString(),
+        initCode,
         sender: expectedAddress,
         nonce: 0,
         callData: hre.ethers.ZeroHash,
-        callGasLimit: 0,
-        verificationGasLimit: 0,
-        preVerificationGas: 0,
-        maxFeePerGas: 0,
-        maxPriorityFeePerGas: 0,
+        callGasLimit: 10000000,
+        verificationGasLimit: 10000000,
+        preVerificationGas: 1000000,
+        maxFeePerGas: 1,
+        maxPriorityFeePerGas: 1,
         paymasterAndData: hre.ethers.ZeroHash,
         signature: hre.ethers.ZeroHash
       }
 
-      // submit the userOp that initiates the SCBridgeAccount
+      // console.log('userOp', userOp)
+
+      // // submit the userOp that initiates the SCBridgeAccount
       await infra.entryPoint.handleOps([userOp], ethers.ZeroAddress)
 
       const code = await ethers.provider.getCode(expectedAddress)
-      assert(code === SCBridgeWallet.bytecode, 'SCBridgeAccount not deployed')
+      console.log(code + '\n\n')
+      console.log(SCBridgeWallet.bytecode)
+      console.log(code === SCBridgeWallet.bytecode)
+
+      expect(code).to.equal(SCBridgeWallet.bytecode)
     })
   })
 })

@@ -43,5 +43,7 @@
     "typechain": "^8.1.0",
     "typescript": ">=4.5.0"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@ethersproject/bytes": "^5.7.0"
+  }
 }

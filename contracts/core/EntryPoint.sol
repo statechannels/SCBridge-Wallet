@@ -110,11 +110,14 @@ contract EntryPoint is IEntryPoint, StakeManager, NonceManager, ReentrancyGuard,
         }
     }
 
+    event Checkpoint(address sender);
+
     /// @inheritdoc IEntryPoint
     function handleOps(
         UserOperation[] calldata ops,
         address payable beneficiary
     ) public nonReentrant {
+        emit Checkpoint(msg.sender);
         uint256 opslen = ops.length;
         UserOpInfo[] memory opInfos = new UserOpInfo[](opslen);
 
