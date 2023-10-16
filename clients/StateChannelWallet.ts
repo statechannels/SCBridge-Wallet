@@ -4,7 +4,7 @@ import {
   type HTLCStruct,
   type StateStruct,
   type NitroSmartContractWallet,
-} from "../typechain-types/Nitro-SCW.sol/NitroSmartContractWallet";
+} from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
 import { signUserOp } from "./UserOp";
 import { NitroSmartContractWallet__factory } from "../typechain-types";
 import { type Message } from "./Messages";
@@ -38,7 +38,7 @@ export class StateChannelWallet {
   protected intermediaryAddress: string;
   protected intermediaryBalance: bigint;
   protected readonly scwAddress: string;
-  protected readonly contract: NitroSmartContractWallet;
+  protected readonly scwContract: NitroSmartContractWallet;
   protected readonly hashStore: Map<string, Uint8Array>; // maps hash-->preimage
   protected readonly peerBroadcastChannel: BroadcastChannel;
   protected readonly globalBroadcastChannel: BroadcastChannel;
@@ -61,7 +61,7 @@ export class StateChannelWallet {
     const wallet = new ethers.Wallet(params.signingKey);
     this.signer = wallet.connect(this.chainProvider);
 
-    this.contract = NitroSmartContractWallet__factory.connect(
+    this.scwContract = NitroSmartContractWallet__factory.connect(
       this.scwAddress,
       this.chainProvider,
     );
@@ -84,10 +84,10 @@ export class StateChannelWallet {
   protected static async hydrateWithChainData(
     instance: StateChannelWallet,
   ): Promise<void> {
-    instance.intermediaryAddress = await instance.contract.intermediary();
+    instance.intermediaryAddress = await instance.scwContract.intermediary();
     instance.intermediaryBalance =
-      await instance.contract.intermediaryBalance();
-    instance.ownerAddress = await instance.contract.owner();
+      await instance.scwContract.intermediaryBalance();
+    instance.ownerAddress = await instance.scwContract.owner();
   }
 
   sendPeerMessage(message: Message): void {

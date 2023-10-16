@@ -8,7 +8,7 @@ import {
   keccak256 as keccak256_buffer,
 } from "ethereumjs-util";
 
-import { type UserOperationStruct } from "../typechain-types/Nitro-SCW.sol/NitroSmartContractWallet";
+import { type UserOperationStruct } from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
 
 export function packUserOp(
   op: UserOperationStruct,
