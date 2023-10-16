@@ -11,12 +11,12 @@ import {
   toRpcSig,
   keccak256 as keccak256_buffer,
 } from "ethereumjs-util";
-import { type StateStruct } from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
+import { type StateStruct } from "../typechain-types/Nitro-SCW.sol/NitroSmartContractWallet";
 
 export function signStateHash(
   stateHash: string,
   owner: BaseWallet,
-  intermediary: BaseWallet,
+  intermediary: BaseWallet
 ): [string, string] {
   const msg1 = Buffer.concat([
     Buffer.from("\x19Ethereum Signed Message:\n32", "ascii"),
@@ -25,11 +25,11 @@ export function signStateHash(
 
   const ownerSig = ecsign(
     keccak256_buffer(msg1),
-    Buffer.from(getBytes(owner.privateKey)),
+    Buffer.from(getBytes(owner.privateKey))
   );
   const intermediarySig = ecsign(
     keccak256_buffer(msg1),
-    Buffer.from(getBytes(intermediary.privateKey)),
+    Buffer.from(getBytes(intermediary.privateKey))
   );
 
   return [

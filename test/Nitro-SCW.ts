@@ -12,7 +12,7 @@ import { time } from "@nomicfoundation/hardhat-network-helpers";
 import {
   type UserOperationStruct,
   type StateStruct,
-} from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
+} from "../typechain-types/Nitro-SCW.sol/NitroSmartContractWallet";
 import { Participant } from "../clients/StateChannelWallet";
 const ONE_DAY = 86400;
 const TIMELOCK_DELAY = 1000;
@@ -35,7 +35,7 @@ describe("Nitro-SCW", function () {
     intermediary: BaseWallet;
   }> {
     const deployer = await hre.ethers.getContractFactory(
-      "NitroSmartContractWallet",
+      "NitroSmartContractWallet"
     );
 
     const owner = ethers.Wallet.createRandom();
@@ -65,7 +65,7 @@ describe("Nitro-SCW", function () {
     it("Should handle a htlc unlock", async function () {
       const { nitroSCW, owner, intermediary } = await deployNitroSCW();
       const secret = ethers.toUtf8Bytes(
-        "Super secret preimage for the hashlock",
+        "Super secret preimage for the hashlock"
       );
       const hash = ethers.keccak256(secret);
       const state: StateStruct = {
@@ -88,7 +88,7 @@ describe("Nitro-SCW", function () {
       const [ownerSig, intermediarySig] = signStateHash(
         stateHash,
         owner,
-        intermediary,
+        intermediary
       );
       await nitroSCW.challenge(state, ownerSig, intermediarySig);
 
@@ -107,7 +107,7 @@ describe("Nitro-SCW", function () {
     it("Should handle a challenge and reclaim", async function () {
       const { nitroSCW, owner, intermediary } = await deployNitroSCW();
       const secret = ethers.toUtf8Bytes(
-        "Super secret preimage for the hashlock",
+        "Super secret preimage for the hashlock"
       );
       const hash = ethers.keccak256(secret);
       const state: StateStruct = {
@@ -130,7 +130,7 @@ describe("Nitro-SCW", function () {
       const [ownerSig, intermediarySig] = signStateHash(
         stateHash,
         owner,
-        intermediary,
+        intermediary
       );
       await nitroSCW.challenge(state, ownerSig, intermediarySig);
 
@@ -169,13 +169,13 @@ describe("Nitro-SCW", function () {
         userOp,
         owner,
         ethers.ZeroAddress,
-        Number(n.chainId),
+        Number(n.chainId)
       );
       const intermediarySig = signUserOp(
         userOp,
         intermediary,
         ethers.ZeroAddress,
-        Number(n.chainId),
+        Number(n.chainId)
       );
       const hash = getUserOpHash(userOp, ethers.ZeroAddress, Number(n.chainId));
 
@@ -197,7 +197,7 @@ describe("Nitro-SCW", function () {
         initCode: hre.ethers.ZeroHash,
         callData:
           NitroSmartContractWallet__factory.createInterface().encodeFunctionData(
-            "reclaim",
+            "reclaim"
           ),
         callGasLimit: 0,
         verificationGasLimit: 0,
@@ -212,7 +212,7 @@ describe("Nitro-SCW", function () {
         userOp,
         owner,
         ethers.ZeroAddress,
-        Number(n.chainId),
+        Number(n.chainId)
       );
 
       const hash = getUserOpHash(userOp, ethers.ZeroAddress, Number(n.chainId));

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from "react";
 import logo from "./assets/logo.png";
@@ -25,9 +26,11 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
 
   switch (props.role) {
     case "alice":
+      // @ts-expect-error
       myAddress = import.meta.env.VITE_ALICE_ADDRESS ?? "";
       break;
     case "bob":
+      // @ts-expect-error
       myAddress = import.meta.env.VITE_BOB_ADDRESS ?? "";
       break;
   }
@@ -40,7 +43,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
           mode: prefersDarkMode ? "dark" : "light",
         },
       }),
-    [prefersDarkMode],
+    [prefersDarkMode]
   );
 
   return (

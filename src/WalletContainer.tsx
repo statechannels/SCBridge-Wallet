@@ -38,7 +38,7 @@ const ChooseRole: React.FunctionComponent<{
           props.setRole("bob");
         }}
       >
-        BOb
+        Bob
       </Button>
     </div>
   );

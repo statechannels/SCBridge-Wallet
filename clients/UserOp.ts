@@ -1,5 +1,5 @@
 // FYI: Based on https://github.com/eth-infinitism/account-abstraction/blob/5b7b9715fa0c3743108982cf8826e6262fef6d68/test/UserOp.ts#L56-L105
-import { AbiCoder, keccak256, getBytes } from "ethers";
+import { AbiCoder, keccak256, getBytes, ZeroAddress } from "ethers";
 import { type BaseWallet } from "ethers";
 
 import {
@@ -9,11 +9,10 @@ import {
 } from "ethereumjs-util";
 
 import { type UserOperationStruct } from "../typechain-types/Nitro-SCW.sol/NitroSmartContractWallet";
-import { ethers } from "hardhat";
 
 export function packUserOp(
   op: UserOperationStruct,
-  forSignature = true,
+  forSignature = true
 ): string {
   if (forSignature) {
     return AbiCoder.defaultAbiCoder().encode(
@@ -40,7 +39,7 @@ export function packUserOp(
         op.maxFeePerGas,
         op.maxPriorityFeePerGas,
         keccak256(op.paymasterAndData),
-      ],
+      ]
     );
   } else {
     // for the purpose of calculating gas cost encode also signature (and no keccak of bytes)
@@ -70,7 +69,7 @@ export function packUserOp(
         op.maxPriorityFeePerGas,
         op.paymasterAndData,
         op.signature,
-      ],
+      ]
     );
   }
 }
@@ -100,25 +99,25 @@ export function packUserOp1(op: UserOperationStruct): string {
       op.maxFeePerGas,
       op.maxPriorityFeePerGas,
       keccak256(op.paymasterAndData),
-    ],
+    ]
   );
 }
 
 export function getUserOpHash(
   op: UserOperationStruct,
   entryPoint: string,
-  chainId: number,
+  chainId: number
 ): string {
   const userOpHash = keccak256(packUserOp(op, true));
   const enc = AbiCoder.defaultAbiCoder().encode(
     ["bytes32", "address", "uint256"],
-    [userOpHash, entryPoint, chainId],
+    [userOpHash, entryPoint, chainId]
   );
   return keccak256(enc);
 }
 
 export const DefaultsForUserOp: UserOperationStruct = {
-  sender: ethers.ZeroAddress,
+  sender: ZeroAddress,
   nonce: 0,
   initCode: "0x",
   callData: "0x",
@@ -135,7 +134,7 @@ export function signUserOp(
   op: UserOperationStruct,
   signer: BaseWallet,
   entryPoint: string,
-  chainId: number,
+  chainId: number
 ): string {
   const message = getUserOpHash(op, entryPoint, chainId);
   const msg1 = Buffer.concat([
@@ -145,7 +144,7 @@ export function signUserOp(
 
   const sig = ecsign(
     keccak256_buffer(msg1),
-    Buffer.from(getBytes(signer.privateKey)),
+    Buffer.from(getBytes(signer.privateKey))
   );
   // that's equivalent of:  await signer.signMessage(message);
   // (but without "async"
@@ -154,7 +153,7 @@ export function signUserOp(
 
 export function fillUserOpDefaults(
   op: Partial<UserOperationStruct>,
-  defaults = DefaultsForUserOp,
+  defaults = DefaultsForUserOp
 ): UserOperationStruct {
   const partial: any = { ...op };
   // we want "item:undefined" to be used from defaults, and not override defaults, so we must explicitly
