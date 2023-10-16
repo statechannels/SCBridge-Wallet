@@ -103,8 +103,12 @@ export class StateChannelWallet {
   // Craft an HTLC struct, put it inside a state, hash the state, sign and return it
   async createHTLCPayment (toAddress: string, amount: number, hash: string): Promise<string> {
     const currentTimestamp: number = Math.floor(Date.now() / 1000) // Unix timestamp in seconds
+    if (toAddress === this.signer.address) {
+      throw new Error('Cannot create HTLC to self')
+    }
+
     const htlc: HTLCStruct = {
-      to: toAddress,
+      to: this.theirRole(),
       amount,
       hashLock: hash,
       timelock: currentTimestamp + HTLC_TIMEOUT * 2 // payment creator always uses TIMEOUT * 2
