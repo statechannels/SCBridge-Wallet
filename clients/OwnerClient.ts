@@ -27,12 +27,11 @@ export class OwnerClient extends StateChannelWallet {
    */
   async pay(payee: string, amount: number): Promise<void> {
     // contact `payee` and request a hashlock
-    const bc = new BroadcastChannel(payee + "-global");
-    bc.postMessage({ type: "requestInvoice" });
+    const requestChannel = this.sendGlobalMessage(payee, {type: MessageType.RequestInvoice, amount, from: this.scwAddress})
 
     const invoice: Invoice = await new Promise((resolve, reject) => {
       // todo: resolve failure on a timeout
-      bc.onmessage = (ev: scwMessageEvent) => {
+      requestChannel.onmessage = (ev: scwMessageEvent) => {
         if (ev.data.type === MessageType.Invoice) {
           resolve(ev.data);
         } else {
