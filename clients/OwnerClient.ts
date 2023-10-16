@@ -6,6 +6,31 @@ import {
 } from "./StateChannelWallet";
 
 export class OwnerClient extends StateChannelWallet {
+  constructor(params: StateChannelWalletParams) {
+    super(params);
+
+    this.attachMessageHandlers();
+  }
+
+  private attachMessageHandlers(): void {
+    // These handlers are for messages from parties outside of our wallet / channel.
+    this.globalBroadcastChannel.onmessage = async (ev: scwMessageEvent) => {
+      const req = ev.data;
+
+      if (req.type === MessageType.RequestInvoice) {
+        const hash = await this.createNewHash();
+        const invoice: Invoice = {
+          type: MessageType.Invoice,
+          hashLock: hash,
+          amount: req.amount,
+        };
+
+        // return the invoice to the payer via the same channel they used to request it
+        this.globalBroadcastChannel.postMessage(invoice);
+      }
+    };
+  }
+
   static async create(params: StateChannelWalletParams): Promise<OwnerClient> {
     const instance = new OwnerClient(params);
 
@@ -27,11 +52,14 @@ export class OwnerClient extends StateChannelWallet {
    */
   async pay(payee: string, amount: number): Promise<void> {
     // contact `payee` and request a hashlock
-    const bc = new BroadcastChannel(payee + "-global");
-    bc.postMessage({ type: "requestInvoice" });
+    const requestChannel = this.sendGlobalMessage(payee, {
+      type: MessageType.RequestInvoice,
+      amount,
+    });
 
     const invoice: Invoice = await new Promise((resolve, reject) => {
-      bc.onmessage = (ev: scwMessageEvent) => {
+      // todo: resolve failure on a timeout
+      requestChannel.onmessage = (ev: scwMessageEvent) => {
         if (ev.data.type === MessageType.Invoice) {
           resolve(ev.data);
         } else {
