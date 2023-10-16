@@ -81,7 +81,9 @@ export class StateChannelWallet {
     return instance;
   }
 
-  protected static async hydrateWithChainData(instance: StateChannelWallet) {
+  protected static async hydrateWithChainData(
+    instance: StateChannelWallet,
+  ): Promise<void> {
     instance.intermediaryAddress = await instance.contract.intermediary();
     instance.intermediaryBalance =
       await instance.contract.intermediaryBalance();
@@ -196,7 +198,7 @@ export class StateChannelWallet {
       htlcs: [...this.currentState().htlcs, htlc],
     };
 
-    const stateHash = await hashState(updated);
+    const stateHash = hashState(updated);
     const signature = await this.signer.signMessage(stateHash);
 
     const signedState: SignedState = {
