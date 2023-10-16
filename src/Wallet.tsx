@@ -19,8 +19,6 @@ let myAddress: string = "placholder";
 let mySigningKey: string;
 let myPeer: string; // If I'm Alice, this is Bob. If I'm Bob, this is Alice.
 
-const message: Message = { type: MessageType.RequestInvoice, amount: 1987 };
-
 const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
   role: Role;
 }) => {
@@ -56,6 +54,12 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
     entrypointAddress: "",
     scwAddress: "",
   });
+
+  const message: Message = {
+    type: MessageType.RequestInvoice,
+    amount: 1987,
+    from: myAddress,
+  };
 
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
   const theme = React.useMemo(

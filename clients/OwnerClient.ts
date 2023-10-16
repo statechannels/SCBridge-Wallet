@@ -15,8 +15,8 @@ export class OwnerClient extends StateChannelWallet {
   constructor(params: StateChannelWalletParams) {
     super(params);
 
-    console.log("listening on " + this.globalBroadcastChannel.name);
     this.attachMessageHandlers();
+    console.log("listening on " + this.globalBroadcastChannel.name);
   }
 
   private attachMessageHandlers(): void {
@@ -33,8 +33,8 @@ export class OwnerClient extends StateChannelWallet {
           amount: req.amount,
         };
 
-        // return the invoice to the payer via the same channel they used to request it
-        this.globalBroadcastChannel.postMessage(invoice);
+        // return the invoice to the payer
+        this.sendGlobalMessage(req.from, invoice);
       }
     };
   }
