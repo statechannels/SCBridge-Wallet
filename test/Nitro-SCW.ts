@@ -13,12 +13,9 @@ import {
   type UserOperationStruct,
   type StateStruct,
 } from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
+import { Participant } from "../clients/StateChannelWallet";
 const ONE_DAY = 86400;
 const TIMELOCK_DELAY = 1000;
-const enum Participant {
-  Owner = 0,
-  Intermediary = 1,
-}
 async function getBlockTimestamp(): Promise<number> {
   const blockNum = await hre.ethers.provider.getBlockNumber();
   const block = await hre.ethers.provider.getBlock(blockNum);

@@ -7,35 +7,56 @@ import {
 } from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
 import { signUserOp } from "./UserOp";
 import { NitroSmartContractWallet__factory } from "../typechain-types";
+import { type Message } from "./Messages";
+import { hashState } from "../test/State";
 
 const HTLC_TIMEOUT = 5 * 60; // 5 minutes
 
-enum Participant {
+export enum Participant {
   Owner = 0,
   Intermediary = 1,
 }
 
-export class StateChannelWallet {
-  private readonly chainProvider: ethers.Provider;
-  private readonly signer: ethers.Wallet;
-  private readonly entrypointAddress: string;
-  private ownerAddress: string;
-  private intermediaryAddress: string;
-  private intermediaryBalance: bigint;
-  private readonly scwAddress: string;
-  private readonly contract: NitroSmartContractWallet;
-  private readonly hashStore: Map<string, Uint8Array>; // maps hash-->preimage
+export interface StateChannelWalletParams {
+  signingKey: string;
+  chainRpcUrl: string;
+  entrypointAddress: string;
+  scwAddress: string;
+}
 
-  constructor(params: {
-    signingKey: string;
-    chainRpcUrl: string;
-    entrypointAddress: string;
-    scwAddress: string;
-  }) {
+export interface SignedState {
+  state: StateStruct;
+  ownerSignature: string;
+  intermediarySignature: string;
+}
+
+export class StateChannelWallet {
+  protected readonly chainProvider: ethers.Provider;
+  protected readonly signer: ethers.Wallet;
+  protected readonly entrypointAddress: string;
+  protected ownerAddress: string;
+  protected intermediaryAddress: string;
+  protected intermediaryBalance: bigint;
+  protected readonly scwAddress: string;
+  protected readonly contract: NitroSmartContractWallet;
+  protected readonly hashStore: Map<string, Uint8Array>; // maps hash-->preimage
+  protected readonly peerBroadcastChannel: BroadcastChannel;
+  protected readonly globalBroadcastChannel: BroadcastChannel;
+  /**
+   * Signed states are stored as long as they are deemed useful. All stored
+   * signatures are valid.
+   */
+  protected signedStates: SignedState[] = [];
+
+  constructor(params: StateChannelWalletParams) {
     this.hashStore = new Map<string, Uint8Array>();
     this.entrypointAddress = params.entrypointAddress;
     this.scwAddress = params.scwAddress;
     this.chainProvider = new ethers.JsonRpcProvider(params.chainRpcUrl);
+    this.peerBroadcastChannel = new BroadcastChannel(this.scwAddress + "-peer");
+    this.globalBroadcastChannel = new BroadcastChannel(
+      this.scwAddress + "-global",
+    );
 
     const wallet = new ethers.Wallet(params.signingKey);
     this.signer = wallet.connect(this.chainProvider);
@@ -51,20 +72,26 @@ export class StateChannelWallet {
     this.intermediaryBalance = BigInt(0);
   }
 
-  static async create(params: {
-    signingKey: string;
-    chainRpcUrl: string;
-    entrypointAddress: string;
-    scwAddress: string;
-  }): Promise<StateChannelWallet> {
+  static async create(
+    params: StateChannelWalletParams,
+  ): Promise<StateChannelWallet> {
     const instance = new StateChannelWallet(params);
 
+    await StateChannelWallet.hydrateWithChainData(instance);
+    return instance;
+  }
+
+  protected static async hydrateWithChainData(
+    instance: StateChannelWallet,
+  ): Promise<void> {
     instance.intermediaryAddress = await instance.contract.intermediary();
     instance.intermediaryBalance =
       await instance.contract.intermediaryBalance();
     instance.ownerAddress = await instance.contract.owner();
+  }
 
-    return instance;
+  sendPeerMessage(message: Message): void {
+    this.peerBroadcastChannel.postMessage(message);
   }
 
   myRole(): Participant {
@@ -124,15 +151,36 @@ export class StateChannelWallet {
     return hash;
   }
 
+  // returns the state with largest turnNum that is signed by both parties
+  currentState(): StateStruct {
+    for (let i = this.signedStates.length - 1; i >= 0; i--) {
+      const signedState = this.signedStates[i];
+      if (
+        signedState.intermediarySignature !== "" &&
+        signedState.ownerSignature !== ""
+      ) {
+        return signedState.state;
+      }
+    }
+    throw new Error("No signed state found");
+  }
+
   // Craft an HTLC struct, put it inside a state, hash the state, sign and return it
-  async createHTLCPayment(
-    toAddress: string,
-    amount: number,
-    hash: string,
-  ): Promise<string> {
+  async addHTLC(amount: number, hash: string): Promise<SignedState> {
     const currentTimestamp: number = Math.floor(Date.now() / 1000); // Unix timestamp in seconds
-    if (toAddress === this.signer.address) {
-      throw new Error("Cannot create HTLC to self");
+
+    if (
+      this.myRole() === Participant.Intermediary &&
+      this.intermediaryBalance < BigInt(amount)
+    ) {
+      throw new Error("Insufficient balance");
+    }
+
+    if (
+      this.myRole() === Participant.Owner &&
+      Number(this.getOwnerBalance()) < BigInt(amount)
+    ) {
+      throw new Error("Insufficient balance");
     }
 
     const htlc: HTLCStruct = {
@@ -142,18 +190,25 @@ export class StateChannelWallet {
       timelock: currentTimestamp + HTLC_TIMEOUT * 2, // payment creator always uses TIMEOUT * 2
     };
 
-    const htlcState: StateStruct = {
-      owner: this.signer.address,
+    const updated: StateStruct = {
+      owner: this.ownerAddress,
       intermediary: this.intermediaryAddress,
-      turnNum: 0,
+      turnNum: Number(this.currentState().turnNum) + 1,
       intermediaryBalance: this.intermediaryBalance,
-      htlcs: [htlc],
+      htlcs: [...this.currentState().htlcs, htlc],
     };
 
-    const stateHash = hashState(htlcState);
+    const stateHash = hashState(updated);
     const signature = await this.signer.signMessage(stateHash);
 
-    return signature;
+    const signedState: SignedState = {
+      state: updated,
+      ownerSignature: this.myRole() === Participant.Owner ? signature : "",
+      intermediarySignature:
+        this.myRole() === Participant.Intermediary ? signature : "",
+    };
+
+    return signedState;
   }
   // ingestSignedStateAndPreimage(signedState, preimage); // returns a signed state with updated balances and one fewer HTLC
 }
