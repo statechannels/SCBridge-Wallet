@@ -41,7 +41,7 @@ export class IntermediaryCoordinator {
   async forwardHTLC(htlc: ForwardPaymentRequest): Promise<void> {
     // Locate the target client
     const targetClient = this.channelClients.find(
-      (c) => c.getAddress() === htlc.target,
+      (c) => c.getAddress() === htlc.target
     );
 
     if (targetClient === undefined) {
@@ -52,7 +52,7 @@ export class IntermediaryCoordinator {
     const fee = 0; // for example
     const updatedState = await targetClient.addHTLC(
       htlc.amount - fee,
-      htlc.hashLock,
+      htlc.hashLock
     );
 
     targetClient.sendPeerMessage({
@@ -68,7 +68,7 @@ export class IntermediaryCoordinator {
 
 export class IntermediaryClient extends StateChannelWallet {
   private coordinator: IntermediaryCoordinator = new IntermediaryCoordinator(
-    [],
+    []
   );
 
   constructor(params: StateChannelWalletParams) {
@@ -81,12 +81,7 @@ export class IntermediaryClient extends StateChannelWallet {
   }
 
   private attachMessageHandlers(): void {
-    // global channel
-    // todo: add listener for incoming HTLCs which correspond to some preimage we know.
-
     // peer channel
-    // todo: add listener for UserOperations that the channel owner wants us to forward to L1
-
     this.peerBroadcastChannel.onmessage = async (ev: scwMessageEvent) => {
       const req = ev.data;
 
@@ -97,11 +92,12 @@ export class IntermediaryClient extends StateChannelWallet {
         }
         void this.coordinator.forwardHTLC(req);
       }
+      // todo: add listener for UserOperations that the channel owner wants us to forward to L1
     };
   }
 
   static async create(
-    params: StateChannelWalletParams,
+    params: StateChannelWalletParams
   ): Promise<IntermediaryClient> {
     const instance = new IntermediaryClient(params);
 
