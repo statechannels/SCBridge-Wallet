@@ -94,6 +94,22 @@ export class StateChannelWallet {
     this.peerBroadcastChannel.postMessage(message);
   }
 
+  /**
+   * Sends a message to a network participant who is *not* our channel peer.
+   * 
+   * Convention: send outgoing requests to a peer via this method, and listen for
+   * request-scoped responses on the returned channel.
+   * 
+   * @param to the scwAddress of the recipient
+   * @param message the protocol message to send
+   * @returns the broadcast channel used to send the message, in order to listen for replies
+   */
+  sendGlobalMessage(to: string, message: Message): BroadcastChannel {
+    const toChannel = new BroadcastChannel(to + "-global");
+    toChannel.postMessage(message);
+    return toChannel;
+  }
+
   myRole(): Participant {
     if (this.signer.address === this.ownerAddress) {
       return Participant.Owner;
