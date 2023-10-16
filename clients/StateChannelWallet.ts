@@ -8,7 +8,7 @@ import {
 import { signUserOp } from "./UserOp";
 import { NitroSmartContractWallet__factory } from "../typechain-types";
 import { type Message } from "./Messages";
-import { hashState } from "../test/State";
+import { hashState } from "./State";
 
 const HTLC_TIMEOUT = 5 * 60; // 5 minutes
 
