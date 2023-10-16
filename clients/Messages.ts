@@ -16,9 +16,12 @@ interface RequestInvoice {
   type: MessageType.RequestInvoice;
   amount: number;
 }
-interface ForwardPaymentRequest {
+export interface ForwardPaymentRequest {
   type: MessageType.ForwardPayment;
-  target: string; // scw address whose owner is the payee
+  /**
+   * the scw address whose owner is the payee
+   */
+  target: string;
   amount: number;
   hashLock: string;
   timelock: number;
