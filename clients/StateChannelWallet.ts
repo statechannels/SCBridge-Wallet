@@ -60,10 +60,11 @@ export class StateChannelWallet {
     return instance;
   }
 
-  async getBalance(): Promise<number> {
-    const balance = await this.chainProvider.getBalance(this.scwAddress);
-    const balanceEther = ethers.formatEther(balance);
-    return Number(balanceEther);
+  async getBalance (): Promise<number> {
+    // todo: caching, block event based updating, etc
+    const balance = await this.chainProvider.getBalance(this.scwAddress)
+    const balanceEther = ethers.formatEther(balance)
+    return Number(balanceEther)
   }
 
   async getIntermediaryBalance(): Promise<number> {
