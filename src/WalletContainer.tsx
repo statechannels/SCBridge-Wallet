@@ -6,9 +6,7 @@ import Wallet from "./Wallet";
 
 export type Role = "alice" | "bob" | "irene" | undefined;
 
-const WalletContainer: React.FunctionComponent<{ role: Role }> = (props: {
-  role: Role;
-}) => {
+const WalletContainer: React.FunctionComponent = () => {
   const [role, setRole] = useState<Role>(undefined);
   return (
     <div>
