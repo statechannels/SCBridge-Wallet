@@ -17,6 +17,8 @@ uint constant CHALLENGE_WAIT = 1 days;
 contract NitroSmartContractWallet is IAccount {
     using ECDSA for bytes32;
 
+    address entrypoint;
+
     address public owner;
     address payable public intermediary;
 
@@ -126,11 +128,7 @@ contract NitroSmartContractWallet is IAccount {
         uint256 value,
         bytes calldata func
     ) external {
-        //directly from an EOA owner, or through the account itself
-        require(
-            msg.sender == owner || msg.sender == address(this),
-            "only owner"
-        );
+        requireFromEntryPointOrOwner();
 
         (bool success, bytes memory result) = dest.call{value: value}(func);
         if (!success) {
@@ -176,9 +174,10 @@ contract NitroSmartContractWallet is IAccount {
         return validateSignature(userOpHash, ownerSig, owner);
     }
 
-    constructor(address o, address payable i) {
+    constructor(address o, address payable i, address e) {
         owner = o;
         intermediary = i;
+        entrypoint = e;
     }
 
     uint256 internal constant SIG_VALIDATION_FAILED = 1;
@@ -202,5 +201,13 @@ contract NitroSmartContractWallet is IAccount {
             }
         }
         return true;
+    }
+
+    // Based on https://github.com/eth-infinitism/account-abstraction/blob/5b7b9715fa0c3743108982cf8826e6262fef6d68/contracts/samples/SimpleAccount.sol#L95
+    function requireFromEntryPointOrOwner() internal view {
+        require(
+            msg.sender == entrypoint || msg.sender == owner,
+            "account: not Owner or EntryPoint"
+        );
     }
 }

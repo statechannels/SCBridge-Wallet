@@ -25,17 +25,12 @@ async function getBlockTimestamp(): Promise<number> {
   return block.timestamp;
 }
 
-describe("UserOP submission", function () {
-  it("should deploy the entrypoint", async function () {
-    const entryPointDeployer = await ethers.getContractFactory("EntryPoint");
-    await entryPointDeployer.deploy();
-  });
-});
 describe("Nitro-SCW", function () {
   async function deployNitroSCW(): Promise<{
     nitroSCW: NitroSmartContractWallet;
     owner: BaseWallet;
     intermediary: BaseWallet;
+    entrypoint: string;
   }> {
     const deployer = await hre.ethers.getContractFactory(
       "NitroSmartContractWallet",
@@ -54,7 +49,10 @@ describe("Nitro-SCW", function () {
       value: ethers.parseEther("1.0"),
     });
 
-    const nitroSCW = await deployer.deploy(owner, intermediary);
+    const entryPointDeployer = await ethers.getContractFactory("EntryPoint");
+    const entrypoint = await (await entryPointDeployer.deploy()).getAddress();
+
+    const nitroSCW = await deployer.deploy(owner, intermediary, entrypoint);
 
     await hardhatFundedAccount.sendTransaction({
       to: await nitroSCW.getAddress(),
@@ -65,6 +63,7 @@ describe("Nitro-SCW", function () {
       nitroSCW: nitroSCW as unknown as NitroSmartContractWallet,
       owner,
       intermediary,
+      entrypoint,
     };
   }
 

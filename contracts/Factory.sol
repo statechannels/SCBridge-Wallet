@@ -7,11 +7,16 @@ contract SCBridgeAccountFactory {
     function createAccount(
         address owner,
         address payable intermediary,
+        address entrypoint,
         bytes32 salt
     ) public returns (address) {
         return
             address(
-                new NitroSmartContractWallet{salt: salt}(owner, intermediary)
+                new NitroSmartContractWallet{salt: salt}(
+                    owner,
+                    intermediary,
+                    entrypoint
+                )
             );
     }
 }
