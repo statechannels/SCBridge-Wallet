@@ -9,9 +9,10 @@
   "scripts": {
     "test": "yarn hardhat test",
     "build": "yarn hardhat compile",
-    "lint:check": "eslint . --ext ts",
-    "lint:write": "eslint . --ext ts --fix",
-    "prepack": "yarn build"
+    "lint:check": "eslint . --ext tsm,tsx",
+    "lint:write": "eslint . --ext ts,tsx --fix",
+    "prepack": "yarn build",
+    "start": "yarn vite --open"
   },
   "packageManager": "yarn@1.22.19",
   "devDependencies": {
@@ -28,8 +29,10 @@
     "@types/chai-as-promised": "^7.1.6",
     "@types/mocha": ">=9.1.0",
     "@types/node": ">=16.0.0",
+    "@types/react-dom": "^18.2.13",
     "@typescript-eslint/eslint-plugin": "^6.4.0",
     "@typescript-eslint/parser": "^6.7.5",
+    "@vitejs/plugin-react": "^4.1.0",
     "chai": "^4.2.0",
     "eslint": "^8.0.1",
     "eslint-config-prettier": "^9.0.0",
@@ -45,6 +48,14 @@
     "solidity-coverage": "^0.8.0",
     "ts-node": ">=8.0.0",
     "typechain": "^8.1.0",
-    "typescript": ">=4.5.0"
+    "typescript": ">=4.5.0",
+    "vite": "^4.4.5"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@mui/material": "^5.14.13",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   }
 }
