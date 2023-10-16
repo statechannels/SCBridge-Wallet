@@ -41,6 +41,7 @@ export class StateChannelWallet {
   }
 
   async getBalance (): Promise<number> {
+    // todo: caching, block event based updating, etc
     const balance = await this.chainProvider.getBalance(this.scwAddress)
     const balanceEther = ethers.formatEther(balance)
     return Number(balanceEther)
