@@ -12,7 +12,7 @@ export class OwnerClient extends StateChannelWallet {
     this.attachMessageHandlers();
   }
 
-  private attachMessageHandlers() {
+  private attachMessageHandlers(): void {
     // These handlers are for messages from parties outside of our wallet / channel.
     this.globalBroadcastChannel.onmessage = async (ev: scwMessageEvent) => {
       const req = ev.data;
@@ -52,7 +52,10 @@ export class OwnerClient extends StateChannelWallet {
    */
   async pay(payee: string, amount: number): Promise<void> {
     // contact `payee` and request a hashlock
-    const requestChannel = this.sendGlobalMessage(payee, {type: MessageType.RequestInvoice, amount})
+    const requestChannel = this.sendGlobalMessage(payee, {
+      type: MessageType.RequestInvoice,
+      amount,
+    });
 
     const invoice: Invoice = await new Promise((resolve, reject) => {
       // todo: resolve failure on a timeout

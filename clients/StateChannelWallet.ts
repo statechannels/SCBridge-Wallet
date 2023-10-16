@@ -96,10 +96,10 @@ export class StateChannelWallet {
 
   /**
    * Sends a message to a network participant who is *not* our channel peer.
-   * 
+   *
    * Convention: send outgoing requests to a peer via this method, and listen for
    * request-scoped responses on the returned channel.
-   * 
+   *
    * @param to the scwAddress of the recipient
    * @param message the protocol message to send
    * @returns the broadcast channel used to send the message, in order to listen for replies
