@@ -55,7 +55,7 @@ export class StateChannelWallet {
     this.chainProvider = new ethers.JsonRpcProvider(params.chainRpcUrl);
     this.peerBroadcastChannel = new BroadcastChannel(this.scwAddress + "-peer");
     this.globalBroadcastChannel = new BroadcastChannel(
-      this.scwAddress + "-global"
+      this.scwAddress + "-global",
     );
 
     const wallet = new ethers.Wallet(params.signingKey);
@@ -63,7 +63,7 @@ export class StateChannelWallet {
 
     this.contract = NitroSmartContractWallet__factory.connect(
       this.scwAddress,
-      this.chainProvider
+      this.chainProvider,
     );
 
     // These values should be set in 'create' method
@@ -73,7 +73,7 @@ export class StateChannelWallet {
   }
 
   static async create(
-    params: StateChannelWalletParams
+    params: StateChannelWalletParams,
   ): Promise<StateChannelWallet> {
     const instance = new StateChannelWallet(params);
 
@@ -137,7 +137,7 @@ export class StateChannelWallet {
       userOp,
       this.signer,
       this.entrypointAddress,
-      Number(network.chainId)
+      Number(network.chainId),
     );
     return signature;
   }
