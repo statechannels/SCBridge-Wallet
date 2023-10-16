@@ -12,8 +12,7 @@
     "lint:check": "eslint . --ext tsm,tsx",
     "lint:write": "eslint . --ext ts,tsx --fix",
     "prepack": "yarn build",
-    "alice": "VITE_IDENTITY=alice yarn vite --port 7001 --open --strictPort",
-    "bob":   "VITE_IDENTITY=bob yarn vite --port 7002 --open --strictPort"
+    "start": "yarn vite --open"
   },
   "packageManager": "yarn@1.22.19",
   "devDependencies": {

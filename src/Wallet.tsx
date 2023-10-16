@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from "react";
 import logo from "./assets/logo.png";
-import "./App.css";
+import "./Wallet.css";
 import {
   Button,
   ButtonGroup,
@@ -10,24 +10,27 @@ import {
   createTheme,
   useMediaQuery,
 } from "@mui/material";
+import { type Role } from "./WalletContainer";
 
 let myAddress: string = "placholder";
 
-switch (import.meta.env.VITE_IDENTITY) {
-  case "alice":
-    myAddress = import.meta.env.VITE_ALICE_ADDRESS ?? "";
-    break;
-  case "bob":
-    myAddress = import.meta.env.VITE_BOB_ADDRESS ?? "";
-    break;
-}
-
-const App: React.FunctionComponent = () => {
+const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
+  role: Role;
+}) => {
   const [intermediary, setIntermediary] = useState("0xabc");
   const [inboundCapacity, setInboundCapacity] = useState(0);
   const [balance, setBalance] = useState(0);
   const [recipient, setRecipient] = useState("0xbob");
   const [hostNetwork, setHostNetwork] = useState("Scroll");
+
+  switch (props.role) {
+    case "alice":
+      myAddress = import.meta.env.VITE_ALICE_ADDRESS ?? "";
+      break;
+    case "bob":
+      myAddress = import.meta.env.VITE_BOB_ADDRESS ?? "";
+      break;
+  }
 
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
   const theme = React.useMemo(
@@ -76,4 +79,4 @@ const App: React.FunctionComponent = () => {
   );
 };
 
-export default App;
+export default Wallet;
