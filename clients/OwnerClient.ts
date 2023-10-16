@@ -6,6 +6,31 @@ import {
 } from "./StateChannelWallet";
 
 export class OwnerClient extends StateChannelWallet {
+  constructor(params: StateChannelWalletParams) {
+    super(params);
+
+    this.attachMessageHandlers();
+  }
+
+  private attachMessageHandlers() {
+    // These handlers are for messages from parties outside of our wallet / channel.
+    this.globalBroadcastChannel.onmessage = async (ev: scwMessageEvent) => {
+      const req = ev.data;
+
+      if (req.type === MessageType.RequestInvoice) {
+        const hash = await this.createNewHash();
+        const invoice: Invoice = {
+          type: MessageType.Invoice,
+          hashLock: hash,
+          amount: req.amount,
+        };
+
+        // return the invoice to the payer via the same channel they used to request it
+        this.globalBroadcastChannel.postMessage(invoice);
+      }
+    };
+  }
+
   static async create(params: StateChannelWalletParams): Promise<OwnerClient> {
     const instance = new OwnerClient(params);
 
