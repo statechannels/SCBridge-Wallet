@@ -13,6 +13,7 @@ export class OwnerClient extends StateChannelWallet {
       throw new Error("Signer is not owner");
     }
 
+    await OwnerClient.hydrateWithChainData(instance);
     return instance;
   }
 
