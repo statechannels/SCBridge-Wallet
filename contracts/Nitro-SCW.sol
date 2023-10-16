@@ -45,7 +45,7 @@ contract NitroSmartContractWallet is IAccount {
         require(htlc.timelock > block.timestamp, "HTLC already expired");
         require(
             htlc.hashLock == keccak256(preImage) ||
-                htlc.hashLock == sha256(preImage),
+                htlc.hashLock == sha256(preImage), // For lightening network compatible HTLCs
             "Invalid preImage"
         );
 
