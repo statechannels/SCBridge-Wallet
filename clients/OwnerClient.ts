@@ -31,6 +31,7 @@ export class OwnerClient extends StateChannelWallet {
     bc.postMessage({ type: "requestInvoice" });
 
     const invoice: Invoice = await new Promise((resolve, reject) => {
+      // todo: resolve failure on a timeout
       bc.onmessage = (ev: scwMessageEvent) => {
         if (ev.data.type === MessageType.Invoice) {
           resolve(ev.data);
