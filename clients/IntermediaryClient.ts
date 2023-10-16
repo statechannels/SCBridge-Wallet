@@ -1,8 +1,7 @@
 import {
   type scwMessageEvent,
   MessageType,
-  Message,
-  ForwardPaymentRequest,
+  type ForwardPaymentRequest,
 } from "./Messages";
 import {
   Participant,
@@ -24,7 +23,9 @@ export class IntermediaryCoordinator {
   }
 
   constructor(channelClients: IntermediaryClient[]) {
-    channelClients.forEach((c) => this.registerChannel(c));
+    channelClients.forEach((c) => {
+      this.registerChannel(c);
+    });
   }
 
   /**
@@ -36,10 +37,10 @@ export class IntermediaryCoordinator {
   async forwardHTLC(htlc: ForwardPaymentRequest): Promise<void> {
     // Locate the target client
     const targetClient = this.channelClients.find(
-      (c) => c.getAddress() === htlc.target
+      (c) => c.getAddress() === htlc.target,
     );
 
-    if (!targetClient) {
+    if (targetClient === undefined) {
       throw new Error("Target not found");
       // todo: return a failure message to the sender?
     }
@@ -47,7 +48,7 @@ export class IntermediaryCoordinator {
     const fee = 0; // for example
     const updatedState = await targetClient.addHTLC(
       htlc.amount - fee,
-      htlc.hashLock
+      htlc.hashLock,
     );
 
     targetClient.sendPeerMessage({
@@ -63,7 +64,7 @@ export class IntermediaryCoordinator {
 
 export class IntermediaryClient extends StateChannelWallet {
   private coordinator: IntermediaryCoordinator = new IntermediaryCoordinator(
-    []
+    [],
   );
 
   constructor(params: StateChannelWalletParams) {
@@ -91,13 +92,13 @@ export class IntermediaryClient extends StateChannelWallet {
         if (req.amount > (await this.getOwnerBalance())) {
           throw new Error("Insufficient balance");
         }
-        this.coordinator.forwardHTLC(req);
+        void this.coordinator.forwardHTLC(req);
       }
     };
   }
 
   static async create(
-    params: StateChannelWalletParams
+    params: StateChannelWalletParams,
   ): Promise<IntermediaryClient> {
     const instance = new IntermediaryClient(params);
 
