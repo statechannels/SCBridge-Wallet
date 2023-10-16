@@ -26,12 +26,11 @@ async function getBlockTimestamp(): Promise<number> {
 }
 
 describe("UserOP submission", function () {
-    
-    it("should deploy the entrypoint", async function () {
-      const entryPointDeployer = await ethers.getContractFactory('EntryPoint')
-       await entryPointDeployer.deploy()
-})
-})
+  it("should deploy the entrypoint", async function () {
+    const entryPointDeployer = await ethers.getContractFactory("EntryPoint");
+    await entryPointDeployer.deploy();
+  });
+});
 describe("Nitro-SCW", function () {
   // We define a fixture to reuse the same setup in every test.
   // We use loadFixture to run this setup once, snapshot that state,
