@@ -12,7 +12,7 @@ import {
   EntryPoint__factory,
 } from "../typechain-types";
 import { type Message } from "./Messages";
-import { hashState } from "../test/State";
+import { hashState } from "./State";
 
 const HTLC_TIMEOUT = 5 * 60; // 5 minutes
 
@@ -57,10 +57,13 @@ export class StateChannelWallet {
     this.hashStore = new Map<string, Uint8Array>();
     this.entrypointAddress = params.entrypointAddress;
     this.scwAddress = params.scwAddress;
+    this.ownerAddress = new ethers.Wallet(params.signingKey).address;
     this.chainProvider = new ethers.JsonRpcProvider(params.chainRpcUrl);
-    this.peerBroadcastChannel = new BroadcastChannel(this.scwAddress + "-peer");
+    this.peerBroadcastChannel = new BroadcastChannel(
+      this.ownerAddress + "-peer",
+    );
     this.globalBroadcastChannel = new BroadcastChannel(
-      this.scwAddress + "-global",
+      this.ownerAddress + "-global",
     );
 
     const wallet = new ethers.Wallet(params.signingKey);
@@ -77,7 +80,6 @@ export class StateChannelWallet {
     );
 
     // These values should be set in 'create' method
-    this.ownerAddress = "0x0";
     this.intermediaryAddress = "0x0";
     this.intermediaryBalance = BigInt(0);
   }

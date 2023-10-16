@@ -16,12 +16,14 @@ export class OwnerClient extends StateChannelWallet {
     super(params);
 
     this.attachMessageHandlers();
+    console.log("listening on " + this.globalBroadcastChannel.name);
   }
 
   private attachMessageHandlers(): void {
     // These handlers are for messages from parties outside of our wallet / channel.
     this.globalBroadcastChannel.onmessage = async (ev: scwMessageEvent) => {
       const req = ev.data;
+      console.log("received message: " + JSON.stringify(req));
 
       if (req.type === MessageType.RequestInvoice) {
         const hash = await this.createNewHash();
@@ -31,8 +33,8 @@ export class OwnerClient extends StateChannelWallet {
           amount: req.amount,
         };
 
-        // return the invoice to the payer via the same channel they used to request it
-        this.globalBroadcastChannel.postMessage(invoice);
+        // return the invoice to the payer
+        this.sendGlobalMessage(req.from, invoice);
       }
     };
   }
@@ -61,6 +63,7 @@ export class OwnerClient extends StateChannelWallet {
     const requestChannel = this.sendGlobalMessage(payee, {
       type: MessageType.RequestInvoice,
       amount,
+      from: this.ownerAddress,
     });
 
     const invoice: Invoice = await new Promise((resolve, reject) => {

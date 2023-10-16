@@ -8,7 +8,7 @@ import { ZeroHash, type BaseWallet } from "ethers";
 
 import { expect } from "chai";
 import { getUserOpHash, signUserOp } from "../clients/UserOp";
-import { hashState, signStateHash } from "./State";
+import { hashState, signStateHash } from "../clients/State";
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 import {
   type UserOperationStruct,

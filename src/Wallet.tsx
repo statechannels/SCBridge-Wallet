@@ -12,8 +12,12 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import { type Role } from "./WalletContainer";
+import { MessageType, type Message } from "../clients/Messages";
+import { OwnerClient } from "../clients/OwnerClient";
 
 let myAddress: string = "placholder";
+let mySigningKey: string;
+let myPeer: string; // If I'm Alice, this is Bob. If I'm Bob, this is Alice.
 
 const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
   role: Role;
@@ -28,12 +32,34 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
     case "alice":
       // @ts-expect-error
       myAddress = import.meta.env.VITE_ALICE_ADDRESS ?? "";
+      // @ts-expect-error
+      myPeer = import.meta.env.VITE_BOB_ADDRESS ?? "";
+      // @ts-expect-error
+      mySigningKey = import.meta.env.VITE_ALICE_SK ?? "";
+
       break;
     case "bob":
       // @ts-expect-error
       myAddress = import.meta.env.VITE_BOB_ADDRESS ?? "";
+      // @ts-expect-error
+      myPeer = import.meta.env.VITE_ALICE_ADDRESS ?? "";
+      // @ts-expect-error
+      mySigningKey = import.meta.env.VITE_BOB_SK ?? "";
       break;
   }
+
+  const wallet = new OwnerClient({
+    signingKey: mySigningKey,
+    chainRpcUrl: "",
+    entrypointAddress: "",
+    scwAddress: "",
+  });
+
+  const message: Message = {
+    type: MessageType.RequestInvoice,
+    amount: 1987,
+    from: myAddress,
+  };
 
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
   const theme = React.useMemo(
@@ -73,7 +99,16 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
         />{" "}
         <ButtonGroup variant="outlined" aria-label="outlined button group">
           <Button>L1 Pay</Button>
-          <Button>L2 Pay</Button>
+          <Button
+            onClick={() => {
+              console.log(
+                "sending: " + JSON.stringify(message) + " to: " + myPeer,
+              );
+              wallet.sendGlobalMessage(myPeer, message);
+            }}
+          >
+            L2 Pay
+          </Button>
         </ButtonGroup>
         <p>Intermediary: {intermediary}</p>
         <Button>Eject</Button>
