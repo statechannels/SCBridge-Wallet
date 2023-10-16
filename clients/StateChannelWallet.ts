@@ -5,10 +5,16 @@ import { NitroSmartContractWallet__factory } from '../typechain-types'
 
 const HTLC_TIMEOUT = 5 * 60 // 5 minutes
 
+enum Participant {
+  Owner = 0,
+  Intermediary = 1
+}
+
 export class StateChannelWallet {
   private readonly chainProvider: ethers.Provider
   private readonly signer: ethers.Wallet
   private readonly entrypointAddress: string
+  private ownerAddress: string
   private intermediaryAddress: string
   private intermediaryBalance: bigint
   private readonly scwAddress: string
@@ -27,6 +33,7 @@ export class StateChannelWallet {
     this.contract = NitroSmartContractWallet__factory.connect(this.scwAddress, this.chainProvider)
 
     // These values should be set in 'create' method
+    this.ownerAddress = '0x0'
     this.intermediaryAddress = '0x0'
     this.intermediaryBalance = BigInt(0)
   }
@@ -36,8 +43,27 @@ export class StateChannelWallet {
 
     instance.intermediaryAddress = await instance.contract.intermediary()
     instance.intermediaryBalance = await instance.contract.intermediaryBalance()
+    instance.ownerAddress = await instance.contract.owner()
 
     return instance
+  }
+
+  myRole (): Participant {
+    if (this.signer.address === this.ownerAddress) {
+      return Participant.Owner
+    } else if (this.signer.address === this.intermediaryAddress) {
+      return Participant.Intermediary
+    } else {
+      throw new Error('Signer is neither owner nor intermediary')
+    }
+  }
+
+  theirRole (): Participant {
+    if (this.myRole() === Participant.Owner) {
+      return Participant.Intermediary
+    } else {
+      return Participant.Owner
+    }
   }
 
   async getBalance (): Promise<number> {
