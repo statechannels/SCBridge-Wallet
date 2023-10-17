@@ -8,6 +8,7 @@ import {
 import { type UserOperationStruct } from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
 import { fillUserOpDefaults } from "./UserOp";
 import { IAccount } from "./utils";
+import { hashState } from "./State";
 
 export class OwnerClient extends StateChannelWallet {
   constructor(params: StateChannelWalletParams) {
@@ -33,6 +34,46 @@ export class OwnerClient extends StateChannelWallet {
 
         // return the invoice to the payer
         this.sendGlobalMessage(req.from, invoice);
+      }
+    };
+
+    // These handlers are for messages from the channel/wallet peer (our intermediary).
+    this.peerBroadcastChannel.onmessage = async (ev: scwMessageEvent) => {
+      const req = ev.data;
+      if (req.type === MessageType.ForwardPayment) {
+        // claim the payment if it is for us
+        const preimage = this.hashStore.get(req.hashLock);
+
+        if (preimage === undefined) {
+          throw new Error("Hashlock not found");
+
+          // todo: or forward the payment if it is multihop (not in scope for now)
+        }
+        const updated = await this.unlockHTLC(preimage);
+
+        this.sendPeerMessage({
+          type: MessageType.UnlockHTLC,
+          preimage,
+          updatedState: updated,
+        });
+      } else if (req.type === MessageType.UnlockHTLC) {
+        // run the preimage through the state update function
+        const updated = await this.unlockHTLC(req.preimage);
+        const updatedHash = hashState(updated.state);
+
+        // check that the proposed update is correct
+        if (updatedHash !== hashState(req.updatedState.state)) {
+          throw new Error("Invalid state update");
+          // todo: peerMessage to sender with failure
+        }
+        const signer = ethers.recoverAddress(
+          updatedHash,
+          req.updatedState.intermediarySignature,
+        );
+        if (signer !== this.intermediaryAddress) {
+          throw new Error("Invalid signature");
+          // todo: peerMessage to sender with failure
+        }
       }
     };
   }
@@ -81,7 +122,7 @@ export class OwnerClient extends StateChannelWallet {
     const invoice: Invoice = (await invoicePromise) as Invoice;
 
     // create a state update with the hashlock
-    const signedUpdate = await this.addHTLC(amount, invoice.hashLock);
+    const signedUpdate = this.addHTLC(amount, invoice.hashLock);
 
     // send the state update to the intermediary
     this.sendPeerMessage({
