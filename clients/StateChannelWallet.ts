@@ -87,7 +87,7 @@ export class StateChannelWallet {
     const computedAddress = new ethers.Wallet(params.signingKey).address;
     if (
       this.ownerAddress !== computedAddress &&
-      this.ownerAddress !== this.intermediaryAddress
+      this.intermediaryAddress !== computedAddress
     ) {
       throw Error("secret key does not correspond to owner nor intermediary");
     }
