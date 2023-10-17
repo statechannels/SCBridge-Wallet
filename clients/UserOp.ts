@@ -129,10 +129,13 @@ export function signUserOp(
   signer: BaseWallet,
   entryPoint: string,
   chainId: number,
-): string {
+): { hash: string; signature: string } {
   const message = getUserOpHash(op, entryPoint, chainId);
 
-  return signer.signMessageSync(getBytes(message));
+  return {
+    hash: message,
+    signature: signer.signMessageSync(getBytes(message)),
+  };
 }
 
 export function fillUserOpDefaults(
