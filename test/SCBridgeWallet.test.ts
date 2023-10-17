@@ -287,6 +287,7 @@ describe("SCBridgeWallet", function () {
         Number(n.chainId),
       );
 
+      console.log(ownerSig.length);
       const hash = getUserOpHash(userOp, ethers.ZeroAddress, Number(n.chainId));
       userOp.signature = ethers.zeroPadBytes(ownerSig, 130);
 

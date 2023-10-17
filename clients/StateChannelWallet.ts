@@ -175,13 +175,10 @@ export class StateChannelWallet {
    * getBalance checks the blockchain for the current balance of the wallet.
    */
   async getBalance(): Promise<number> {
-    return 10;
-    // todo: caching, block event based updating, etc
-    // const balance = await this.chainProvider.getBalance(
-    //   this.scBridgeWalletAddress,
-    // );
-    // const balanceEther = ethers.formatEther(balance);
-    // return Number(balanceEther);
+    // TODO: Casting a bigint to a number is dangerous
+    return Number(
+      await this.chainProvider.getBalance(this.scBridgeWalletAddress),
+    );
   }
 
   async getIntermediaryBalance(): Promise<number> {
@@ -236,7 +233,7 @@ export class StateChannelWallet {
       turnNum: 0,
       owner: this.ownerAddress,
       intermediary: this.intermediaryAddress,
-      intermediaryBalance: BigInt(5),
+      intermediaryBalance: BigInt(ethers.parseEther("5")),
       htlcs: [],
     };
   }

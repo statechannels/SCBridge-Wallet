@@ -175,9 +175,8 @@ export class IntermediaryClient extends StateChannelWallet {
       throw new Error("Transfer amount exceeds owner balance");
     }
 
-    const ownerSig = userOp.signature;
     const { signature: intermediarySig } = await this.signUserOperation(userOp);
-    userOp.signature = ethers.concat([ownerSig, intermediarySig]);
+    userOp.signature = ethers.concat([userOp.signature, intermediarySig]);
 
     await this.entrypointContract.handleOps([userOp], this.getAddress());
   }
