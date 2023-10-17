@@ -3,6 +3,7 @@ import {
   type scwMessageEvent,
   MessageType,
   type ForwardPaymentRequest,
+  type UnlockHTLCRequest,
 } from "./Messages";
 import {
   Participant,
@@ -10,6 +11,7 @@ import {
   type StateChannelWalletParams,
 } from "./StateChannelWallet";
 import { type UserOperationStruct } from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
+import { hashState } from "./State";
 
 /**
  * The IntermediaryCoordinator orchestrates an intermediary's participation in the network. It contains
@@ -66,6 +68,26 @@ export class IntermediaryCoordinator {
       updatedState,
     });
   }
+
+  async unlockHTLC(req: UnlockHTLCRequest): Promise<void> {
+    // find the channel client that has the HTLC
+    const targetClient = this.channelClients.find((c) =>
+      c.hasHTLC(req.preimage),
+    );
+
+    if (targetClient === undefined) {
+      throw new Error("Target not found");
+    }
+
+    // claim the payment and coordinate with the channel owner to update
+    // the shared state
+    const updated = await targetClient.unlockHTLC(req.preimage);
+    targetClient.sendPeerMessage({
+      type: MessageType.UnlockHTLC,
+      preimage: req.preimage,
+      updatedState: updated,
+    });
+  }
 }
 
 export class IntermediaryClient extends StateChannelWallet {
@@ -98,10 +120,49 @@ export class IntermediaryClient extends StateChannelWallet {
         case MessageType.UserOperation:
           void this.handleUserOp(req);
           break;
+        case MessageType.UnlockHTLC:
+          void this.handleUnlockHTLC(req);
+          break;
         default:
           throw new Error(`Message type ${req.type} not yet handled`);
       }
     };
+  }
+
+  private async handleUnlockHTLC(req: UnlockHTLCRequest): Promise<void> {
+    // run the preimage through the state update function
+    const updated = await this.unlockHTLC(req.preimage);
+    const updatedHash = hashState(updated.state);
+
+    // check that the proposed update is correct
+    if (updatedHash !== hashState(req.updatedState.state)) {
+      throw new Error("Invalid state update");
+      // todo: peerMessage to sender with failure
+    }
+    const signer = ethers.recoverAddress(
+      updatedHash,
+      req.updatedState.intermediarySignature,
+    );
+    if (signer !== this.intermediaryAddress) {
+      throw new Error("Invalid signature");
+      // todo: peerMessage to sender with failure
+    }
+
+    // Bob has claimed is payment, so we now claim our linked payment from Alice
+    // via the channel coordinator
+    this.coordinator.unlockHTLC(req);
+  }
+
+  /**
+   * hasHTLC returns true if the channel has an HTLC matching the given preimage
+   */
+  public hasHTLC(preimage: Uint8Array): boolean {
+    const evmHashLock = ethers.keccak256(preimage);
+    const lnHashLock = ethers.sha256(preimage);
+
+    return this.currentState().htlcs.some(
+      (h) => h.hashLock === evmHashLock || h.hashLock === lnHashLock,
+    );
   }
 
   private async handleUserOp(userOp: UserOperationStruct): Promise<void> {
