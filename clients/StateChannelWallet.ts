@@ -201,6 +201,20 @@ export class StateChannelWallet {
     throw new Error("No signed state found");
   }
 
+  async signState(s: StateStruct): Promise<SignedState> {
+    const stateHash = hashState(s);
+    const signature: string = await this.signer.signMessage(stateHash);
+
+    const signedState: SignedState = {
+      state: s,
+      ownerSignature: this.myRole() === Participant.Owner ? signature : "",
+      intermediarySignature:
+        this.myRole() === Participant.Intermediary ? signature : "",
+    };
+
+    return signedState;
+  }
+
   // Craft an HTLC struct, put it inside a state, hash the state, sign and return it
   async addHTLC(amount: number, hash: string): Promise<SignedState> {
     const currentTimestamp: number = Math.floor(Date.now() / 1000); // Unix timestamp in seconds
@@ -235,8 +249,8 @@ export class StateChannelWallet {
       htlcs: [...this.currentState().htlcs, htlc],
     };
 
-    const stateHash = hashState(updated);
-    const signature = await this.signer.signMessage(stateHash);
+    return await this.signState(updated);
+  }
 
     const signedState: SignedState = {
       state: updated,
