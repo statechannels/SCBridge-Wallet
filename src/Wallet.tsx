@@ -2,12 +2,16 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from "react";
 import BoltIcon from "@mui/icons-material/Bolt";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import logo from "./assets/logo.png";
 import "./Wallet.css";
 import {
   Avatar,
   Button,
   ButtonGroup,
+  Dialog,
+  DialogContent,
+  DialogTitle,
   Card,
   Container,
   Divider,
@@ -21,6 +25,7 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import { type Role } from "./WalletContainer";
+import L1PaymentModal from "./modals/L1Payment";
 import { MessageType, type Message } from "../clients/Messages";
 import { OwnerClient } from "../clients/OwnerClient";
 import { AddressIcon, AddressIconSmall } from "./AddressIcon";
@@ -61,6 +66,24 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
   const [balance, setBalance] = useState(0);
   const [recipient, setRecipient] = useState(myPeer);
   const [hostNetwork, setHostNetwork] = useState("Scroll");
+  const [isModalL1PayOpen, setModalL1PayOpen] = useState<boolean>(false);
+  const [userOpHash, setUserOpHash] = useState<string | null>(null);
+  const [payAmount, setPayAmount] = useState<number>(19);
+  const [errorL1Pay, setErrorL1Pay] = useState<string | null>(null);
+
+  const handleL1Pay = async (payee: string, amount: number): Promise<void> => {
+    try {
+      const resultHash = await wallet.payL1(payee, amount);
+      setUserOpHash(resultHash);
+      setErrorL1Pay(null); // Clear any previous error
+      setModalL1PayOpen(true);
+    } catch (e: any) {
+      console.error(e);
+      setErrorL1Pay("Error initiating L1 payment");
+    } finally {
+      setModalL1PayOpen(true);
+    }
+  };
 
   const wallet = new OwnerClient({
     signingKey: mySigningKey,
@@ -126,7 +149,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
             <Container maxWidth="xs">
               <TextField
                 fullWidth
-                label="Payee"
+                label="Recipient"
                 id="outlined-start-adornment"
                 defaultValue={myPeer}
                 onChange={(e) => {
@@ -150,21 +173,38 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
             spacing={2}
           >
             <ButtonGroup variant="outlined" aria-label="outlined button group">
-              <Button size="medium" disabled={recipient === ""}>
-                L1 Pay
+              <Button
+                size="medium"
+                disabled={recipient === ""}
+                onClick={() => {
+                  void handleL1Pay(myPeer, payAmount);
+                }}
+              >
+                <AccessTimeIcon style={{ marginRight: "5px" }} /> L1 Pay
               </Button>
               <Button
                 size="medium"
+                disabled={recipient.toLowerCase() !== myPeer.toLowerCase()}
                 onClick={() => {
                   wallet.pay(myPeer, 19).catch((e) => {
                     console.error(e);
                   });
                 }}
-                disabled={recipient.toLowerCase() !== myPeer.toLowerCase()}
               >
                 <BoltIcon /> L2 Pay
               </Button>
             </ButtonGroup>
+
+            <L1PaymentModal
+              isOpen={isModalL1PayOpen}
+              onClose={() => {
+                setModalL1PayOpen(false);
+              }}
+              errorMessage={errorL1Pay}
+              userOpHash={userOpHash}
+              amount={19} // todo: get this dynamically
+              payee={myPeer}
+            />
           </Stack>
           <Divider />
           <Stack
