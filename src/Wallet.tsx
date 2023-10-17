@@ -71,6 +71,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
   const [hostNetwork, setHostNetwork] = useState("Scroll");
   const [isModalL1PayOpen, setModalL1PayOpen] = useState<boolean>(false);
   const [userOpHash, setUserOpHash] = useState<string | null>(null);
+  const [payAmount, setPayAmount] = useState<number>(0.5);
   const [errorL1Pay, setErrorL1Pay] = useState<string | null>(null);
 
   const handleL1Pay = async (payee: string, amount: number): Promise<void> => {
@@ -234,7 +235,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
               }}
               errorMessage={errorL1Pay}
               userOpHash={userOpHash}
-              amount={19} // todo: get this dynamically
+              amount={payAmount}
               payee={myPeer}
             />
           </Stack>
