@@ -43,27 +43,41 @@ export class OwnerClient extends StateChannelWallet {
       const req = ev.data;
       if (req.type === MessageType.ForwardPayment) {
         console.log("received forward payment request");
+        // todo: validate that the proposed state update is "good"
+
+        // add the HTLC to our state
+        const mySig = this.signState(req.updatedState.state);
+        this.addSignedState({
+          ...req.updatedState,
+          ownerSignature: mySig.ownerSignature,
+          intermediarySignature: req.updatedState.intermediarySignature,
+        });
+        this.ack(mySig.ownerSignature);
+
         // claim the payment if it is for us
         const preimage = this.hashStore.get(req.hashLock);
 
-        // todo: validate that the proposed state update is "good"
-        const mySig = this.signState(req.updatedState.state);
-        this.signedStates.push({
-          ...req.updatedState,
-          ownerSignature: mySig.ownerSignature,
-        });
-
         if (preimage === undefined) {
           throw new Error("Hashlock not found");
-
           // todo: or forward the payment if it is multihop (not in scope for now)
         }
-        const updated = await this.unlockHTLC(preimage);
 
-        this.sendPeerMessage({
+        // we are the end claimant, so we should:
+        //  - unlock the payment
+        //  - send the updated state to the intermediary
+        //  - store the updated state with both signatures
+        this.log("attempting unlock w/ Irene");
+        const updatedAfterUnlock = await this.unlockHTLC(preimage);
+        const intermediaryAck = await this.sendPeerMessage({
           type: MessageType.UnlockHTLC,
           preimage,
-          updatedState: updated,
+          updatedState: updatedAfterUnlock,
+        });
+        this.log("unlocked w/ Irene:" + intermediaryAck.signature);
+        this.addSignedState({
+          state: updatedAfterUnlock.state,
+          ownerSignature: updatedAfterUnlock.ownerSignature,
+          intermediarySignature: intermediaryAck.signature,
         });
       } else if (req.type === MessageType.UnlockHTLC) {
         console.log("received unlock HTLC request");
