@@ -9,9 +9,6 @@ import {
   Avatar,
   Button,
   ButtonGroup,
-  Dialog,
-  DialogContent,
-  DialogTitle,
   Card,
   Container,
   Divider,
@@ -34,6 +31,9 @@ import { blo } from "blo";
 let myAddress: string = "placholder";
 let mySigningKey: string;
 let myPeer: string; // If I'm Alice, this is Bob. If I'm Bob, this is Alice.
+// @ts-expect-error
+const entrypointAddress = import.meta.env.VITE_ENTRYPOINT_ADDRESS;
+let myScwAddress: string;
 
 const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
   role: Role;
@@ -46,7 +46,8 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
       myPeer = import.meta.env.VITE_BOB_ADDRESS ?? "";
       // @ts-expect-error
       mySigningKey = import.meta.env.VITE_ALICE_SK ?? "";
-
+      // @ts-expect-error
+      myScwAddress = import.meta.env.VITE_ALICE_SCW_ADDRESS ?? "";
       break;
     case "bob":
       // @ts-expect-error
@@ -55,6 +56,8 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
       myPeer = import.meta.env.VITE_ALICE_ADDRESS ?? "";
       // @ts-expect-error
       mySigningKey = import.meta.env.VITE_BOB_SK ?? "";
+      // @ts-expect-error
+      myScwAddress = import.meta.env.VITE_BOB_SCW_ADDRESS ?? "";
       break;
   }
 
@@ -89,9 +92,9 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
     signingKey: mySigningKey,
     ownerAddress: myAddress,
     intermediaryAddress: intermediary,
-    chainRpcUrl: "",
-    entrypointAddress: "",
-    scwAddress: "",
+    chainRpcUrl: "http://localhost:8545",
+    entrypointAddress,
+    scwAddress: myScwAddress,
   });
 
   const message: Message = {
