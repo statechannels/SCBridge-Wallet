@@ -18,6 +18,10 @@ export class OwnerClient extends StateChannelWallet {
     console.log("listening on " + this.globalBroadcastChannel.name);
   }
 
+  private log(s: string): void {
+    console.log(`[OwnerClient] ${s}`);
+  }
+
   private attachMessageHandlers(): void {
     // These handlers are for messages from parties outside of our wallet / channel.
     this.globalBroadcastChannel.onmessage = async (ev: scwMessageEvent) => {
