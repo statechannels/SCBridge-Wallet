@@ -42,7 +42,7 @@ export class IntermediaryCoordinator {
    *
    * @param htlc the HTLC to forward
    */
-  async forwardHTLC(htlc: ForwardPaymentRequest): Promise<void> {
+  forwardHTLC(htlc: ForwardPaymentRequest): void {
     // Locate the target client
     const targetClient = this.channelClients.find(
       (c) => c.getAddress() === htlc.target,
@@ -54,10 +54,7 @@ export class IntermediaryCoordinator {
     }
 
     const fee = 0; // for example
-    const updatedState = await targetClient.addHTLC(
-      htlc.amount - fee,
-      htlc.hashLock,
-    );
+    const updatedState = targetClient.addHTLC(htlc.amount - fee, htlc.hashLock);
 
     targetClient.sendPeerMessage({
       type: MessageType.ForwardPayment,
@@ -115,7 +112,7 @@ export class IntermediaryClient extends StateChannelWallet {
           if (req.amount > (await this.getOwnerBalance())) {
             throw new Error("Insufficient balance");
           }
-          void this.coordinator.forwardHTLC(req);
+          this.coordinator.forwardHTLC(req);
           break;
         case MessageType.UserOperation:
           void this.handleUserOp(req);

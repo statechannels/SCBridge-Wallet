@@ -120,7 +120,7 @@ export class OwnerClient extends StateChannelWallet {
     });
 
     // create a state update with the hashlock
-    const signedUpdate = await this.addHTLC(amount, invoice.hashLock);
+    const signedUpdate = this.addHTLC(amount, invoice.hashLock);
 
     // send the state update to the intermediary
     this.sendPeerMessage({
