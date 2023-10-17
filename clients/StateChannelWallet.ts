@@ -171,6 +171,9 @@ export class StateChannelWallet {
     return this.scwAddress;
   }
 
+  /**
+   * getBalance checks the blockchain for the current balance of the wallet.
+   */
   async getBalance(): Promise<number> {
     return 10;
     // todo: caching, block event based updating, etc
