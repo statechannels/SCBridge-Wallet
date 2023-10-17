@@ -175,16 +175,15 @@ export class IntermediaryClient extends StateChannelWallet {
       throw new Error("Transfer amount exceeds owner balance");
     }
     const ownerSig = userOp.signature;
-    const { signature: intermediarySig, hash } =
-      await this.signUserOperation(userOp);
+    const { signature: intermediarySig } = await this.signUserOperation(userOp);
     userOp.signature = ethers.concat([ownerSig, intermediarySig]);
 
-    // TODO: We expect this validate call to pass or return a revert reason.
-    const validateResult = await this.scwContract
-      .getFunction("validateUserOp")
-      .staticCall(userOp, hash, 0);
-
-    console.log(validateResult);
+    // TODO: We expect this validate call to pass or revert
+    // However it fails with a Result decoding error
+    // const validateResult = await this.scwContract
+    //   .getFunction("validateUserOp")
+    //   .staticCall(userOp, hash, 0);
+    // console.log(validateResult);
 
     await this.entrypointContract.handleOps([userOp], this.getAddress());
   }
