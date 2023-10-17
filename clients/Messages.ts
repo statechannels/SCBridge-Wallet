@@ -5,6 +5,7 @@ export enum MessageType {
   RequestInvoice = "requestInvoice",
   Invoice = "invoice",
   ForwardPayment = "forwardPayment",
+  UnlockHTLC = "unlockHTLC",
   UserOperation = "userOperation",
 }
 
@@ -12,6 +13,7 @@ export type Message =
   | Invoice
   | RequestInvoice
   | ForwardPaymentRequest
+  | UnlockHTLCRequest
   | UserOperation;
 export interface Invoice {
   type: MessageType.Invoice;
@@ -33,6 +35,19 @@ export interface ForwardPaymentRequest {
   hashLock: string;
   timelock: number;
   updatedState: SignedState; // includes the "source" HTLC which makes the payment safe for the intermediary
+}
+export interface UnlockHTLCRequest {
+  type: MessageType.UnlockHTLC;
+  /**
+   * the preimage that unlocks the HTLC. This is the evidence that our peer
+   * needs to recognize the legitimacy of the proposed state update.
+   */
+  preimage: string;
+  /**
+   * the updated state after the HTLC is unlocked. This is the state that
+   * we are seeking agreement on.
+   */
+  updatedState: SignedState;
 }
 
 interface UserOperation extends UserOperationStruct {
