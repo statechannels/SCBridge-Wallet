@@ -1,19 +1,28 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import React, { useState, useEffect } from "react";
 import logo from "./assets/logo.png";
-import { IntermediaryClient } from "../clients/IntermediaryClient";
+import {
+  IntermediaryClient,
+  IntermediaryCoordinator,
+} from "../clients/IntermediaryClient";
 import { AddressIcon } from "./AddressIcon";
 import { Card } from "@mui/material";
 export const Intermediary: React.FunctionComponent = () => {
   const [ownerBalance, setOwnerBalance] = useState(0);
   const [intermediaryBalance, setIntermediaryBalance] = useState(0);
-  const client = new IntermediaryClient({
+  const client = new IntermediaryCoordinator({
     // @ts-expect-error
     signingKey: import.meta.env.VITE_IRENE_SK,
     chainRpcUrl: "",
     entrypointAddress: "",
     scwAddress: "",
   });
+
+  const withAlice = new IntermediaryClient();
+  const withBob = new IntermediaryClient();
+
+  client.registerChannel(withAlice);
+  client.registerChannel(withBob);
 
   useEffect(() => {
     const interval = setInterval(() => {
