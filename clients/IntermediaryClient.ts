@@ -37,6 +37,10 @@ export class IntermediaryCoordinator {
     });
   }
 
+  log(s: string): void {
+    console.log(`[Coordinator] ${s}`);
+  }
+
   /**
    * forwardHTLC moves a payment across the network. It is called by a channelWallet who has
    * verified that the payment is safe to forward.
