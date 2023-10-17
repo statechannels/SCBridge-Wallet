@@ -11,7 +11,7 @@ import {
   NitroSmartContractWallet__factory,
   EntryPoint__factory,
 } from "../typechain-types";
-import { type Message } from "./Messages";
+import { type scwMessageEvent, type Message } from "./Messages";
 import { hashState } from "./State";
 
 const HTLC_TIMEOUT = 5 * 60; // 5 minutes
@@ -107,19 +107,30 @@ export class StateChannelWallet {
   }
 
   /**
-   * Sends a message to a network participant who is *not* our channel peer.
-   *
-   * Convention: send outgoing requests to a peer via this method, and listen for
-   * request-scoped responses on the returned channel.
+   * Sends a message to a network participant who is *not* our channel peer, waits
+   * for a response, and returns the response. It is the responsibility of receiving
+   * peers to respond to messages sent via this method.
    *
    * @param to the scwAddress of the recipient
    * @param message the protocol message to send
-   * @returns the broadcast channel used to send the message, in order to listen for replies
+   * @returns the response from the recipient
    */
-  sendGlobalMessage(to: string, message: Message): BroadcastChannel {
+  async sendGlobalMessage(to: string, message: Message): Promise<Message> {
     const toChannel = new BroadcastChannel(to + "-global");
     toChannel.postMessage(message);
-    return toChannel;
+
+    // todo: (out of scope) create a request-scoped broadcastChannel for the response,
+    //       to avoid accidentally returning an unrelated message (e.g. from a previous interaction)
+    //       Should not be an issue for demo purposes
+
+    const respPromise = new Promise<Message>((resolve, reject) => {
+      // todo: fail on timeout
+      toChannel.onmessage = (ev: scwMessageEvent) => {
+        resolve(ev.data);
+      };
+    });
+
+    return await respPromise;
   }
 
   myRole(): Participant {
