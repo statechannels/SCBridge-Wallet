@@ -150,7 +150,7 @@ export class IntermediaryClient extends StateChannelWallet {
 
     // Bob has claimed is payment, so we now claim our linked payment from Alice
     // via the channel coordinator
-    this.coordinator.unlockHTLC(req);
+    void this.coordinator.unlockHTLC(req);
   }
 
   /**
