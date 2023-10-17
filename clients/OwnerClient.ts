@@ -37,6 +37,28 @@ export class OwnerClient extends StateChannelWallet {
         this.sendGlobalMessage(req.from, invoice);
       }
     };
+
+    // These handlers are for messages from the channel/wallet peer (our intermediary).
+    this.peerBroadcastChannel.onmessage = async (ev: scwMessageEvent) => {
+      const req = ev.data;
+      if (req.type === MessageType.ForwardPayment) {
+        // claim the payment if it is for us
+        const preimage = this.hashStore.get(req.hashLock);
+
+        if (preimage === undefined) {
+          throw new Error("Hashlock not found");
+
+          // todo: or forward the payment if it is multihop (not in scope for now)
+        }
+        const updated = await this.unlockHTLC(preimage);
+
+        this.sendPeerMessage({
+          type: MessageType.UnlockHTLC,
+          preimage: preimage.toString(),
+          updatedState: updated,
+        });
+      }
+    };
   }
 
   static async create(params: StateChannelWalletParams): Promise<OwnerClient> {

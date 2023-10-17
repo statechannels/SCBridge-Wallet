@@ -252,7 +252,7 @@ export class StateChannelWallet {
     return await this.signState(updated);
   }
 
-  async unlockHTLC(preimage: string): Promise<SignedState> {
+  async unlockHTLC(preimage: Uint8Array): Promise<SignedState> {
     // hash the preimage w/ keccak256 and sha256
     const ethHash = ethers.keccak256(preimage);
     const lnHash = ethers.sha256(preimage);
