@@ -105,6 +105,14 @@ export class StateChannelWallet {
     return instance;
   }
 
+  public addSignedState(ss: SignedState): void {
+    // todo: recover signers and throw if invalid
+    console.log("adding signed state");
+    logState(ss.state);
+
+    this.signedStates.push(ss);
+  }
+
   protected static async hydrateWithChainData(
     instance: StateChannelWallet,
   ): Promise<void> {
