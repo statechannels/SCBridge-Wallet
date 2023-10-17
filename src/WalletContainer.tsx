@@ -3,6 +3,7 @@ import { Button } from "@mui/material";
 
 import React, { useState } from "react";
 import Wallet from "./Wallet";
+import { Intermediary } from "./Intermediary";
 
 export type Role = "alice" | "bob" | "irene" | undefined;
 
@@ -10,10 +11,12 @@ const WalletContainer: React.FunctionComponent = () => {
   const [role, setRole] = useState<Role>(undefined);
   return (
     <div>
-      {role !== undefined ? (
-        <Wallet role={role} />
-      ) : (
+      {role === undefined ? (
         <ChooseRole setRole={setRole} />
+      ) : role === "irene" ? (
+        <Intermediary />
+      ) : (
+        <Wallet role={role} />
       )}
     </div>
   );
@@ -32,6 +35,13 @@ const ChooseRole: React.FunctionComponent<{
         }}
       >
         Alice
+      </Button>
+      <Button
+        onClick={() => {
+          props.setRole("irene");
+        }}
+      >
+        Irene
       </Button>
       <Button
         onClick={() => {
