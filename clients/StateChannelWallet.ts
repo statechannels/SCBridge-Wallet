@@ -23,6 +23,8 @@ export enum Participant {
 
 export interface StateChannelWalletParams {
   signingKey: string;
+  ownerAddress: string;
+  intermediaryAddress: string;
   chainRpcUrl: string;
   entrypointAddress: string;
   scwAddress: string;
@@ -38,8 +40,8 @@ export class StateChannelWallet {
   protected readonly chainProvider: ethers.Provider;
   protected readonly signer: ethers.Wallet;
   protected readonly entrypointAddress: string;
-  protected ownerAddress: string;
-  protected intermediaryAddress: string;
+  ownerAddress: string;
+  intermediaryAddress: string;
   protected intermediaryBalance: bigint;
   protected readonly scwAddress: string;
   protected readonly scwContract: NitroSmartContractWallet;
@@ -57,7 +59,8 @@ export class StateChannelWallet {
     this.hashStore = new Map<string, Uint8Array>();
     this.entrypointAddress = params.entrypointAddress;
     this.scwAddress = params.scwAddress;
-    this.ownerAddress = new ethers.Wallet(params.signingKey).address;
+    this.ownerAddress = params.ownerAddress;
+
     this.chainProvider = new ethers.JsonRpcProvider(params.chainRpcUrl);
     this.peerBroadcastChannel = new BroadcastChannel(
       this.ownerAddress + "-peer",
@@ -79,8 +82,17 @@ export class StateChannelWallet {
       this.chainProvider,
     );
 
+    this.intermediaryAddress = params.intermediaryAddress;
+
+    const computedAddress = new ethers.Wallet(params.signingKey).address;
+    if (
+      this.ownerAddress !== computedAddress &&
+      this.intermediaryAddress !== computedAddress
+    ) {
+      throw Error("secret key does not correspond to owner nor intermediary");
+    }
+
     // These values should be set in 'create' method
-    this.intermediaryAddress = "0x0";
     this.intermediaryBalance = BigInt(0);
   }
 
