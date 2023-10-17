@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import BoltIcon from "@mui/icons-material/Bolt";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import logo from "./assets/logo.png";
@@ -23,10 +23,10 @@ import {
 } from "@mui/material";
 import { type Role } from "./WalletContainer";
 import L1PaymentModal from "./modals/L1Payment";
-import { MessageType, type Message } from "../clients/Messages";
 import { OwnerClient } from "../clients/OwnerClient";
 import { AddressIcon, AddressIconSmall } from "./AddressIcon";
 import { blo } from "blo";
+import { PAYMENT_AMOUNT, UI_UPDATE_PERIOD } from "./constants";
 
 let myAddress: string = "placholder";
 let mySigningKey: string;
@@ -65,13 +65,12 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
     // @ts-expect-error
     import.meta.env.VITE_IRENE_ADDRESS ?? "",
   );
-  const [inboundCapacity, setInboundCapacity] = useState(0);
-  const [balance, setBalance] = useState(0);
+  const [intermediaryBalance, setIntermediaryBalance] = useState(0);
+  const [ownerBalance, setOwnerBalance] = useState(0);
   const [recipient, setRecipient] = useState(myPeer);
   const [hostNetwork, setHostNetwork] = useState("Scroll");
   const [isModalL1PayOpen, setModalL1PayOpen] = useState<boolean>(false);
   const [userOpHash, setUserOpHash] = useState<string | null>(null);
-  const [payAmount, setPayAmount] = useState<number>(19);
   const [errorL1Pay, setErrorL1Pay] = useState<string | null>(null);
 
   const handleL1Pay = async (payee: string, amount: number): Promise<void> => {
@@ -97,11 +96,29 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
     scwAddress: myScwAddress,
   });
 
-  const message: Message = {
-    type: MessageType.RequestInvoice,
-    amount: 1987,
-    from: myAddress,
-  };
+  useEffect(() => {
+    const interval = setInterval(() => {
+      wallet
+        .getOwnerBalance()
+        .then((b) => {
+          setOwnerBalance(b);
+        })
+        .catch((e) => {
+          console.error(e);
+        });
+      wallet
+        .getIntermediaryBalance()
+        .then((b) => {
+          setIntermediaryBalance(b);
+        })
+        .catch((e) => {
+          console.error(e);
+        });
+    }, UI_UPDATE_PERIOD);
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
 
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
   const theme = React.useMemo(
@@ -135,12 +152,19 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
           />
         </div>
         <h2>SCBridge-Wallet</h2>
-        <AddressIcon address={myAddress as `0x${string}`} />
+        <Stack
+          direction="column"
+          justifyContent="center"
+          alignItems="center"
+          spacing={2}
+        >
+          <AddressIcon address={myAddress as `0x${string}`} />
 
-        <Typography> Host Network: {hostNetwork}</Typography>
-        <Typography>
-          Balance: {balance} / Inbound Capacity: {inboundCapacity}
-        </Typography>
+          <Typography> Host Network: {hostNetwork}</Typography>
+          <Typography>
+            Balance: {ownerBalance} / Inbound Capacity: {intermediaryBalance}
+          </Typography>
+        </Stack>
         <br />
         <Stack direction="column" spacing={2}>
           <Stack
@@ -154,14 +178,19 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
                 fullWidth
                 label="Recipient"
                 id="outlined-start-adornment"
-                defaultValue={myPeer}
+                value={recipient}
                 onChange={(e) => {
                   setRecipient(e.target.value);
                 }}
                 sx={{ m: 1, width: "25ch" }}
                 InputProps={{
                   startAdornment: (
-                    <InputAdornment position="start">
+                    <InputAdornment
+                      position="start"
+                      onClick={() => {
+                        setRecipient(myPeer);
+                      }}
+                    >
                       <AddressIconSmall address={recipient as `0x${string}`} />
                     </InputAdornment>
                   ),
@@ -180,7 +209,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
                 size="medium"
                 disabled={recipient === ""}
                 onClick={() => {
-                  void handleL1Pay(myPeer, payAmount);
+                  void handleL1Pay(myPeer, PAYMENT_AMOUNT);
                 }}
               >
                 <AccessTimeIcon style={{ marginRight: "5px" }} /> L1 Pay
@@ -189,7 +218,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
                 size="medium"
                 disabled={recipient.toLowerCase() !== myPeer.toLowerCase()}
                 onClick={() => {
-                  wallet.pay(myPeer, 19).catch((e) => {
+                  wallet.pay(myPeer, PAYMENT_AMOUNT).catch((e) => {
                     console.error(e);
                   });
                 }}

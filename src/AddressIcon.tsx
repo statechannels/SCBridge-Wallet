@@ -7,7 +7,11 @@ export const AddressIcon: FunctionComponent<{
 }> = (props: { address: `0x${string}` }) => {
   return (
     <Tooltip title={props.address}>
-      <img alt={props.address} src={blo(props.address)} />
+      <Avatar
+        {...props}
+        src={blo(props.address)}
+        sx={{ width: 48, height: 48 }}
+      />
     </Tooltip>
   );
 };
