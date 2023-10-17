@@ -1,5 +1,5 @@
 import { type Invoice, type scwMessageEvent, MessageType } from "./Messages";
-import { ethers } from "ethers";
+import { ethers, ZeroHash } from "ethers";
 import {
   Participant,
   StateChannelWallet,
@@ -129,6 +129,7 @@ export class OwnerClient extends StateChannelWallet {
     const callData = IAccount.encodeFunctionData("execute", [
       payee,
       ethers.parseEther(amount.toString()),
+      ZeroHash,
     ]);
     const partialUserOp: Partial<UserOperationStruct> = {
       sender: this.signer.address,
