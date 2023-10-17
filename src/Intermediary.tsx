@@ -34,7 +34,7 @@ export const Coordinator: React.FunctionComponent = () => {
     ownerAddress: import.meta.env.VITE_ALICE_ADDRESS,
     intermediaryAddress: myAddress,
     chainRpcUrl: "http://localhost:8545",
-    entrypointAddress: entrypointAddress,
+    entrypointAddress,
     scwAddress: aliceScwAddress,
   });
   const withBob = new IntermediaryClient({
@@ -43,7 +43,7 @@ export const Coordinator: React.FunctionComponent = () => {
     ownerAddress: import.meta.env.VITE_BOB_ADDRESS,
     intermediaryAddress: myAddress,
     chainRpcUrl: "http://localhost:8545",
-    entrypointAddress: entrypointAddress,
+    entrypointAddress,
     scwAddress: bobScwAddress,
   });
 
