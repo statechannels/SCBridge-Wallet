@@ -11,6 +11,7 @@ import {
   type StateChannelWalletParams,
 } from "./StateChannelWallet";
 import { type UserOperationStruct } from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
+import { IAccount } from "./utils";
 import { hashState } from "./State";
 
 /**
@@ -163,7 +164,16 @@ export class IntermediaryClient extends StateChannelWallet {
   }
 
   private async handleUserOp(userOp: UserOperationStruct): Promise<void> {
-    // TODO: Decode the calldata of the user op and only sign if the amount transferred is under intermediaryBalance
+    // Only sign if the amount transferred is under owner's balance
+    const decodedData = IAccount.decodeFunctionData("execute", userOp.callData);
+    const value = decodedData[1] as bigint;
+    const balanceETH = await this.getOwnerBalance();
+    const balanceWEI = ethers.parseEther(balanceETH.toString());
+
+    if (value > balanceWEI) {
+      // todo: account for expected gas consumption? ( out of scope for hackathon )
+      throw new Error("Transfer amount exceeds owner balance");
+    }
 
     const ownerSig = userOp.signature.slice(0, 65);
     const intermediarySig = await this.signUserOperation(userOp);
