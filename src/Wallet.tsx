@@ -26,7 +26,7 @@ import L1PaymentModal from "./modals/L1Payment";
 import { OwnerClient } from "../clients/OwnerClient";
 import { AddressIcon, AddressIconSmall } from "./AddressIcon";
 import { blo } from "blo";
-import { UI_UPDATE_PERIOD } from "./constants";
+import { PAYMENT_AMOUNT, UI_UPDATE_PERIOD } from "./constants";
 
 let myAddress: string = "placholder";
 let mySigningKey: string;
@@ -65,7 +65,6 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
   const [hostNetwork, setHostNetwork] = useState("Scroll");
   const [isModalL1PayOpen, setModalL1PayOpen] = useState<boolean>(false);
   const [userOpHash, setUserOpHash] = useState<string | null>(null);
-  const [payAmount, setPayAmount] = useState<number>(19);
   const [errorL1Pay, setErrorL1Pay] = useState<string | null>(null);
 
   const handleL1Pay = async (payee: string, amount: number): Promise<void> => {
@@ -204,7 +203,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
                 size="medium"
                 disabled={recipient === ""}
                 onClick={() => {
-                  void handleL1Pay(myPeer, payAmount);
+                  void handleL1Pay(myPeer, PAYMENT_AMOUNT);
                 }}
               >
                 <AccessTimeIcon style={{ marginRight: "5px" }} /> L1 Pay
@@ -213,7 +212,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
                 size="medium"
                 disabled={recipient.toLowerCase() !== myPeer.toLowerCase()}
                 onClick={() => {
-                  wallet.pay(myPeer, 19).catch((e) => {
+                  wallet.pay(myPeer, PAYMENT_AMOUNT).catch((e) => {
                     console.error(e);
                   });
                 }}
