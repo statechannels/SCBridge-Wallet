@@ -53,7 +53,10 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
       break;
   }
 
-  const [intermediary, setIntermediary] = useState("0xabc");
+  const [intermediary, setIntermediary] = useState(
+    // @ts-expect-error
+    import.meta.env.VITE_IRENE_ADDRESS ?? "",
+  );
   const [inboundCapacity, setInboundCapacity] = useState(0);
   const [balance, setBalance] = useState(0);
   const [recipient, setRecipient] = useState(myPeer);
