@@ -7,6 +7,7 @@ import {
 } from "./StateChannelWallet";
 import { type UserOperationStruct } from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
 import { fillUserOpDefaults } from "./UserOp";
+import { hashState } from "./State";
 
 const accountABI = ["function execute(address to, uint256 value, bytes data)"];
 const account = new ethers.Interface(accountABI);
@@ -57,6 +58,24 @@ export class OwnerClient extends StateChannelWallet {
           preimage,
           updatedState: updated,
         });
+      } else if (req.type === MessageType.UnlockHTLC) {
+        // run the preimage through the state update function
+        const updated = await this.unlockHTLC(req.preimage);
+        const updatedHash = hashState(updated.state);
+
+        // check that the proposed update is correct
+        if (updatedHash !== hashState(req.updatedState.state)) {
+          throw new Error("Invalid state update");
+          // todo: peerMessage to sender with failure
+        }
+        const signer = ethers.recoverAddress(
+          updatedHash,
+          req.updatedState.intermediarySignature,
+        );
+        if (signer !== this.intermediaryAddress) {
+          throw new Error("Invalid signature");
+          // todo: peerMessage to sender with failure
+        }
       }
     };
   }
