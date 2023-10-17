@@ -42,8 +42,16 @@ export class OwnerClient extends StateChannelWallet {
     this.peerBroadcastChannel.onmessage = async (ev: scwMessageEvent) => {
       const req = ev.data;
       if (req.type === MessageType.ForwardPayment) {
+        console.log("received forward payment request");
         // claim the payment if it is for us
         const preimage = this.hashStore.get(req.hashLock);
+
+        // todo: validate that the proposed state update is "good"
+        const mySig = this.signState(req.updatedState.state);
+        this.signedStates.push({
+          ...req.updatedState,
+          ownerSignature: mySig.ownerSignature,
+        });
 
         if (preimage === undefined) {
           throw new Error("Hashlock not found");
@@ -58,6 +66,7 @@ export class OwnerClient extends StateChannelWallet {
           updatedState: updated,
         });
       } else if (req.type === MessageType.UnlockHTLC) {
+        console.log("received unlock HTLC request");
         // run the preimage through the state update function
         const updated = await this.unlockHTLC(req.preimage);
         const updatedHash = hashState(updated.state);
@@ -109,6 +118,7 @@ export class OwnerClient extends StateChannelWallet {
     if (invoice.type !== MessageType.Invoice) {
       throw new Error("Unexpected response");
     }
+    console.log("received invoice: " + JSON.stringify(invoice));
 
     // create a state update with the hashlock
     const signedUpdate = this.addHTLC(amount, invoice.hashLock);
