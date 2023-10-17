@@ -34,8 +34,8 @@ export class OwnerClient extends StateChannelWallet {
           amount: req.amount,
         };
 
-        // return the invoice to the payer
-        this.sendGlobalMessage(req.from, invoice);
+        // return the invoice to the payer on the same channel we received the request
+        this.globalBroadcastChannel.postMessage(invoice);
       }
     };
 
@@ -100,28 +100,16 @@ export class OwnerClient extends StateChannelWallet {
    * @param amount the amount we want to pay
    */
   async pay(payee: string, amount: number): Promise<void> {
-    // start listening for an invoice
-    const invoicePromise = new Promise((resolve, reject) => {
-      // todo: resolve failure on a timeout
-      this.globalBroadcastChannel.onmessage = (ev: scwMessageEvent) => {
-        if (ev.data.type === MessageType.Invoice) {
-          resolve(ev.data);
-        } else {
-          // todo: fallback to L1 payment ?
-          reject(new Error("Unexpected message type"));
-        }
-      };
-    });
-
-    // contact `payee` and request a hashlock
-    this.sendGlobalMessage(payee, {
+    // contact `payee` and request an invoice
+    const invoice = await this.sendGlobalMessage(payee, {
       type: MessageType.RequestInvoice,
       amount,
       from: this.ownerAddress,
     });
 
-    // wait for invoice
-    const invoice: Invoice = (await invoicePromise) as Invoice;
+    if (invoice.type !== MessageType.Invoice) {
+      throw new Error("Unexpected response");
+    }
 
     // create a state update with the hashlock
     const signedUpdate = this.addHTLC(amount, invoice.hashLock);
@@ -159,9 +147,4 @@ export class OwnerClient extends StateChannelWallet {
       ...signedUserOp,
     });
   }
-
-  // todo: add listener for invoice requests (always accept - they want to pay us)
-
-  // todo: add listener for incoming HTLCs which correspond to some preimage we know.
-  //       When they arrive, we claim the funds and maybe clear the invoice in some way.
 }
