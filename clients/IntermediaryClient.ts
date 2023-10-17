@@ -10,7 +10,7 @@ import {
   StateChannelWallet,
   type StateChannelWalletParams,
 } from "./StateChannelWallet";
-import { type UserOperationStruct } from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
+import { type UserOperationStruct } from "../typechain-types/contracts/SCBridgeWallet";
 import { IAccount } from "./utils";
 import { hashState } from "./State";
 
