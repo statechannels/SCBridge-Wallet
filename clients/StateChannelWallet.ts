@@ -350,18 +350,20 @@ export class StateChannelWallet {
       throw new Error("HTLC is expired");
     }
 
+    let updatedIntermediaryBalance = this.currentState().intermediaryBalance;
     // update balance of the party that sent the HTLC. If the HTLC is for
     // the owner, then the released funds implicitly return to them. If
     // the HTLC is for the intermediary, then the update must be recorded.
     if (unlockTarget.to === Participant.Intermediary) {
-      this.intermediaryBalance += BigInt(unlockTarget.amount);
+      updatedIntermediaryBalance =
+        Number(updatedIntermediaryBalance) + Number(unlockTarget.amount);
     }
 
     const updated: StateStruct = {
       intermediary: this.intermediaryAddress,
       owner: this.ownerAddress,
       turnNum: Number(this.currentState().turnNum) + 1,
-      intermediaryBalance: this.intermediaryBalance,
+      intermediaryBalance: updatedIntermediaryBalance,
       htlcs: this.currentState().htlcs.filter((h) => h !== unlockTarget),
     };
 
