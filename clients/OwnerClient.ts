@@ -54,7 +54,7 @@ export class OwnerClient extends StateChannelWallet {
 
         this.sendPeerMessage({
           type: MessageType.UnlockHTLC,
-          preimage: preimage.toString(),
+          preimage,
           updatedState: updated,
         });
       }

@@ -42,7 +42,7 @@ export interface UnlockHTLCRequest {
    * the preimage that unlocks the HTLC. This is the evidence that our peer
    * needs to recognize the legitimacy of the proposed state update.
    */
-  preimage: string;
+  preimage: Uint8Array;
   /**
    * the updated state after the HTLC is unlocked. This is the state that
    * we are seeking agreement on.
