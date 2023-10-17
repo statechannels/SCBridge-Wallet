@@ -183,7 +183,8 @@ export class OwnerClient extends StateChannelWallet {
       ...userOp,
       signature,
     };
-    this.sendPeerMessage({
+
+    void this.sendPeerMessage({
       type: MessageType.UserOperation,
       ...signedUserOp,
     });
