@@ -9,6 +9,9 @@ import {
   Avatar,
   Button,
   ButtonGroup,
+  Dialog,
+  DialogContent,
+  DialogTitle,
   Card,
   Container,
   Divider,
@@ -79,6 +82,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
       const resultHash = await wallet.payL1(payee, amount);
       setUserOpHash(resultHash);
       setErrorL1Pay(null); // Clear any previous error
+      setModalL1PayOpen(true);
     } catch (e: any) {
       console.error(e);
       setErrorL1Pay("Error initiating L1 payment");
