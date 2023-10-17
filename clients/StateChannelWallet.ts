@@ -212,7 +212,7 @@ export class StateChannelWallet {
   }
 
   async getIntermediaryBalance(): Promise<number> {
-    return Number(this.intermediaryBalance);
+    return Number(this.currentState().intermediaryBalance);
   }
 
   async getOwnerBalance(): Promise<number> {
