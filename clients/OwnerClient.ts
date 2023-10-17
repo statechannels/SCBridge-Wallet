@@ -59,16 +59,10 @@ export class OwnerClient extends StateChannelWallet {
    * @param amount the amount we want to pay
    */
   async pay(payee: string, amount: number): Promise<void> {
-    // contact `payee` and request a hashlock
-    const requestChannel = this.sendGlobalMessage(payee, {
-      type: MessageType.RequestInvoice,
-      amount,
-      from: this.ownerAddress,
-    });
-
-    const invoice: Invoice = await new Promise((resolve, reject) => {
+    // start listening for an invoice
+    const invoicePromise = new Promise((resolve, reject) => {
       // todo: resolve failure on a timeout
-      requestChannel.onmessage = (ev: scwMessageEvent) => {
+      this.globalBroadcastChannel.onmessage = (ev: scwMessageEvent) => {
         if (ev.data.type === MessageType.Invoice) {
           resolve(ev.data);
         } else {
@@ -77,6 +71,16 @@ export class OwnerClient extends StateChannelWallet {
         }
       };
     });
+
+    // contact `payee` and request a hashlock
+    this.sendGlobalMessage(payee, {
+      type: MessageType.RequestInvoice,
+      amount,
+      from: this.ownerAddress,
+    });
+
+    // wait for invoice
+    const invoice: Invoice = (await invoicePromise) as Invoice;
 
     // create a state update with the hashlock
     const signedUpdate = await this.addHTLC(amount, invoice.hashLock);
