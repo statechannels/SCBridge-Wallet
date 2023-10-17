@@ -194,6 +194,7 @@ export class StateChannelWallet {
         signedState.intermediarySignature !== "" &&
         signedState.ownerSignature !== ""
       ) {
+        // todo: deep copy?
         return signedState.state;
       }
     }
