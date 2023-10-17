@@ -155,14 +155,19 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
                 fullWidth
                 label="Recipient"
                 id="outlined-start-adornment"
-                defaultValue={myPeer}
+                value={recipient}
                 onChange={(e) => {
                   setRecipient(e.target.value);
                 }}
                 sx={{ m: 1, width: "25ch" }}
                 InputProps={{
                   startAdornment: (
-                    <InputAdornment position="start">
+                    <InputAdornment
+                      position="start"
+                      onClick={() => {
+                        setRecipient(myPeer);
+                      }}
+                    >
                       <AddressIconSmall address={recipient as `0x${string}`} />
                     </InputAdornment>
                   ),
