@@ -27,16 +27,15 @@ import { OwnerClient } from "../clients/OwnerClient";
 import { AddressIcon, AddressIconSmall } from "./AddressIcon";
 import { blo } from "blo";
 import { UI_UPDATE_PERIOD } from "./constants";
-
-
 import { formatEther } from "ethers";
+
 let myAddress: string = "placholder";
 let mySigningKey: string;
 let myPeer: string; // If I'm Alice, this is Bob. If I'm Bob, this is Alice.
 // @ts-expect-error
 const entrypointAddress = import.meta.env.VITE_ENTRYPOINT_ADDRESS;
 let myScwAddress: string;
-
+let myPeerSCWAddress: string;
 const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
   role: Role;
 }) => {
@@ -50,6 +49,9 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
       mySigningKey = import.meta.env.VITE_ALICE_SK;
       // @ts-expect-error
       myScwAddress = import.meta.env.VITE_ALICE_SCW_ADDRESS;
+      // @ts-expect-error
+      myPeerSCWAddress = import.meta.env.VITE_BOB_SCW_ADDRESS;
+
       break;
     case "bob":
       // @ts-expect-error
@@ -60,6 +62,9 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
       mySigningKey = import.meta.env.VITE_BOB_SK;
       // @ts-expect-error
       myScwAddress = import.meta.env.VITE_BOB_SCW_ADDRESS;
+      // @ts-expect-error
+      myPeerSCWAddress = import.meta.env.VITE_ALICE_SCW_ADDRESS;
+
       break;
   }
 
@@ -240,7 +245,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
                 size="medium"
                 disabled={recipient === ""}
                 onClick={() => {
-                  void handleL1Pay(myPeer, Number(payAmount));
+                  void handleL1Pay(myPeerSCWAddress, Number(payAmount));
                 }}
               >
                 <AccessTimeIcon style={{ marginRight: "5px" }} /> L1 Pay
@@ -249,7 +254,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
                 size="medium"
                 disabled={recipient.toLowerCase() !== myPeer.toLowerCase()}
                 onClick={() => {
-                  wallet.pay(myPeer, Number(payAmount)).catch((e) => {
+                  wallet.pay(myPeerSCWAddress, Number(payAmount)).catch((e) => {
                     console.error(e);
                   });
                 }}
