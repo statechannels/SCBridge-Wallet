@@ -268,7 +268,7 @@ export class StateChannelWallet {
 
   signState(s: StateStruct): SignedState {
     const stateHash = hashState(s);
-    const signature: string = this.signer.signMessageSync(stateHash);
+    const signature: string = this.signer.signMessageSync(getBytes(stateHash));
 
     const signedState: SignedState = {
       state: s,
