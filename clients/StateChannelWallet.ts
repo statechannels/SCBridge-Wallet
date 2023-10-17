@@ -204,11 +204,12 @@ export class StateChannelWallet {
   async addHTLC(amount: number, hash: string): Promise<SignedState> {
     const currentTimestamp: number = Math.floor(Date.now() / 1000); // Unix timestamp in seconds
 
-    if (
-      this.myRole() === Participant.Intermediary &&
-      this.intermediaryBalance < BigInt(amount)
-    ) {
-      throw new Error("Insufficient balance");
+    if (this.myRole() === Participant.Intermediary) {
+      if (this.intermediaryBalance < BigInt(amount)) {
+        throw new Error("Insufficient balance");
+      }
+
+      this.intermediaryBalance -= BigInt(amount);
     }
 
     if (
