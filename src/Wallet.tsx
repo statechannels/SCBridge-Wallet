@@ -23,10 +23,10 @@ import {
 } from "@mui/material";
 import { type Role } from "./WalletContainer";
 import L1PaymentModal from "./modals/L1Payment";
-import { MessageType, type Message } from "../clients/Messages";
 import { OwnerClient } from "../clients/OwnerClient";
 import { AddressIcon, AddressIconSmall } from "./AddressIcon";
 import { blo } from "blo";
+import { UI_UPDATE_PERIOD } from "./constants";
 
 let myAddress: string = "placholder";
 let mySigningKey: string;
@@ -109,7 +109,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
         .catch((e) => {
           console.error(e);
         });
-    }, 400);
+    }, UI_UPDATE_PERIOD);
     return () => {
       clearInterval(interval);
     };

@@ -14,6 +14,7 @@ import {
   Typography,
 } from "@mui/material";
 import { blo } from "blo";
+import { UI_UPDATE_PERIOD } from "./constants";
 
 export const Coordinator: React.FunctionComponent = () => {
   // @ts-expect-error
@@ -113,7 +114,7 @@ export const Intermediary: React.FunctionComponent<{
         .catch((e) => {
           console.error(e);
         });
-    }, 400);
+    }, UI_UPDATE_PERIOD);
     return () => {
       clearInterval(interval);
     };
