@@ -40,8 +40,8 @@ export class StateChannelWallet {
   protected readonly chainProvider: ethers.Provider;
   protected readonly signer: ethers.Wallet;
   protected readonly entrypointAddress: string;
-  protected ownerAddress: string;
-  protected intermediaryAddress: string;
+  ownerAddress: string;
+  intermediaryAddress: string;
   protected intermediaryBalance: bigint;
   protected readonly scwAddress: string;
   protected readonly scwContract: NitroSmartContractWallet;
