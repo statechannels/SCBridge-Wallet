@@ -14,6 +14,7 @@ import {
 import { type Role } from "./WalletContainer";
 import { MessageType, type Message } from "../clients/Messages";
 import { OwnerClient } from "../clients/OwnerClient";
+import { AddressIcon } from "./AddressIcon";
 
 let myAddress: string = "placholder";
 let mySigningKey: string;
@@ -83,7 +84,8 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
         />
       </div>
       <h1>SCBridge-Wallet</h1>
-      <h2>{myAddress}</h2>
+      <AddressIcon address={myAddress as `0x${string}`} />
+
       <div className="card">
         <p> Host Network: {hostNetwork}</p>
         <p>Balance: {balance}</p>
