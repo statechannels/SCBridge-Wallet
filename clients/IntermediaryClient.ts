@@ -171,6 +171,7 @@ export class IntermediaryClient extends StateChannelWallet {
     const balanceWEI = ethers.parseEther(balanceETH.toString());
 
     if (value > balanceWEI) {
+      // todo: account for expected gas consumption? ( out of scope for hackathon )
       throw new Error("Transfer amount exceeds owner balance");
     }
 
