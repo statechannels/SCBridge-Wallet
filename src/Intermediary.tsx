@@ -60,16 +60,31 @@ export const Coordinator: React.FunctionComponent = () => {
       }}
     >
       <h2>Coordinator</h2>
-      <AddressIcon
-        address={
-          // @ts-expect-error
-          import.meta.env.VITE_IRENE_ADDRESS as `0x${string}`
-        }
-      />
-      <Divider />
-      <Intermediary client={withAlice} />
-      <Divider />
-      <Intermediary client={withBob} />
+      <Stack
+        direction="column"
+        justifyContent="center"
+        alignItems="center"
+        spacing={2}
+      >
+        <AddressIcon
+          address={
+            // @ts-expect-error
+            import.meta.env.VITE_IRENE_ADDRESS as `0x${string}`
+          }
+        />
+      </Stack>
+      <br />
+      <Stack
+        direction="column"
+        justifyContent="left"
+        alignItems="left"
+        spacing={2}
+      >
+        <Divider />
+        <Intermediary client={withAlice} />
+        <Divider />
+        <Intermediary client={withBob} />
+      </Stack>
     </Card>
   );
 };

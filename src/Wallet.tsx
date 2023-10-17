@@ -9,9 +9,6 @@ import {
   Avatar,
   Button,
   ButtonGroup,
-  Dialog,
-  DialogContent,
-  DialogTitle,
   Card,
   Container,
   Divider,
@@ -132,12 +129,19 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
           />
         </div>
         <h2>SCBridge-Wallet</h2>
-        <AddressIcon address={myAddress as `0x${string}`} />
+        <Stack
+          direction="column"
+          justifyContent="center"
+          alignItems="center"
+          spacing={2}
+        >
+          <AddressIcon address={myAddress as `0x${string}`} />
 
-        <Typography> Host Network: {hostNetwork}</Typography>
-        <Typography>
-          Balance: {balance} / Inbound Capacity: {inboundCapacity}
-        </Typography>
+          <Typography> Host Network: {hostNetwork}</Typography>
+          <Typography>
+            Balance: {balance} / Inbound Capacity: {inboundCapacity}
+          </Typography>
+        </Stack>
         <br />
         <Stack direction="column" spacing={2}>
           <Stack
