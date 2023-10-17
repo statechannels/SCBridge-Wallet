@@ -252,14 +252,41 @@ export class StateChannelWallet {
     return await this.signState(updated);
   }
 
-    const signedState: SignedState = {
-      state: updated,
-      ownerSignature: this.myRole() === Participant.Owner ? signature : "",
-      intermediarySignature:
-        this.myRole() === Participant.Intermediary ? signature : "",
+  async unlockHTLC(preimage: string): Promise<SignedState> {
+    // hash the preimage w/ keccak256 and sha256
+    const ethHash = ethers.keccak256(preimage);
+    const lnHash = ethers.sha256(preimage);
+
+    // check if any existing HTLCs match the hash
+    const unlockTarget = this.currentState().htlcs.find(
+      (h) => h.hashLock === ethHash || h.hashLock === lnHash,
+    );
+
+    // with well-behaved clients, we should not see this
+    if (unlockTarget === undefined) {
+      throw new Error("No matching HTLC found");
+    }
+
+    // check if the HTLC is expired - this should not happen
+    if (Number(unlockTarget.timelock) < Math.floor(Date.now() / 1000)) {
+      throw new Error("HTLC is expired");
+    }
+
+    // update balance of the party that sent the HTLC. If the HTLC is for
+    // the owner, then the released funds implicitly return to them. If
+    // the HTLC is for the intermediary, then the update must be recorded.
+    if (unlockTarget.to === Participant.Intermediary) {
+      this.intermediaryBalance += BigInt(unlockTarget.amount);
+    }
+
+    const updated: StateStruct = {
+      intermediary: this.intermediaryAddress,
+      owner: this.ownerAddress,
+      turnNum: Number(this.currentState().turnNum) + 1,
+      intermediaryBalance: this.intermediaryBalance,
+      htlcs: this.currentState().htlcs.filter((h) => h !== unlockTarget),
     };
 
-    return signedState;
+    return await this.signState(updated);
   }
-  // ingestSignedStateAndPreimage(signedState, preimage); // returns a signed state with updated balances and one fewer HTLC
 }
