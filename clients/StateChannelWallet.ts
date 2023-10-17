@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { ethers, getBytes } from "ethers";
 import {
   type UserOperationStruct,
   type HTLCStruct,
@@ -11,8 +11,13 @@ import {
   EntryPoint__factory,
   SCBridgeWallet__factory,
 } from "../typechain-types";
-import { type scwMessageEvent, type Message } from "./Messages";
-import { hashState } from "./State";
+import {
+  type scwMessageEvent,
+  type Message,
+  type SignatureMessage,
+  MessageType,
+} from "./Messages";
+import { hashState, logState } from "./State";
 
 const HTLC_TIMEOUT = 5 * 60; // 5 minutes
 
@@ -248,7 +253,7 @@ export class StateChannelWallet {
     for (let i = this.signedStates.length - 1; i >= 0; i--) {
       const signedState = this.signedStates[i];
       if (
-        signedState.intermediarySignature !== "" &&
+        signedState.intermediarySignature !== "" ||
         signedState.ownerSignature !== ""
       ) {
         // todo: deep copy?
@@ -332,6 +337,7 @@ export class StateChannelWallet {
 
     // with well-behaved clients, we should not see this
     if (unlockTarget === undefined) {
+      logState(this.currentState());
       throw new Error("No matching HTLC found");
     }
 
