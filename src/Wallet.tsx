@@ -91,7 +91,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
         <TextField
           label="Payee"
           id="outlined-start-adornment"
-          defaultValue="0xbob"
+          defaultValue={myPeer}
           onChange={(e) => {
             setRecipient(e.target.value);
           }}
@@ -101,10 +101,9 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
           <Button>L1 Pay</Button>
           <Button
             onClick={() => {
-              console.log(
-                "sending: " + JSON.stringify(message) + " to: " + myPeer,
-              );
-              wallet.sendGlobalMessage(myPeer, message);
+              wallet.pay(myPeer, 19).catch((e) => {
+                console.error(e);
+              });
             }}
           >
             L2 Pay
