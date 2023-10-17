@@ -91,12 +91,6 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
     scwAddress: "",
   });
 
-  const message: Message = {
-    type: MessageType.RequestInvoice,
-    amount: 1987,
-    from: myAddress,
-  };
-
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
   const theme = React.useMemo(
     () =>
