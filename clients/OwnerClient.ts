@@ -1,5 +1,5 @@
 import { type Invoice, type scwMessageEvent, MessageType } from "./Messages";
-import { ethers } from "ethers";
+import { ethers, ZeroHash } from "ethers";
 import {
   Participant,
   StateChannelWallet,
@@ -166,18 +166,19 @@ export class OwnerClient extends StateChannelWallet {
   }
 
   // Create L1 payment UserOperation and forward to intermediary
-  async payL1(payee: string, amount: number): Promise<void> {
+  async payL1(payee: string, amount: number): Promise<string> {
     // Only need to encode 'to' and 'amount' fields (i.e. no 'data') for basic eth transfer
     const callData = IAccount.encodeFunctionData("execute", [
       payee,
       ethers.parseEther(amount.toString()),
+      ZeroHash,
     ]);
     const partialUserOp: Partial<UserOperationStruct> = {
       sender: this.signer.address,
       callData,
     };
     const userOp = fillUserOpDefaults(partialUserOp);
-    const signature = await this.signUserOperation(userOp);
+    const { signature, hash } = await this.signUserOperation(userOp);
     const signedUserOp: UserOperationStruct = {
       ...userOp,
       signature,
@@ -187,5 +188,11 @@ export class OwnerClient extends StateChannelWallet {
       type: MessageType.UserOperation,
       ...signedUserOp,
     });
+
+    console.log(
+      `Initiated transfer of ${amount} ETH to ${payee} (userOpHash: ${hash})`,
+    );
+
+    return hash;
   }
 }

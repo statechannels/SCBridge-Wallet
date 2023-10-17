@@ -104,13 +104,13 @@ describe("SCBridgeWallet", function () {
       signature: hre.ethers.ZeroHash,
     };
 
-    const ownerSig = signUserOp(
+    const { signature: ownerSig } = signUserOp(
       userOp,
       owner,
       await entrypoint.getAddress(),
       Number(n.chainId),
     );
-    const intermediarySig = signUserOp(
+    const { signature: intermediarySig } = signUserOp(
       userOp,
       intermediary,
       await entrypoint.getAddress(),
@@ -237,13 +237,13 @@ describe("SCBridgeWallet", function () {
         signature: hre.ethers.ZeroHash,
       };
 
-      const ownerSig = signUserOp(
+      const { signature: ownerSig } = signUserOp(
         userOp,
         owner,
         ethers.ZeroAddress,
         Number(n.chainId),
       );
-      const intermediarySig = signUserOp(
+      const { signature: intermediarySig } = signUserOp(
         userOp,
         intermediary,
         ethers.ZeroAddress,
@@ -280,7 +280,7 @@ describe("SCBridgeWallet", function () {
         signature: hre.ethers.ZeroHash,
       };
 
-      const ownerSig = signUserOp(
+      const { signature: ownerSig } = signUserOp(
         userOp,
         owner,
         ethers.ZeroAddress,

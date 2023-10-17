@@ -14,6 +14,7 @@ import {
   Typography,
 } from "@mui/material";
 import { blo } from "blo";
+import { UI_UPDATE_PERIOD } from "./constants";
 
 export const Coordinator: React.FunctionComponent = () => {
   // @ts-expect-error
@@ -60,16 +61,31 @@ export const Coordinator: React.FunctionComponent = () => {
       }}
     >
       <h2>Coordinator</h2>
-      <AddressIcon
-        address={
-          // @ts-expect-error
-          import.meta.env.VITE_IRENE_ADDRESS as `0x${string}`
-        }
-      />
-      <Divider />
-      <Intermediary client={withAlice} />
-      <Divider />
-      <Intermediary client={withBob} />
+      <Stack
+        direction="column"
+        justifyContent="center"
+        alignItems="center"
+        spacing={2}
+      >
+        <AddressIcon
+          address={
+            // @ts-expect-error
+            import.meta.env.VITE_IRENE_ADDRESS as `0x${string}`
+          }
+        />
+      </Stack>
+      <br />
+      <Stack
+        direction="column"
+        justifyContent="left"
+        alignItems="left"
+        spacing={2}
+      >
+        <Divider />
+        <Intermediary client={withAlice} />
+        <Divider />
+        <Intermediary client={withBob} />
+      </Stack>
     </Card>
   );
 };
@@ -98,7 +114,7 @@ export const Intermediary: React.FunctionComponent<{
         .catch((e) => {
           console.error(e);
         });
-    }, 400);
+    }, UI_UPDATE_PERIOD);
     return () => {
       clearInterval(interval);
     };
