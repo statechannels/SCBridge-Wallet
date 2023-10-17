@@ -3,7 +3,7 @@ import { Button } from "@mui/material";
 
 import React, { useState } from "react";
 import Wallet from "./Wallet";
-import { Intermediary } from "./Intermediary";
+import { Coordinator } from "./Intermediary";
 
 export type Role = "alice" | "bob" | "irene" | undefined;
 
@@ -14,7 +14,7 @@ const WalletContainer: React.FunctionComponent = () => {
       {role === undefined ? (
         <ChooseRole setRole={setRole} />
       ) : role === "irene" ? (
-        <Intermediary />
+        <Coordinator />
       ) : (
         <Wallet role={role} />
       )}

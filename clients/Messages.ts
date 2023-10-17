@@ -1,5 +1,5 @@
 import { type SignedState } from "./StateChannelWallet";
-import { type UserOperationStruct } from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
+import { type UserOperationStruct } from "../typechain-types/contracts/SCBridgeWallet";
 
 export enum MessageType {
   RequestInvoice = "requestInvoice",

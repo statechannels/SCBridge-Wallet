@@ -64,6 +64,8 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
 
   const wallet = new OwnerClient({
     signingKey: mySigningKey,
+    ownerAddress: myAddress,
+    intermediaryAddress: intermediary,
     chainRpcUrl: "",
     entrypointAddress: "",
     scwAddress: "",

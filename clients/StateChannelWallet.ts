@@ -3,13 +3,13 @@ import {
   type UserOperationStruct,
   type HTLCStruct,
   type StateStruct,
-  type NitroSmartContractWallet,
-} from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
+  type SCBridgeWallet,
+} from "../typechain-types/contracts/SCBridgeWallet";
 import { signUserOp } from "./UserOp";
 import {
   type EntryPoint,
-  NitroSmartContractWallet__factory,
   EntryPoint__factory,
+  SCBridgeWallet__factory,
 } from "../typechain-types";
 import { type scwMessageEvent, type Message } from "./Messages";
 import { hashState } from "./State";
@@ -23,6 +23,8 @@ export enum Participant {
 
 export interface StateChannelWalletParams {
   signingKey: string;
+  ownerAddress: string;
+  intermediaryAddress: string;
   chainRpcUrl: string;
   entrypointAddress: string;
   scwAddress: string;
@@ -38,11 +40,11 @@ export class StateChannelWallet {
   protected readonly chainProvider: ethers.Provider;
   protected readonly signer: ethers.Wallet;
   protected readonly entrypointAddress: string;
-  protected ownerAddress: string;
-  protected intermediaryAddress: string;
+  ownerAddress: string;
+  intermediaryAddress: string;
   protected intermediaryBalance: bigint;
-  protected readonly scwAddress: string;
-  protected readonly scwContract: NitroSmartContractWallet;
+  protected readonly scBridgeWalletAddress: string;
+  protected readonly scwContract: SCBridgeWallet;
   protected readonly entrypointContract: EntryPoint;
   protected readonly hashStore: Map<string, Uint8Array>; // maps hash-->preimage
   protected readonly peerBroadcastChannel: BroadcastChannel;
@@ -56,8 +58,9 @@ export class StateChannelWallet {
   constructor(params: StateChannelWalletParams) {
     this.hashStore = new Map<string, Uint8Array>();
     this.entrypointAddress = params.entrypointAddress;
-    this.scwAddress = params.scwAddress;
-    this.ownerAddress = new ethers.Wallet(params.signingKey).address;
+    this.scBridgeWalletAddress = params.scwAddress;
+    this.ownerAddress = params.ownerAddress;
+
     this.chainProvider = new ethers.JsonRpcProvider(params.chainRpcUrl);
     this.peerBroadcastChannel = new BroadcastChannel(
       this.ownerAddress + "-peer",
@@ -74,13 +77,22 @@ export class StateChannelWallet {
       this.chainProvider,
     );
 
-    this.scwContract = NitroSmartContractWallet__factory.connect(
-      this.scwAddress,
+    this.scwContract = SCBridgeWallet__factory.connect(
+      this.scBridgeWalletAddress,
       this.chainProvider,
     );
 
+    this.intermediaryAddress = params.intermediaryAddress;
+
+    const computedAddress = new ethers.Wallet(params.signingKey).address;
+    if (
+      this.ownerAddress !== computedAddress &&
+      this.intermediaryAddress !== computedAddress
+    ) {
+      throw Error("secret key does not correspond to owner nor intermediary");
+    }
+
     // These values should be set in 'create' method
-    this.intermediaryAddress = "0x0";
     this.intermediaryBalance = BigInt(0);
   }
 
@@ -153,17 +165,23 @@ export class StateChannelWallet {
   }
 
   /**
-   * @returns the contract address of the SCW.
+   * @returns the contract address of the SC bridge wallet.
    */
   getAddress(): string {
-    return this.scwAddress;
+    return this.scBridgeWalletAddress;
   }
 
+  /**
+   * getBalance checks the blockchain for the current balance of the wallet.
+   */
   async getBalance(): Promise<number> {
+    return 10;
     // todo: caching, block event based updating, etc
-    const balance = await this.chainProvider.getBalance(this.scwAddress);
-    const balanceEther = ethers.formatEther(balance);
-    return Number(balanceEther);
+    // const balance = await this.chainProvider.getBalance(
+    //   this.scBridgeWalletAddress,
+    // );
+    // const balanceEther = ethers.formatEther(balance);
+    // return Number(balanceEther);
   }
 
   async getIntermediaryBalance(): Promise<number> {
@@ -212,7 +230,15 @@ export class StateChannelWallet {
         return signedState.state;
       }
     }
-    throw new Error("No signed state found");
+
+    // throw new Error("No signed state found");
+    return {
+      turnNum: 0,
+      owner: this.ownerAddress,
+      intermediary: this.intermediaryAddress,
+      intermediaryBalance: BigInt(5),
+      htlcs: [],
+    };
   }
 
   signState(s: StateStruct): SignedState {

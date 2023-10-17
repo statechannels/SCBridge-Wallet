@@ -6,7 +6,7 @@ import {
   getBytes,
 } from "ethers";
 
-import { type StateStruct } from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
+import { type StateStruct } from "../typechain-types/contracts/SCBridgeWallet";
 
 export function signStateHash(
   stateHash: string,
