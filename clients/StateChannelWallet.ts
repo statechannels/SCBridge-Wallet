@@ -295,11 +295,9 @@ export class StateChannelWallet {
     const currentTimestamp: number = Math.floor(Date.now() / 1000); // Unix timestamp in seconds
 
     if (this.myRole() === Participant.Intermediary) {
-      if (this.intermediaryBalance < BigInt(amount)) {
+      if (Number(this.currentState().intermediaryBalance) < BigInt(amount)) {
         throw new Error("Insufficient balance");
       }
-
-      this.intermediaryBalance -= BigInt(amount);
     }
 
     if (
@@ -316,11 +314,16 @@ export class StateChannelWallet {
       timelock: currentTimestamp + HTLC_TIMEOUT * 2, // payment creator always uses TIMEOUT * 2
     };
 
+    const updatedIntermediaryBalance =
+      this.myRole() === Participant.Intermediary
+        ? Number(this.currentState().intermediaryBalance) - amount
+        : this.currentState().intermediaryBalance;
+
     const updated: StateStruct = {
       owner: this.ownerAddress,
       intermediary: this.intermediaryAddress,
       turnNum: Number(this.currentState().turnNum) + 1,
-      intermediaryBalance: this.intermediaryBalance,
+      intermediaryBalance: updatedIntermediaryBalance,
       htlcs: [...this.currentState().htlcs, htlc],
     };
 
