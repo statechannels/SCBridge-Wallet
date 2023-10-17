@@ -47,7 +47,7 @@ export class IntermediaryCoordinator {
    *
    * @param htlc the HTLC to forward
    */
-  forwardHTLC(htlc: ForwardPaymentRequest): void {
+  async forwardHTLC(htlc: ForwardPaymentRequest): Promise<void> {
     // Locate the target client
     const targetClient = this.channelClients.find(
       (c) => c.getAddress() === htlc.target || c.ownerAddress === htlc.target,
@@ -61,13 +61,21 @@ export class IntermediaryCoordinator {
     const fee = 0; // for example
     const updatedState = targetClient.addHTLC(htlc.amount - fee, htlc.hashLock);
 
-    targetClient.sendPeerMessage({
+    // this.log("adding HTLC to Irene-Bob");
+    const ownerAck = await targetClient.sendPeerMessage({
       type: MessageType.ForwardPayment,
       target: htlc.target,
       amount: htlc.amount,
       hashLock: htlc.hashLock,
       timelock: 0, // todo
       updatedState,
+    });
+    // this.log("added HTLC to Irene-Bob: " + ownerAck.signature);
+
+    targetClient.addSignedState({
+      ...updatedState,
+      intermediarySignature: updatedState.intermediarySignature,
+      ownerSignature: ownerAck.signature,
     });
   }
 
