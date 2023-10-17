@@ -50,7 +50,7 @@ export class IntermediaryCoordinator {
   forwardHTLC(htlc: ForwardPaymentRequest): void {
     // Locate the target client
     const targetClient = this.channelClients.find(
-      (c) => c.getAddress() === htlc.target,
+      (c) => c.getAddress() === htlc.target || c.ownerAddress === htlc.target,
     );
 
     if (targetClient === undefined) {
