@@ -120,22 +120,24 @@ export class StateChannelWallet {
    * @param signature the signature to send to the peer
    */
   protected ack(signature: string): void {
-    const ackPipe = new BroadcastChannel(this.scwContract + "-ack");
+    const ackPipe = new BroadcastChannel(this.scBridgeWalletAddress + "-ack");
     ackPipe.postMessage({
-      MessageType: MessageType.Signature,
+      type: MessageType.Signature,
       signature,
     });
   }
 
   async sendPeerMessage(message: Message): Promise<SignatureMessage> {
-    const ackPipe = new BroadcastChannel(this.scwContract + "-ack");
+    const ackPipe = new BroadcastChannel(this.scBridgeWalletAddress + "-ack");
 
     const resp = new Promise<SignatureMessage>((resolve, reject) => {
       ackPipe.onmessage = (ev: scwMessageEvent) => {
         if (ev.data.type === MessageType.Signature) {
           resolve(ev.data);
         } else {
-          reject(new Error("Unexpected message type"));
+          reject(
+            new Error(`Unexpected message type: ${JSON.stringify(ev.data)}`),
+          );
         }
       };
     });
