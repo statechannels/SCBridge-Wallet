@@ -3,13 +3,13 @@ import {
   type UserOperationStruct,
   type HTLCStruct,
   type StateStruct,
-  type NitroSmartContractWallet,
-} from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
+  type SCBridgeWallet,
+} from "../typechain-types/contracts/SCBridgeWallet";
 import { signUserOp } from "./UserOp";
 import {
   type EntryPoint,
-  NitroSmartContractWallet__factory,
   EntryPoint__factory,
+  SCBridgeWallet__factory,
 } from "../typechain-types";
 import { type scwMessageEvent, type Message } from "./Messages";
 import { hashState } from "./State";
@@ -43,8 +43,8 @@ export class StateChannelWallet {
   ownerAddress: string;
   intermediaryAddress: string;
   protected intermediaryBalance: bigint;
-  protected readonly scwAddress: string;
-  protected readonly scwContract: NitroSmartContractWallet;
+  protected readonly scBridgeWalletAddress: string;
+  protected readonly scwContract: SCBridgeWallet;
   protected readonly entrypointContract: EntryPoint;
   protected readonly hashStore: Map<string, Uint8Array>; // maps hash-->preimage
   protected readonly peerBroadcastChannel: BroadcastChannel;
@@ -58,7 +58,7 @@ export class StateChannelWallet {
   constructor(params: StateChannelWalletParams) {
     this.hashStore = new Map<string, Uint8Array>();
     this.entrypointAddress = params.entrypointAddress;
-    this.scwAddress = params.scwAddress;
+    this.scBridgeWalletAddress = params.scwAddress;
     this.ownerAddress = params.ownerAddress;
 
     this.chainProvider = new ethers.JsonRpcProvider(params.chainRpcUrl);
@@ -77,8 +77,8 @@ export class StateChannelWallet {
       this.chainProvider,
     );
 
-    this.scwContract = NitroSmartContractWallet__factory.connect(
-      this.scwAddress,
+    this.scwContract = SCBridgeWallet__factory.connect(
+      this.scBridgeWalletAddress,
       this.chainProvider,
     );
 
@@ -165,15 +165,17 @@ export class StateChannelWallet {
   }
 
   /**
-   * @returns the contract address of the SCW.
+   * @returns the contract address of the SC bridge wallet.
    */
   getAddress(): string {
-    return this.scwAddress;
+    return this.scBridgeWalletAddress;
   }
 
   async getBalance(): Promise<number> {
     // todo: caching, block event based updating, etc
-    const balance = await this.chainProvider.getBalance(this.scwAddress);
+    const balance = await this.chainProvider.getBalance(
+      this.scBridgeWalletAddress,
+    );
     const balanceEther = ethers.formatEther(balance);
     return Number(balanceEther);
   }

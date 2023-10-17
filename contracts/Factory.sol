@@ -1,22 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
-import "./Nitro-SCW.sol";
+import "./SCBridgeWallet.sol";
 
 contract SCBridgeAccountFactory {
-    function createAccount(
-        address owner,
-        address payable intermediary,
-        address entrypoint,
-        bytes32 salt
-    ) public returns (address) {
-        return
-            address(
-                new NitroSmartContractWallet{salt: salt}(
-                    owner,
-                    intermediary,
-                    entrypoint
-                )
-            );
-    }
+  function createAccount(
+    address owner,
+    address payable intermediary,
+    address entrypoint,
+    bytes32 salt
+  ) public returns (address) {
+    return
+      address(new SCBridgeWallet{salt: salt}(owner, intermediary, entrypoint));
+  }
 }
