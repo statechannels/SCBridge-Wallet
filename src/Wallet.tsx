@@ -29,7 +29,7 @@ import L1PaymentModal from "./modals/L1Payment";
 import { OwnerClient } from "../clients/OwnerClient";
 import { AddressIcon, AddressIconSmall } from "./AddressIcon";
 import { blo } from "blo";
-import { UI_UPDATE_PERIOD } from "./constants";
+import { PAYMENT_AMOUNT, UI_UPDATE_PERIOD } from "./constants";
 
 let myAddress: string = "placholder";
 let mySigningKey: string;
