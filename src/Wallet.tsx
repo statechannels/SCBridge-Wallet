@@ -59,8 +59,8 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
     // @ts-expect-error
     import.meta.env.VITE_IRENE_ADDRESS ?? "",
   );
-  const [inboundCapacity, setInboundCapacity] = useState(0);
-  const [balance, setBalance] = useState(0);
+  const [intermediaryBalance, setIntermediaryBalance] = useState(0);
+  const [ownerBalance, setOwnerBalance] = useState(0);
   const [recipient, setRecipient] = useState(myPeer);
   const [hostNetwork, setHostNetwork] = useState("Scroll");
   const [isModalL1PayOpen, setModalL1PayOpen] = useState<boolean>(false);
@@ -133,7 +133,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
 
           <Typography> Host Network: {hostNetwork}</Typography>
           <Typography>
-            Balance: {balance} / Inbound Capacity: {inboundCapacity}
+            Balance: {ownerBalance} / Inbound Capacity: {intermediaryBalance}
           </Typography>
         </Stack>
         <br />
