@@ -54,7 +54,23 @@ export function encodeState(state: StateStruct): string {
   return AbiCoder.defaultAbiCoder().encode(ABI, [state]);
 }
 
+export function logState(s: StateStruct): void {
+  console.log("State:");
+  console.log(`  owner: ${s.owner}`);
+  console.log(`  intermediary: ${s.intermediary}`);
+  console.log(`  turnNum: ${s.turnNum}`);
+  console.log(`  intermediaryBalance: ${Number(s.intermediaryBalance)}`);
+  console.log(`  htlcs:`);
+  s.htlcs.forEach((h) => {
+    console.log(`    to: ${h.to}`);
+    console.log(`    amount: ${h.amount}`);
+    console.log(`    hashLock: ${h.hashLock}`);
+    console.log(`    timelock: ${h.timelock}\n\n`);
+  });
+}
+
 export function hashState(state: StateStruct): string {
+  // logState(state);
   const encodedState = encodeState(state);
   return keccak256(encodedState);
 }
