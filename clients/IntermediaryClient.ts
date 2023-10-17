@@ -128,23 +128,34 @@ export class IntermediaryClient extends StateChannelWallet {
   }
 
   private async handleUnlockHTLC(req: UnlockHTLCRequest): Promise<void> {
+    console.log("received unlock HTLC request");
     // run the preimage through the state update function
-    const updated = await this.unlockHTLC(req.preimage);
-    const updatedHash = hashState(updated.state);
+    const locallyUpdated = await this.unlockHTLC(req.preimage);
+    const updatedHash = hashState(locallyUpdated.state);
 
     // check that the proposed update is correct
     if (updatedHash !== hashState(req.updatedState.state)) {
       throw new Error("Invalid state update");
       // todo: peerMessage to sender with failure
     }
+
     const signer = ethers.recoverAddress(
       updatedHash,
-      req.updatedState.intermediarySignature,
+      req.updatedState.ownerSignature,
     );
-    if (signer !== this.intermediaryAddress) {
+    if (signer !== this.ownerAddress) {
       throw new Error("Invalid signature");
       // todo: peerMessage to sender with failure
     }
+
+    // update our state
+    this.addSignedState({
+      state: req.updatedState.state,
+      ownerSignature: req.updatedState.ownerSignature,
+      intermediarySignature: locallyUpdated.intermediarySignature,
+    });
+    // return our signature to the owner so that they can update the state
+    this.ack(locallyUpdated.intermediarySignature);
 
     // Bob has claimed is payment, so we now claim our linked payment from Alice
     // via the channel coordinator

@@ -114,8 +114,35 @@ export class StateChannelWallet {
     instance.ownerAddress = await instance.scwContract.owner();
   }
 
-  sendPeerMessage(message: Message): void {
+  /**
+   * used to return a co-signature on proposed updates.
+   *
+   * @param signature the signature to send to the peer
+   */
+  protected ack(signature: string): void {
+    const ackPipe = new BroadcastChannel(this.scwContract + "-ack");
+    ackPipe.postMessage({
+      MessageType: MessageType.Signature,
+      signature,
+    });
+  }
+
+  async sendPeerMessage(message: Message): Promise<SignatureMessage> {
+    const ackPipe = new BroadcastChannel(this.scwContract + "-ack");
+
+    const resp = new Promise<SignatureMessage>((resolve, reject) => {
+      ackPipe.onmessage = (ev: scwMessageEvent) => {
+        if (ev.data.type === MessageType.Signature) {
+          resolve(ev.data);
+        } else {
+          reject(new Error("Unexpected message type"));
+        }
+      };
+    });
+
     this.peerBroadcastChannel.postMessage(message);
+
+    return await resp;
   }
 
   /**
