@@ -7,6 +7,7 @@ export enum MessageType {
   ForwardPayment = "forwardPayment",
   UnlockHTLC = "unlockHTLC",
   UserOperation = "userOperation",
+  Signature = "signature",
 }
 
 export type Message =
@@ -14,7 +15,8 @@ export type Message =
   | RequestInvoice
   | ForwardPaymentRequest
   | UnlockHTLCRequest
-  | UserOperation;
+  | UserOperation
+  | SignatureMessage;
 export interface Invoice {
   type: MessageType.Invoice;
   amount: number;
@@ -36,6 +38,12 @@ export interface ForwardPaymentRequest {
   timelock: number;
   updatedState: SignedState; // includes the "source" HTLC which makes the payment safe for the intermediary
 }
+
+export interface SignatureMessage {
+  type: MessageType.Signature;
+  signature: string;
+}
+
 export interface UnlockHTLCRequest {
   type: MessageType.UnlockHTLC;
   /**
