@@ -7,6 +7,7 @@ import {
 } from "./Messages";
 import {
   Participant,
+  type SignedState,
   StateChannelWallet,
   type StateChannelWalletParams,
 } from "./StateChannelWallet";
@@ -223,6 +224,8 @@ export class IntermediaryClient extends StateChannelWallet {
     const ownerSig = userOp.signature;
     const { signature: intermediarySig } = await this.signUserOperation(userOp);
     userOp.signature = ethers.concat([ownerSig, intermediarySig]);
+
+    this.ack(userOp.signature);
 
     await this.entrypointContract.handleOps([userOp], this.getAddress());
   }
