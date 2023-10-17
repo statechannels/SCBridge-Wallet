@@ -7,9 +7,7 @@ import {
 } from "./StateChannelWallet";
 import { type UserOperationStruct } from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
 import { fillUserOpDefaults } from "./UserOp";
-
-const accountABI = ["function execute(address to, uint256 value, bytes data)"];
-const account = new ethers.Interface(accountABI);
+import { IAccount } from "./utils";
 
 export class OwnerClient extends StateChannelWallet {
   constructor(params: StateChannelWalletParams) {
@@ -99,7 +97,7 @@ export class OwnerClient extends StateChannelWallet {
   // Create L1 payment UserOperation and forward to intermediary
   async payL1(payee: string, amount: number): Promise<void> {
     // Only need to encode 'to' and 'amount' fields (i.e. no 'data') for basic eth transfer
-    const callData = account.encodeFunctionData("execute", [
+    const callData = IAccount.encodeFunctionData("execute", [
       payee,
       ethers.parseEther(amount.toString()),
     ]);
