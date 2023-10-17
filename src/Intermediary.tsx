@@ -6,27 +6,84 @@ import {
   IntermediaryCoordinator,
 } from "../clients/IntermediaryClient";
 import { AddressIcon } from "./AddressIcon";
-import { Card } from "@mui/material";
-export const Intermediary: React.FunctionComponent = () => {
-  const [ownerBalance, setOwnerBalance] = useState(0);
-  const [intermediaryBalance, setIntermediaryBalance] = useState(0);
-  const client = new IntermediaryCoordinator({
+import {
+  Avatar,
+  Card,
+  Divider,
+  Stack,
+  Tooltip,
+  Typography,
+} from "@mui/material";
+import { blo } from "blo";
+
+export const Coordinator: React.FunctionComponent = () => {
+  // @ts-expect-error
+  const myAddress = import.meta.env.VITE_IRENE_ADDRESS;
+  // @ts-expect-error
+  const myKey = import.meta.env.VITE_IRENE_SK;
+
+  const withAlice = new IntermediaryClient({
+    signingKey: myKey,
     // @ts-expect-error
-    signingKey: import.meta.env.VITE_IRENE_SK,
+    ownerAddress: import.meta.env.VITE_ALICE_ADDRESS,
+    intermediaryAddress: myAddress,
+    chainRpcUrl: "",
+    entrypointAddress: "",
+    scwAddress: "",
+  });
+  const withBob = new IntermediaryClient({
+    signingKey: myKey,
+    // @ts-expect-error
+    ownerAddress: import.meta.env.VITE_BOB_ADDRESS,
+    intermediaryAddress: myAddress,
     chainRpcUrl: "",
     entrypointAddress: "",
     scwAddress: "",
   });
 
-  const withAlice = new IntermediaryClient();
-  const withBob = new IntermediaryClient();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const coordinator: IntermediaryCoordinator = new IntermediaryCoordinator([
+    withAlice,
+    withBob,
+  ]);
 
-  client.registerChannel(withAlice);
-  client.registerChannel(withBob);
+  console.log(withAlice.ownerAddress);
+
+  return (
+    <Card
+      variant="outlined"
+      sx={{
+        bgcolor: "background.paper",
+        boxShadow: 1,
+        borderRadius: 2,
+        p: 2,
+        minWidth: 300,
+      }}
+    >
+      <h2>Coordinator</h2>
+      <AddressIcon
+        address={
+          // @ts-expect-error
+          import.meta.env.VITE_IRENE_ADDRESS as `0x${string}`
+        }
+      />
+      <Divider />
+      <Intermediary client={withAlice} />
+      <Divider />
+      <Intermediary client={withBob} />
+    </Card>
+  );
+};
+
+export const Intermediary: React.FunctionComponent<{
+  client: IntermediaryClient;
+}> = (props: { client: IntermediaryClient }) => {
+  const [ownerBalance, setOwnerBalance] = useState(0);
+  const [intermediaryBalance, setIntermediaryBalance] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      client
+      props.client
         .getOwnerBalance()
         .then((b) => {
           setOwnerBalance(b);
@@ -34,7 +91,7 @@ export const Intermediary: React.FunctionComponent = () => {
         .catch((e) => {
           console.error(e);
         });
-      client
+      props.client
         .getIntermediaryBalance()
         .then((b) => {
           setIntermediaryBalance(b);
@@ -49,33 +106,35 @@ export const Intermediary: React.FunctionComponent = () => {
   }, []);
 
   return (
-    <Card
-      variant="outlined"
-      sx={{
-        bgcolor: "background.paper",
-        boxShadow: 1,
-        borderRadius: 2,
-        p: 2,
-        minWidth: 300,
-      }}
-    >
-      <img
-        src={logo}
-        className="logo"
-        alt="SCBridge-Wallet Logo"
-        style={{ height: "25vh" }}
-      />
-      <h2>Intermediary</h2>
-      <AddressIcon
-        address={
-          // @ts-expect-error
-          import.meta.env.VITE_IRENE_ADDRESS as `0x${string}`
-        }
-      />
-      <div className="card">
-        <p>Owner balance: {ownerBalance}</p>
-        <p>Intermediary balance: {intermediaryBalance}</p>
-      </div>
-    </Card>
+    <>
+      <Stack
+        direction="row"
+        justifyContent="left"
+        alignItems="center"
+        spacing={2}
+      >
+        <Tooltip title={props.client.ownerAddress} placement="top">
+          <Avatar
+            src={blo(props.client.ownerAddress as `0x${string}`)}
+            sx={{ width: 24, height: 24 }}
+          />
+        </Tooltip>
+        <Typography>Owner balance: {ownerBalance}</Typography>
+      </Stack>
+      <Stack
+        direction="row"
+        justifyContent="left"
+        alignItems="center"
+        spacing={2}
+      >
+        <Tooltip title={props.client.intermediaryAddress} placement="top">
+          <Avatar
+            src={blo(props.client.intermediaryAddress as `0x${string}`)}
+            sx={{ width: 24, height: 24 }}
+          />
+        </Tooltip>
+        <Typography>IntermediaryBalance: {intermediaryBalance}</Typography>
+      </Stack>
+    </>
   );
 };
