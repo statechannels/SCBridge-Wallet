@@ -41,29 +41,29 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
   switch (props.role) {
     case "alice":
       // @ts-expect-error
-      myAddress = import.meta.env.VITE_ALICE_ADDRESS ?? "";
+      myAddress = import.meta.env.VITE_ALICE_ADDRESS;
       // @ts-expect-error
-      myPeer = import.meta.env.VITE_BOB_ADDRESS ?? "";
+      myPeer = import.meta.env.VITE_BOB_ADDRESS;
       // @ts-expect-error
-      mySigningKey = import.meta.env.VITE_ALICE_SK ?? "";
+      mySigningKey = import.meta.env.VITE_ALICE_SK;
       // @ts-expect-error
-      myScwAddress = import.meta.env.VITE_ALICE_SCW_ADDRESS ?? "";
+      myScwAddress = import.meta.env.VITE_ALICE_SCW_ADDRESS;
       break;
     case "bob":
       // @ts-expect-error
-      myAddress = import.meta.env.VITE_BOB_ADDRESS ?? "";
+      myAddress = import.meta.env.VITE_BOB_ADDRESS;
       // @ts-expect-error
-      myPeer = import.meta.env.VITE_ALICE_ADDRESS ?? "";
+      myPeer = import.meta.env.VITE_ALICE_ADDRESS;
       // @ts-expect-error
-      mySigningKey = import.meta.env.VITE_BOB_SK ?? "";
+      mySigningKey = import.meta.env.VITE_BOB_SK;
       // @ts-expect-error
-      myScwAddress = import.meta.env.VITE_BOB_SCW_ADDRESS ?? "";
+      myScwAddress = import.meta.env.VITE_BOB_SCW_ADDRESS;
       break;
   }
 
   const [intermediary, setIntermediary] = useState(
     // @ts-expect-error
-    import.meta.env.VITE_IRENE_ADDRESS ?? "",
+    import.meta.env.VITE_IRENE_ADDRESS,
   );
   const [intermediaryBalance, setIntermediaryBalance] = useState(0);
   const [ownerBalance, setOwnerBalance] = useState(0);
