@@ -135,7 +135,6 @@ export class OwnerClient extends StateChannelWallet {
       callData,
     };
     const userOp = fillUserOpDefaults(partialUserOp);
-    // const userOpHash = getUserOpHash(userOp, this.entrypointAddress, this.chainProvider.getNetwork())
     const { signature, hash } = await this.signUserOperation(userOp);
     const signedUserOp: UserOperationStruct = {
       ...userOp,
