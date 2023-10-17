@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from "react";
 import BoltIcon from "@mui/icons-material/Bolt";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import logo from "./assets/logo.png";
 import "./Wallet.css";
 import {
@@ -151,7 +152,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
           >
             <ButtonGroup variant="outlined" aria-label="outlined button group">
               <Button size="medium" disabled={recipient === ""}>
-                L1 Pay
+                <AccessTimeIcon style={{ marginRight: "5px" }} /> L1 Pay
               </Button>
               <Button
                 size="medium"
