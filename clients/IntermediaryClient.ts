@@ -89,13 +89,23 @@ export class IntermediaryCoordinator {
       throw new Error("Target not found");
     }
 
+    // this.log("removing HTLC from Alice-Irene:" + targetClient.getAddress());
     // claim the payment and coordinate with the channel owner to update
     // the shared state
     const updated = await targetClient.unlockHTLC(req.preimage);
-    targetClient.sendPeerMessage({
+
+    // the intermediary asks the channel owner to update the state
+    const ownerAck = await targetClient.sendPeerMessage({
       type: MessageType.UnlockHTLC,
       preimage: req.preimage,
       updatedState: updated,
+    });
+    // this.log("removed HTLC from Alice-Irene:" + ownerAck.signature);
+
+    targetClient.addSignedState({
+      state: updated.state,
+      intermediarySignature: updated.intermediarySignature,
+      ownerSignature: ownerAck.signature,
     });
   }
 }
