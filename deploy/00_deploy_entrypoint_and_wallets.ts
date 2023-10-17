@@ -20,6 +20,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments } = hre;
   const { deterministic } = deployments;
   const { deployer } = await getNamedAccounts();
+  const hardhatFundedAccount = (await hre.ethers.getSigners())[0];
 
   const entrypoint = await deterministic("EntryPoint", {
     from: deployer,
@@ -45,6 +46,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     }`,
   );
 
+  const initialFunding = ethers.parseEther("10.0");
+
+  console.log("Funding Alice wallet with", initialFunding.toString());
+  await hardhatFundedAccount.sendTransaction({
+    to: aliceWallet.address,
+    value: initialFunding,
+  });
+
   const bobWallet = await deterministic("SCBridgeWallet", {
     from: deployer,
     args: [bobAddress, ireneAddress, entrypoint.address],
@@ -58,6 +67,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       bobWallet.address
     }`,
   );
+
+  console.log("Funding Bob wallet with", initialFunding.toString());
+  await hardhatFundedAccount.sendTransaction({
+    to: bobWallet.address,
+    value: initialFunding,
+  });
 
   console.log("Deployment complete!");
 };
