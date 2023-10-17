@@ -128,6 +128,7 @@ export class IntermediaryClient extends StateChannelWallet {
     // peer channel
     this.peerBroadcastChannel.onmessage = async (ev: scwMessageEvent) => {
       const req = ev.data;
+      let mySig: SignedState;
 
       switch (req.type) {
         case MessageType.ForwardPayment:
@@ -135,7 +136,14 @@ export class IntermediaryClient extends StateChannelWallet {
           if (req.amount > (await this.getOwnerBalance())) {
             throw new Error("Insufficient balance");
           }
-          this.coordinator.forwardHTLC(req);
+          mySig = this.signState(req.updatedState.state);
+          this.addSignedState({
+            state: req.updatedState.state,
+            ownerSignature: req.updatedState.ownerSignature,
+            intermediarySignature: mySig.intermediarySignature,
+          });
+          this.ack(mySig.intermediarySignature);
+          await this.coordinator.forwardHTLC(req);
           break;
         case MessageType.UserOperation:
           void this.handleUserOp(req);
