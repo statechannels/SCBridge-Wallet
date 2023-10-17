@@ -194,21 +194,37 @@ export class StateChannelWallet {
         signedState.intermediarySignature !== "" &&
         signedState.ownerSignature !== ""
       ) {
+        // todo: deep copy?
         return signedState.state;
       }
     }
     throw new Error("No signed state found");
   }
 
+  signState(s: StateStruct): SignedState {
+    const stateHash = hashState(s);
+    const signature: string = this.signer.signMessageSync(stateHash);
+
+    const signedState: SignedState = {
+      state: s,
+      ownerSignature: this.myRole() === Participant.Owner ? signature : "",
+      intermediarySignature:
+        this.myRole() === Participant.Intermediary ? signature : "",
+    };
+
+    return signedState;
+  }
+
   // Craft an HTLC struct, put it inside a state, hash the state, sign and return it
-  async addHTLC(amount: number, hash: string): Promise<SignedState> {
+  addHTLC(amount: number, hash: string): SignedState {
     const currentTimestamp: number = Math.floor(Date.now() / 1000); // Unix timestamp in seconds
 
-    if (
-      this.myRole() === Participant.Intermediary &&
-      this.intermediaryBalance < BigInt(amount)
-    ) {
-      throw new Error("Insufficient balance");
+    if (this.myRole() === Participant.Intermediary) {
+      if (this.intermediaryBalance < BigInt(amount)) {
+        throw new Error("Insufficient balance");
+      }
+
+      this.intermediaryBalance -= BigInt(amount);
     }
 
     if (
@@ -233,17 +249,44 @@ export class StateChannelWallet {
       htlcs: [...this.currentState().htlcs, htlc],
     };
 
-    const stateHash = hashState(updated);
-    const signature = await this.signer.signMessage(stateHash);
+    return this.signState(updated);
+  }
 
-    const signedState: SignedState = {
-      state: updated,
-      ownerSignature: this.myRole() === Participant.Owner ? signature : "",
-      intermediarySignature:
-        this.myRole() === Participant.Intermediary ? signature : "",
+  async unlockHTLC(preimage: Uint8Array): Promise<SignedState> {
+    // hash the preimage w/ keccak256 and sha256
+    const ethHash = ethers.keccak256(preimage);
+    const lnHash = ethers.sha256(preimage);
+
+    // check if any existing HTLCs match the hash
+    const unlockTarget = this.currentState().htlcs.find(
+      (h) => h.hashLock === ethHash || h.hashLock === lnHash,
+    );
+
+    // with well-behaved clients, we should not see this
+    if (unlockTarget === undefined) {
+      throw new Error("No matching HTLC found");
+    }
+
+    // check if the HTLC is expired - this should not happen
+    if (Number(unlockTarget.timelock) < Math.floor(Date.now() / 1000)) {
+      throw new Error("HTLC is expired");
+    }
+
+    // update balance of the party that sent the HTLC. If the HTLC is for
+    // the owner, then the released funds implicitly return to them. If
+    // the HTLC is for the intermediary, then the update must be recorded.
+    if (unlockTarget.to === Participant.Intermediary) {
+      this.intermediaryBalance += BigInt(unlockTarget.amount);
+    }
+
+    const updated: StateStruct = {
+      intermediary: this.intermediaryAddress,
+      owner: this.ownerAddress,
+      turnNum: Number(this.currentState().turnNum) + 1,
+      intermediaryBalance: this.intermediaryBalance,
+      htlcs: this.currentState().htlcs.filter((h) => h !== unlockTarget),
     };
 
-    return signedState;
+    return this.signState(updated);
   }
-  // ingestSignedStateAndPreimage(signedState, preimage); // returns a signed state with updated balances and one fewer HTLC
 }
