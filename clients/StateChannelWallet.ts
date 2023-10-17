@@ -198,15 +198,17 @@ export class StateChannelWallet {
     return blockNumber;
   }
 
-  async signUserOperation(userOp: UserOperationStruct): Promise<string> {
+  async signUserOperation(
+    userOp: UserOperationStruct,
+  ): Promise<{ signature: string; hash: string }> {
     const network = await this.chainProvider.getNetwork();
-    const signature = signUserOp(
+    const { signature, hash } = signUserOp(
       userOp,
       this.signer,
       this.entrypointAddress,
       Number(network.chainId),
     );
-    return signature;
+    return { signature, hash };
   }
 
   async createNewHash(): Promise<string> {

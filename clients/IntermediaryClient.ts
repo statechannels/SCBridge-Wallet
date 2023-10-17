@@ -176,7 +176,7 @@ export class IntermediaryClient extends StateChannelWallet {
     }
 
     const ownerSig = userOp.signature.slice(0, 65);
-    const intermediarySig = await this.signUserOperation(userOp);
+    const { signature: intermediarySig } = await this.signUserOperation(userOp);
     userOp.signature = ethers.concat([ownerSig, intermediarySig]);
 
     await this.entrypointContract.handleOps([userOp], this.getAddress());
