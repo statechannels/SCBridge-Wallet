@@ -29,7 +29,7 @@ import L1PaymentModal from "./modals/L1Payment";
 import { OwnerClient } from "../clients/OwnerClient";
 import { AddressIcon, AddressIconSmall } from "./AddressIcon";
 import { blo } from "blo";
-import { UI_UPDATE_PERIOD } from "./constants";
+import { UI_UPDATE_PERIOD, PAYMENT_AMOUNT } from "./constants";
 import { formatEther } from "ethers";
 import { useBalances } from "./useBalances";
 
