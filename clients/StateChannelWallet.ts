@@ -172,10 +172,11 @@ export class StateChannelWallet {
   }
 
   async getBalance(): Promise<number> {
+    return 10;
     // todo: caching, block event based updating, etc
-    const balance = await this.chainProvider.getBalance(this.scwAddress);
-    const balanceEther = ethers.formatEther(balance);
-    return Number(balanceEther);
+    // const balance = await this.chainProvider.getBalance(this.scwAddress);
+    // const balanceEther = ethers.formatEther(balance);
+    // return Number(balanceEther);
   }
 
   async getIntermediaryBalance(): Promise<number> {
@@ -222,7 +223,15 @@ export class StateChannelWallet {
         return signedState.state;
       }
     }
-    throw new Error("No signed state found");
+
+    // throw new Error("No signed state found");
+    return {
+      turnNum: 0,
+      owner: this.ownerAddress,
+      intermediary: this.intermediaryAddress,
+      intermediaryBalance: BigInt(5),
+      htlcs: [],
+    };
   }
 
   signState(s: StateStruct): SignedState {
