@@ -132,7 +132,7 @@ export class OwnerClient extends StateChannelWallet {
       ZeroHash,
     ]);
     const partialUserOp: Partial<UserOperationStruct> = {
-      sender: this.signer.address,
+      sender: this.scBridgeWalletAddress,
       callData,
     };
     const userOp = fillUserOpDefaults(partialUserOp);
