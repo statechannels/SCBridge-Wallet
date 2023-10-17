@@ -87,14 +87,16 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
     }
   };
 
-  const wallet = new OwnerClient({
-    signingKey: mySigningKey,
-    ownerAddress: myAddress,
-    intermediaryAddress: intermediary,
-    chainRpcUrl: "http://localhost:8545",
-    entrypointAddress,
-    scwAddress: myScwAddress,
-  });
+  const [wallet, _] = useState(
+    new OwnerClient({
+      signingKey: mySigningKey,
+      ownerAddress: myAddress,
+      intermediaryAddress: intermediary,
+      chainRpcUrl: "http://localhost:8545",
+      entrypointAddress,
+      scwAddress: myScwAddress,
+    }),
+  );
 
   useEffect(() => {
     const interval = setInterval(() => {

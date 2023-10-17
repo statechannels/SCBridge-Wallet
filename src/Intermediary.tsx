@@ -22,30 +22,33 @@ export const Coordinator: React.FunctionComponent = () => {
   // @ts-expect-error
   const myKey = import.meta.env.VITE_IRENE_SK;
 
-  const withAlice = new IntermediaryClient({
-    signingKey: myKey,
-    // @ts-expect-error
-    ownerAddress: import.meta.env.VITE_ALICE_ADDRESS,
-    intermediaryAddress: myAddress,
-    chainRpcUrl: "",
-    entrypointAddress: "",
-    scwAddress: "",
-  });
-  const withBob = new IntermediaryClient({
-    signingKey: myKey,
-    // @ts-expect-error
-    ownerAddress: import.meta.env.VITE_BOB_ADDRESS,
-    intermediaryAddress: myAddress,
-    chainRpcUrl: "",
-    entrypointAddress: "",
-    scwAddress: "",
-  });
+  const [withAlice] = useState(
+    new IntermediaryClient({
+      signingKey: myKey,
+      // @ts-expect-error
+      ownerAddress: import.meta.env.VITE_ALICE_ADDRESS,
+      intermediaryAddress: myAddress,
+      chainRpcUrl: "",
+      entrypointAddress: "",
+      scwAddress: "",
+    }),
+  );
+  const [withBob] = useState(
+    new IntermediaryClient({
+      signingKey: myKey,
+      // @ts-expect-error
+      ownerAddress: import.meta.env.VITE_BOB_ADDRESS,
+      intermediaryAddress: myAddress,
+      chainRpcUrl: "",
+      entrypointAddress: "",
+      scwAddress: "",
+    }),
+  );
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const coordinator: IntermediaryCoordinator = new IntermediaryCoordinator([
-    withAlice,
-    withBob,
-  ]);
+  const [coordinator] = useState(
+    new IntermediaryCoordinator([withAlice, withBob]),
+  );
 
   console.log(withAlice.ownerAddress);
 
