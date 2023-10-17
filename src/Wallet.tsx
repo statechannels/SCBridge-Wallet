@@ -156,7 +156,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
               <Button
                 size="medium"
                 onClick={() => {
-                  wallet.pay(myPeer, 19).catch((e) => {
+                  wallet.pay(myPeer, 1).catch((e) => {
                     console.error(e);
                   });
                 }}
