@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import React, { useState, useEffect } from "react";
-import logo from "./assets/logo.png";
 import {
   IntermediaryClient,
   IntermediaryCoordinator,
