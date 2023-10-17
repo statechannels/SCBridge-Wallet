@@ -7,6 +7,7 @@ import {
 } from "./Messages";
 import {
   Participant,
+  type SignedState,
   StateChannelWallet,
   type StateChannelWalletParams,
 } from "./StateChannelWallet";
@@ -239,6 +240,7 @@ export class IntermediaryClient extends StateChannelWallet {
     );
     // Waiting for the transaction to be mined let's us catch the error
     await result.wait();
+    this.ack(userOp.signature);
   }
 
   static async create(
