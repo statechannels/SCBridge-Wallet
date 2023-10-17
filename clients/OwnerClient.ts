@@ -159,9 +159,4 @@ export class OwnerClient extends StateChannelWallet {
       ...signedUserOp,
     });
   }
-
-  // todo: add listener for invoice requests (always accept - they want to pay us)
-
-  // todo: add listener for incoming HTLCs which correspond to some preimage we know.
-  //       When they arrive, we claim the funds and maybe clear the invoice in some way.
 }
