@@ -28,6 +28,8 @@ import { AddressIcon, AddressIconSmall } from "./AddressIcon";
 import { blo } from "blo";
 import { UI_UPDATE_PERIOD } from "./constants";
 
+
+import { formatEther } from "ethers";
 let myAddress: string = "placholder";
 let mySigningKey: string;
 let myPeer: string; // If I'm Alice, this is Bob. If I'm Bob, this is Alice.
@@ -168,11 +170,11 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
           </Typography>
           <Typography>
             {" "}
-            <b> Balance:</b> {ownerBalance}{" "}
+            <b> Balance:</b> {formatEther(BigInt(ownerBalance))}{" "}
           </Typography>
           <Typography>
             {" "}
-            <b> Inbound Capacity:</b> {intermediaryBalance}{" "}
+            <b> Inbound Capacity:</b> {formatEther(BigInt(intermediaryBalance))}{" "}
           </Typography>
         </Stack>
         <br />
