@@ -5,7 +5,7 @@ import {
   StateChannelWallet,
   type StateChannelWalletParams,
 } from "./StateChannelWallet";
-import { type UserOperationStruct } from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
+import { type UserOperationStruct } from "../typechain-types/contracts/SCBridgeWallet";
 import { fillUserOpDefaults } from "./UserOp";
 import { IAccount } from "./utils";
 import { hashState } from "./State";
@@ -124,7 +124,7 @@ export class OwnerClient extends StateChannelWallet {
   }
 
   // Create L1 payment UserOperation and forward to intermediary
-  async payL1(payee: string, amount: number): Promise<void> {
+  async payL1(payee: string, amount: number): Promise<string> {
     // Only need to encode 'to' and 'amount' fields (i.e. no 'data') for basic eth transfer
     const callData = IAccount.encodeFunctionData("execute", [
       payee,
@@ -135,7 +135,7 @@ export class OwnerClient extends StateChannelWallet {
       callData,
     };
     const userOp = fillUserOpDefaults(partialUserOp);
-    const signature = await this.signUserOperation(userOp);
+    const { signature, hash } = await this.signUserOperation(userOp);
     const signedUserOp: UserOperationStruct = {
       ...userOp,
       signature,
@@ -144,5 +144,11 @@ export class OwnerClient extends StateChannelWallet {
       type: MessageType.UserOperation,
       ...signedUserOp,
     });
+
+    console.log(
+      `Initiated transfer of ${amount} ETH to ${payee} (userOpHash: ${hash})`,
+    );
+
+    return hash;
   }
 }

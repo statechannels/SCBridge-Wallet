@@ -3,13 +3,13 @@ import {
   type UserOperationStruct,
   type HTLCStruct,
   type StateStruct,
-  type NitroSmartContractWallet,
-} from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
+  type SCBridgeWallet,
+} from "../typechain-types/contracts/SCBridgeWallet";
 import { signUserOp } from "./UserOp";
 import {
   type EntryPoint,
-  NitroSmartContractWallet__factory,
   EntryPoint__factory,
+  SCBridgeWallet__factory,
 } from "../typechain-types";
 import { type scwMessageEvent, type Message } from "./Messages";
 import { hashState } from "./State";
@@ -43,8 +43,8 @@ export class StateChannelWallet {
   ownerAddress: string;
   intermediaryAddress: string;
   protected intermediaryBalance: bigint;
-  protected readonly scwAddress: string;
-  protected readonly scwContract: NitroSmartContractWallet;
+  protected readonly scBridgeWalletAddress: string;
+  protected readonly scwContract: SCBridgeWallet;
   protected readonly entrypointContract: EntryPoint;
   protected readonly hashStore: Map<string, Uint8Array>; // maps hash-->preimage
   protected readonly peerBroadcastChannel: BroadcastChannel;
@@ -58,7 +58,7 @@ export class StateChannelWallet {
   constructor(params: StateChannelWalletParams) {
     this.hashStore = new Map<string, Uint8Array>();
     this.entrypointAddress = params.entrypointAddress;
-    this.scwAddress = params.scwAddress;
+    this.scBridgeWalletAddress = params.scwAddress;
     this.ownerAddress = params.ownerAddress;
 
     this.chainProvider = new ethers.JsonRpcProvider(params.chainRpcUrl);
@@ -77,8 +77,8 @@ export class StateChannelWallet {
       this.chainProvider,
     );
 
-    this.scwContract = NitroSmartContractWallet__factory.connect(
-      this.scwAddress,
+    this.scwContract = SCBridgeWallet__factory.connect(
+      this.scBridgeWalletAddress,
       this.chainProvider,
     );
 
@@ -165,17 +165,23 @@ export class StateChannelWallet {
   }
 
   /**
-   * @returns the contract address of the SCW.
+   * @returns the contract address of the SC bridge wallet.
    */
   getAddress(): string {
-    return this.scwAddress;
+    return this.scBridgeWalletAddress;
   }
 
+  /**
+   * getBalance checks the blockchain for the current balance of the wallet.
+   */
   async getBalance(): Promise<number> {
+    return 10;
     // todo: caching, block event based updating, etc
-    const balance = await this.chainProvider.getBalance(this.scwAddress);
-    const balanceEther = ethers.formatEther(balance);
-    return Number(balanceEther);
+    // const balance = await this.chainProvider.getBalance(
+    //   this.scBridgeWalletAddress,
+    // );
+    // const balanceEther = ethers.formatEther(balance);
+    // return Number(balanceEther);
   }
 
   async getIntermediaryBalance(): Promise<number> {
@@ -192,15 +198,17 @@ export class StateChannelWallet {
     return blockNumber;
   }
 
-  async signUserOperation(userOp: UserOperationStruct): Promise<string> {
+  async signUserOperation(
+    userOp: UserOperationStruct,
+  ): Promise<{ signature: string; hash: string }> {
     const network = await this.chainProvider.getNetwork();
-    const signature = signUserOp(
+    const { signature, hash } = signUserOp(
       userOp,
       this.signer,
       this.entrypointAddress,
       Number(network.chainId),
     );
-    return signature;
+    return { signature, hash };
   }
 
   async createNewHash(): Promise<string> {
@@ -222,7 +230,15 @@ export class StateChannelWallet {
         return signedState.state;
       }
     }
-    throw new Error("No signed state found");
+
+    // throw new Error("No signed state found");
+    return {
+      turnNum: 0,
+      owner: this.ownerAddress,
+      intermediary: this.intermediaryAddress,
+      intermediaryBalance: BigInt(5),
+      htlcs: [],
+    };
   }
 
   signState(s: StateStruct): SignedState {

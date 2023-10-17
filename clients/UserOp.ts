@@ -2,7 +2,7 @@
 import { AbiCoder, keccak256, getBytes, ZeroAddress } from "ethers";
 import { type BaseWallet } from "ethers";
 
-import { type UserOperationStruct } from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
+import { type UserOperationStruct } from "../typechain-types/contracts/SCBridgeWallet";
 
 export function packUserOp(
   op: UserOperationStruct,
@@ -129,10 +129,13 @@ export function signUserOp(
   signer: BaseWallet,
   entryPoint: string,
   chainId: number,
-): string {
+): { hash: string; signature: string } {
   const message = getUserOpHash(op, entryPoint, chainId);
 
-  return signer.signMessageSync(getBytes(message));
+  return {
+    hash: message,
+    signature: signer.signMessageSync(getBytes(message)),
+  };
 }
 
 export function fillUserOpDefaults(

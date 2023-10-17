@@ -10,7 +10,7 @@ import {
   StateChannelWallet,
   type StateChannelWalletParams,
 } from "./StateChannelWallet";
-import { type UserOperationStruct } from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
+import { type UserOperationStruct } from "../typechain-types/contracts/SCBridgeWallet";
 import { IAccount } from "./utils";
 import { hashState } from "./State";
 
@@ -176,7 +176,7 @@ export class IntermediaryClient extends StateChannelWallet {
     }
 
     const ownerSig = userOp.signature.slice(0, 65);
-    const intermediarySig = await this.signUserOperation(userOp);
+    const { signature: intermediarySig } = await this.signUserOperation(userOp);
     userOp.signature = ethers.concat([ownerSig, intermediarySig]);
 
     await this.entrypointContract.handleOps([userOp], this.getAddress());

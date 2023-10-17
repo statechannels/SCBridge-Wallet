@@ -1,8 +1,8 @@
 import hre, { ethers } from "hardhat";
 import {
-  NitroSmartContractWallet__factory,
-  type NitroSmartContractWallet,
+  type SCBridgeWallet,
   type EntryPoint,
+  SCBridgeWallet__factory,
 } from "../typechain-types";
 import { ZeroHash, type BaseWallet } from "ethers";
 
@@ -13,7 +13,7 @@ import { time } from "@nomicfoundation/hardhat-network-helpers";
 import {
   type UserOperationStruct,
   type StateStruct,
-} from "../typechain-types/contracts/Nitro-SCW.sol/NitroSmartContractWallet";
+} from "../typechain-types/contracts/SCBridgeWallet";
 import { Participant } from "../clients/StateChannelWallet";
 const ONE_DAY = 86400;
 const TIMELOCK_DELAY = 1000;
@@ -26,17 +26,15 @@ async function getBlockTimestamp(): Promise<number> {
   return block.timestamp;
 }
 
-describe("Nitro-SCW", function () {
-  async function deployNitroSCW(): Promise<{
-    nitroSCW: NitroSmartContractWallet;
+describe("SCBridgeWallet", function () {
+  async function deploySCBridgeWallet(): Promise<{
+    nitroSCW: SCBridgeWallet;
     owner: BaseWallet;
     intermediary: BaseWallet;
     entrypointAddress: string;
     entrypoint: EntryPoint;
   }> {
-    const deployer = await hre.ethers.getContractFactory(
-      "NitroSmartContractWallet",
-    );
+    const deployer = await hre.ethers.getContractFactory("SCBridgeWallet");
 
     const owner = ethers.Wallet.createRandom();
     const intermediary = ethers.Wallet.createRandom();
@@ -68,7 +66,7 @@ describe("Nitro-SCW", function () {
     });
 
     return {
-      nitroSCW: nitroSCW as unknown as NitroSmartContractWallet,
+      nitroSCW: nitroSCW as unknown as SCBridgeWallet,
       owner,
       intermediary,
       entrypointAddress,
@@ -78,7 +76,7 @@ describe("Nitro-SCW", function () {
 
   it("should support executing a simple L1 transfer through the entrypoint", async function () {
     const { owner, intermediary, nitroSCW, entrypoint } =
-      await deployNitroSCW();
+      await deploySCBridgeWallet();
 
     const n = await ethers.provider.getNetwork();
 
@@ -106,13 +104,13 @@ describe("Nitro-SCW", function () {
       signature: hre.ethers.ZeroHash,
     };
 
-    const ownerSig = signUserOp(
+    const { signature: ownerSig } = signUserOp(
       userOp,
       owner,
       await entrypoint.getAddress(),
       Number(n.chainId),
     );
-    const intermediarySig = signUserOp(
+    const { signature: intermediarySig } = signUserOp(
       userOp,
       intermediary,
       await entrypoint.getAddress(),
@@ -130,14 +128,14 @@ describe("Nitro-SCW", function () {
   });
 
   describe("Deployment", function () {
-    it("Should deploy the nitro SCW", async function () {
-      await deployNitroSCW();
+    it("Should deploy the SCBridgeWallet", async function () {
+      await deploySCBridgeWallet();
     });
   });
 
   describe("Challenge", function () {
     it("Should handle a htlc unlock", async function () {
-      const { nitroSCW, owner, intermediary } = await deployNitroSCW();
+      const { nitroSCW, owner, intermediary } = await deploySCBridgeWallet();
       const secret = ethers.toUtf8Bytes(
         "Super secret preimage for the hashlock",
       );
@@ -179,7 +177,7 @@ describe("Nitro-SCW", function () {
       expect(await nitroSCW.getStatus()).to.equal(2);
     });
     it("Should handle a challenge and reclaim", async function () {
-      const { nitroSCW, owner, intermediary } = await deployNitroSCW();
+      const { nitroSCW, owner, intermediary } = await deploySCBridgeWallet();
       const secret = ethers.toUtf8Bytes(
         "Super secret preimage for the hashlock",
       );
@@ -223,7 +221,7 @@ describe("Nitro-SCW", function () {
 
   describe("validateUserOp", function () {
     it("Should return success if the userOp is signed by the owner and the intermediary", async function () {
-      const { nitroSCW, owner, intermediary } = await deployNitroSCW();
+      const { nitroSCW, owner, intermediary } = await deploySCBridgeWallet();
       const n = await ethers.provider.getNetwork();
       const userOp: UserOperationStruct = {
         sender: owner.address,
@@ -239,13 +237,13 @@ describe("Nitro-SCW", function () {
         signature: hre.ethers.ZeroHash,
       };
 
-      const ownerSig = signUserOp(
+      const { signature: ownerSig } = signUserOp(
         userOp,
         owner,
         ethers.ZeroAddress,
         Number(n.chainId),
       );
-      const intermediarySig = signUserOp(
+      const { signature: intermediarySig } = signUserOp(
         userOp,
         intermediary,
         ethers.ZeroAddress,
@@ -262,7 +260,7 @@ describe("Nitro-SCW", function () {
       expect(result).to.equal(0);
     });
     it("only allows specific functions to be called when signed by one actor", async function () {
-      const { nitroSCW, owner } = await deployNitroSCW();
+      const { nitroSCW, owner } = await deploySCBridgeWallet();
       const n = await ethers.provider.getNetwork();
 
       const userOp: UserOperationStruct = {
@@ -270,7 +268,7 @@ describe("Nitro-SCW", function () {
         nonce: 0,
         initCode: hre.ethers.ZeroHash,
         callData:
-          NitroSmartContractWallet__factory.createInterface().encodeFunctionData(
+          SCBridgeWallet__factory.createInterface().encodeFunctionData(
             "reclaim",
           ),
         callGasLimit: 0,
@@ -282,7 +280,7 @@ describe("Nitro-SCW", function () {
         signature: hre.ethers.ZeroHash,
       };
 
-      const ownerSig = signUserOp(
+      const { signature: ownerSig } = signUserOp(
         userOp,
         owner,
         ethers.ZeroAddress,
