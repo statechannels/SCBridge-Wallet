@@ -117,7 +117,6 @@ export class StateChannelWallet {
    */
   async sendGlobalMessage(to: string, message: Message): Promise<Message> {
     const toChannel = new BroadcastChannel(to + "-global");
-    toChannel.postMessage(message);
 
     // todo: (out of scope) create a request-scoped broadcastChannel for the response,
     //       to avoid accidentally returning an unrelated message (e.g. from a previous interaction)
@@ -129,6 +128,8 @@ export class StateChannelWallet {
         resolve(ev.data);
       };
     });
+
+    toChannel.postMessage(message);
 
     return await respPromise;
   }
