@@ -144,13 +144,20 @@ export class OwnerClient extends StateChannelWallet {
     const signedUpdate = this.addHTLC(amount, invoice.hashLock);
 
     // send the state update to the intermediary
-    this.sendPeerMessage({
+    const intermediaryAck = await this.sendPeerMessage({
       type: MessageType.ForwardPayment,
       target: payee,
       amount,
       hashLock: invoice.hashLock,
       timelock: 0, // todo
       updatedState: signedUpdate,
+    });
+
+    // and store co-signed state locally
+    this.addSignedState({
+      state: signedUpdate.state,
+      ownerSignature: signedUpdate.ownerSignature,
+      intermediarySignature: intermediaryAck.signature,
     });
   }
 
