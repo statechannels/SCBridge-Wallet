@@ -2,6 +2,7 @@ import { type HardhatRuntimeEnvironment } from "hardhat/types";
 import { type DeployFunction } from "hardhat-deploy/types";
 import { ethers, getNamedAccounts } from "hardhat";
 import dotenv from "dotenv";
+import { EntryPoint__factory } from "../typechain-types";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   console.log("Starting deployment...");
@@ -20,6 +21,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments } = hre;
   const { deterministic } = deployments;
   const { deployer } = await getNamedAccounts();
+  const hardhatFundedAccount = (await hre.ethers.getSigners())[0];
 
   const entrypoint = await deterministic("EntryPoint", {
     from: deployer,
@@ -45,6 +47,14 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     }`,
   );
 
+  const initialFunding = ethers.parseEther("10.0");
+
+  console.log("Funding Alice wallet with", initialFunding.toString());
+  await hardhatFundedAccount.sendTransaction({
+    to: aliceWallet.address,
+    value: initialFunding,
+  });
+
   const bobWallet = await deterministic("SCBridgeWallet", {
     from: deployer,
     args: [bobAddress, ireneAddress, entrypoint.address],
@@ -58,6 +68,35 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       bobWallet.address
     }`,
   );
+
+  console.log("Funding Bob wallet with", initialFunding.toString());
+  await hardhatFundedAccount.sendTransaction({
+    to: bobWallet.address,
+    value: initialFunding,
+  });
+
+  const entrypointFunding = ethers.parseEther("1");
+  console.log(
+    `Funding EntryPoint for Alice's wallet with ${entrypointFunding.toString()}`,
+  );
+  await EntryPoint__factory.connect(
+    entrypoint.address,
+    hardhatFundedAccount,
+  ).depositTo(aliceWallet.address, { value: entrypointFunding });
+
+  console.log(
+    `Funding EntryPoint for Bob's wallet with ${entrypointFunding.toString()}`,
+  );
+  await EntryPoint__factory.connect(
+    entrypoint.address,
+    hardhatFundedAccount,
+  ).depositTo(bobWallet.address, { value: entrypointFunding });
+
+  console.log("Funding Irene wallet with", entrypointFunding.toString());
+  await hardhatFundedAccount.sendTransaction({
+    to: ireneAddress,
+    value: entrypointFunding,
+  });
 
   console.log("Deployment complete!");
 };

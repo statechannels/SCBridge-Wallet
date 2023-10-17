@@ -21,6 +21,12 @@ export const Coordinator: React.FunctionComponent = () => {
   const myAddress = import.meta.env.VITE_IRENE_ADDRESS;
   // @ts-expect-error
   const myKey = import.meta.env.VITE_IRENE_SK;
+  // @ts-expect-error
+  const entrypointAddress = import.meta.env.VITE_ENTRYPOINT_ADDRESS;
+  // @ts-expect-error
+  const aliceScwAddress = import.meta.env.VITE_ALICE_SCW_ADDRESS;
+  // @ts-expect-error
+  const bobScwAddress = import.meta.env.VITE_BOB_SCW_ADDRESS;
 
   const [withAlice] = useState(
     new IntermediaryClient({
@@ -28,9 +34,9 @@ export const Coordinator: React.FunctionComponent = () => {
       // @ts-expect-error
       ownerAddress: import.meta.env.VITE_ALICE_ADDRESS,
       intermediaryAddress: myAddress,
-      chainRpcUrl: "",
-      entrypointAddress: "",
-      scwAddress: "",
+      chainRpcUrl: "http://localhost:8545",
+      entrypointAddress,
+      scwAddress: aliceScwAddress,
     }),
   );
   const [withBob] = useState(
@@ -39,9 +45,9 @@ export const Coordinator: React.FunctionComponent = () => {
       // @ts-expect-error
       ownerAddress: import.meta.env.VITE_BOB_ADDRESS,
       intermediaryAddress: myAddress,
-      chainRpcUrl: "",
-      entrypointAddress: "",
-      scwAddress: "",
+      chainRpcUrl: "http://localhost:8545",
+      entrypointAddress,
+      scwAddress: bobScwAddress,
     }),
   );
 
