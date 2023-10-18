@@ -1,5 +1,5 @@
 import { type Invoice, type scwMessageEvent, MessageType } from "./Messages";
-import { ethers } from "ethers";
+import { ethers, getBytes } from "ethers";
 import {
   Participant,
   StateChannelWallet,
@@ -68,7 +68,7 @@ export class OwnerClient extends StateChannelWallet {
           // todo: peerMessage to sender with failure
         }
         const signer = ethers.recoverAddress(
-          updatedHash,
+          ethers.hashMessage(getBytes(updatedHash)),
           req.updatedState.intermediarySignature,
         );
         if (signer !== this.intermediaryAddress) {

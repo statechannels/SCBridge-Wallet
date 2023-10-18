@@ -4,7 +4,7 @@ import {
   type EntryPoint,
   SCBridgeWallet__factory,
 } from "../typechain-types";
-import { type BaseWallet } from "ethers";
+import { getBytes, type BaseWallet } from "ethers";
 
 import { expect } from "chai";
 import { getUserOpHash, signUserOp } from "../clients/UserOp";
@@ -313,5 +313,47 @@ describe("SCBridgeWallet", function () {
         .staticCall(userOp, hash, 0);
       expect(result).to.equal(0);
     });
+  });
+});
+
+describe("off chain signatures", () => {
+  it("works", () => {
+    const owner = ethers.Wallet.createRandom();
+    const intermediary = ethers.Wallet.createRandom();
+
+    const state: StateStruct = {
+      owner: owner.address,
+      intermediary: intermediary.address,
+      turnNum: 1,
+      intermediaryBalance: 0,
+      htlcs: [
+        {
+          amount: 0,
+          to: Participant.Intermediary,
+          hashLock: ethers.ZeroHash,
+          timelock: 47,
+        },
+      ],
+    };
+
+    const stateHash = hashState(state);
+
+    const [ownerSig, intermediarySig] = signStateHash(
+      stateHash,
+      owner,
+      intermediary,
+    );
+
+    const recoveredSigner1 = ethers.recoverAddress(
+      ethers.hashMessage(getBytes(stateHash)),
+      intermediarySig,
+    );
+    expect(recoveredSigner1).to.equal(intermediary.address);
+
+    const recoveredSigner2 = ethers.recoverAddress(
+      ethers.hashMessage(getBytes(stateHash)),
+      ownerSig,
+    );
+    expect(recoveredSigner2).to.equal(owner.address);
   });
 });
