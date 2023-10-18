@@ -54,7 +54,8 @@ const deployFunc = async function (): Promise<void> {
     value: initialFunding,
   });
 
-  const entrypointFunding = ethers.parseEther("1");
+  // Use a small amount of the initial funding to fund the entrypoint and Irene since it's just for gas fees
+  const entrypointFunding = initialFunding / 10;
   console.log(
     `Funding EntryPoint for Alice's wallet with ${entrypointFunding.toString()}`,
   );
