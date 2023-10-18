@@ -1,5 +1,5 @@
 import { type Invoice, type scwMessageEvent, MessageType } from "./Messages";
-import { ethers, ZeroHash } from "ethers";
+import { ethers } from "ethers";
 import {
   Participant,
   StateChannelWallet,
@@ -11,6 +11,7 @@ import { IAccount } from "./utils";
 import { hashState } from "./State";
 
 export class OwnerClient extends StateChannelWallet {
+  private nonce = 0;
   constructor(params: StateChannelWalletParams) {
     super(params);
 
@@ -129,11 +130,18 @@ export class OwnerClient extends StateChannelWallet {
     const callData = IAccount.encodeFunctionData("execute", [
       payee,
       ethers.parseEther(amount.toString()),
-      ZeroHash,
+      "0x", // specifying no data makes sure the call is interpreted as a basic eth transfer
     ]);
     const partialUserOp: Partial<UserOperationStruct> = {
-      sender: this.signer.address,
+      sender: this.scBridgeWalletAddress,
       callData,
+      nonce: this.nonce,
+      // TODO: Clean up these defaults
+      callGasLimit: 40_000,
+      verificationGasLimit: 150000,
+      preVerificationGas: 21000,
+      maxFeePerGas: 40_000,
+      maxPriorityFeePerGas: 40_000,
     };
     const userOp = fillUserOpDefaults(partialUserOp);
     const { signature, hash } = await this.signUserOperation(userOp);
@@ -149,6 +157,9 @@ export class OwnerClient extends StateChannelWallet {
     console.log(
       `Initiated transfer of ${amount} ETH to ${payee} (userOpHash: ${hash})`,
     );
+
+    // Increment nonce for next transfer
+    this.nonce++;
 
     return hash;
   }

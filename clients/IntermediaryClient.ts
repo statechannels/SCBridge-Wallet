@@ -174,12 +174,26 @@ export class IntermediaryClient extends StateChannelWallet {
       // todo: account for expected gas consumption? ( out of scope for hackathon )
       throw new Error("Transfer amount exceeds owner balance");
     }
-
     const ownerSig = userOp.signature;
-    const { signature: intermediarySig } = await this.signUserOperation(userOp);
+    const { signature: intermediarySig, hash } =
+      await this.signUserOperation(userOp);
     userOp.signature = ethers.concat([ownerSig, intermediarySig]);
 
-    await this.entrypointContract.handleOps([userOp], this.getAddress());
+    // TODO: We expect this validate call to pass or revert
+    // However it fails with a Result decoding error
+    const validateResult = await this.scwContract
+      .getFunction("validateUserOp")
+      .staticCall(userOp, hash, 0);
+    if (validateResult !== BigInt(0)) {
+      throw new Error("Userop failed validation");
+    }
+
+    const result = await this.entrypointContract.handleOps(
+      [userOp],
+      this.signer.address,
+    );
+    // Waiting for the transaction to be mined let's us catch the error
+    await result.wait();
   }
 
   static async create(

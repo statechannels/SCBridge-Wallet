@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 import { blo } from "blo";
 import { UI_UPDATE_PERIOD } from "./constants";
+import { formatEther } from "ethers";
 
 export const Coordinator: React.FunctionComponent = () => {
   // @ts-expect-error
@@ -143,7 +144,9 @@ export const Intermediary: React.FunctionComponent<{
             sx={{ width: 24, height: 24 }}
           />
         </Tooltip>
-        <Typography>Owner balance: {ownerBalance}</Typography>
+        <Typography>
+          Owner balance: {formatEther(BigInt(ownerBalance))}
+        </Typography>
       </Stack>
       <Stack
         direction="row"
@@ -157,7 +160,9 @@ export const Intermediary: React.FunctionComponent<{
             sx={{ width: 24, height: 24 }}
           />
         </Tooltip>
-        <Typography>IntermediaryBalance: {intermediaryBalance}</Typography>
+        <Typography>
+          IntermediaryBalance: {formatEther(BigInt(intermediaryBalance))}
+        </Typography>
       </Stack>
     </>
   );
