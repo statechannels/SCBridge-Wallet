@@ -1,4 +1,10 @@
-import { type Invoice, type scwMessageEvent, MessageType } from "./Messages";
+import {
+  type Invoice,
+  type scwMessageEvent,
+  MessageType,
+  type ForwardPaymentRequest,
+  type UnlockHTLCRequest,
+} from "./Messages";
 import { ethers } from "ethers";
 import {
   Participant,
