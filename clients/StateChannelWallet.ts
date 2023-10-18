@@ -20,7 +20,6 @@ import {
   MessageType,
 } from "./Messages";
 import { hashState, logState } from "./State";
-
 const HTLC_TIMEOUT = 5 * 60; // 5 minutes
 
 export enum Participant {
@@ -35,6 +34,7 @@ export interface StateChannelWalletParams {
   chainRpcUrl: string;
   entrypointAddress: string;
   scwAddress: string;
+  startingIntermediaryBalance: bigint;
 }
 
 export interface SignedState {
@@ -55,6 +55,8 @@ export class StateChannelWallet {
   protected readonly hashStore: Map<string, Uint8Array>; // maps hash-->preimage
   protected readonly peerBroadcastChannel: BroadcastChannel;
   protected readonly globalBroadcastChannel: BroadcastChannel;
+
+  protected readonly startingIntermediaryBalance: bigint;
   /**
    * Signed states are stored as long as they are deemed useful. All stored
    * signatures are valid.
@@ -66,6 +68,7 @@ export class StateChannelWallet {
     this.entrypointAddress = params.entrypointAddress;
     this.scBridgeWalletAddress = params.scwAddress;
     this.ownerAddress = params.ownerAddress;
+    this.startingIntermediaryBalance = params.startingIntermediaryBalance;
 
     this.chainProvider = new ethers.JsonRpcProvider(params.chainRpcUrl);
     this.peerBroadcastChannel = new BroadcastChannel(
@@ -265,19 +268,13 @@ export class StateChannelWallet {
         return signedState.state;
       }
     }
-    const intermediaryBalance = BigInt(
-      parseInt(
-        // @ts-expect-error
-        import.meta.env.VITE_INTERMEDIARY_BALANCE,
-        10,
-      ),
-    );
+
     // throw new Error("No signed state found");
     return {
       turnNum: 0,
       owner: this.ownerAddress,
       intermediary: this.intermediaryAddress,
-      intermediaryBalance,
+      intermediaryBalance: this.startingIntermediaryBalance,
       htlcs: [],
     };
   }

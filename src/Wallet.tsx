@@ -42,6 +42,11 @@ let myPeerSCWAddress: string;
 let myChainUrl: string;
 let myChain: ChainData;
 
+const startingIntermediaryBalance = BigInt(
+  // @ts-expect-error
+  parseInt(import.meta.env.VITE_INTERMEDIARY_BALANCE, 10),
+);
+
 const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
   role: Role;
 }) => {
@@ -130,6 +135,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
         chainRpcUrl: myChainUrl,
         entrypointAddress,
         scwAddress: myScwAddress,
+        startingIntermediaryBalance,
       }),
   );
 
