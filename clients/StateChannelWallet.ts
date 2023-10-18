@@ -70,7 +70,7 @@ export class StateChannelWallet {
       this.ownerAddress + "-peer",
     );
     this.globalBroadcastChannel = new BroadcastChannel(
-      this.ownerAddress + "-global",
+      this.scBridgeWalletAddress + "-global",
     );
 
     const wallet = new ethers.Wallet(params.signingKey);
