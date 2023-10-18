@@ -47,37 +47,41 @@ export class OwnerClient extends StateChannelWallet {
       if (req.type === MessageType.ForwardPayment) {
         void this.handleIncomingHTLC(req);
       } else if (req.type === MessageType.UnlockHTLC) {
-        console.log("received unlock HTLC request");
-        // run the preimage through the state update function
-        const updated = await this.unlockHTLC(req.preimage);
-        const updatedHash = hashState(updated.state);
-
-        // check that the proposed update is correct
-        if (updatedHash !== hashState(req.updatedState.state)) {
-          throw new Error("Invalid state update");
-          // todo: peerMessage to sender with failure
-        }
-        const signer = ethers.recoverAddress(
-          updatedHash,
-          req.updatedState.intermediarySignature,
-        );
-        if (signer !== this.intermediaryAddress) {
-          // todo: fix signature recovery
-          // throw new Error("Invalid signature");
-          // todo: peerMessage to sender with failure
-        }
-        this.ack(updated.ownerSignature);
-        this.addSignedState({
-          state: req.updatedState.state,
-          ownerSignature: updated.ownerSignature,
-          intermediarySignature: req.updatedState.intermediarySignature,
-        });
+        await this.handleUnlockHTLCRequest(req);
       }
     };
   }
 
+  private async handleUnlockHTLCRequest(req: UnlockHTLCRequest): Promise<void> {
+    this.log("received unlock HTLC request");
+    // run the preimage through the state update function
+    const updated = await this.unlockHTLC(req.preimage);
+    const updatedHash = hashState(updated.state);
+
+    // check that the proposed update is correct
+    if (updatedHash !== hashState(req.updatedState.state)) {
+      throw new Error("Invalid state update");
+      // todo: peerMessage to sender with failure
+    }
+    const signer = ethers.recoverAddress(
+      updatedHash,
+      req.updatedState.intermediarySignature,
+    );
+    if (signer !== this.intermediaryAddress) {
+      // todo: fix signature recovery
+      // throw new Error("Invalid signature");
+      // todo: peerMessage to sender with failure
+    }
+    this.ack(updated.ownerSignature);
+    this.addSignedState({
+      state: req.updatedState.state,
+      ownerSignature: updated.ownerSignature,
+      intermediarySignature: req.updatedState.intermediarySignature,
+    });
+  }
+
   private async handleIncomingHTLC(req: ForwardPaymentRequest): Promise<void> {
-    console.log("received forward payment request");
+    this.log("received forward payment request");
     // todo: validate that the proposed state update is "good"
     // add the HTLC to our state
     const mySig = this.signState(req.updatedState.state);
