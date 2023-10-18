@@ -46,43 +46,7 @@ export class OwnerClient extends StateChannelWallet {
     this.peerBroadcastChannel.onmessage = async (ev: scwMessageEvent) => {
       const req = ev.data;
       if (req.type === MessageType.ForwardPayment) {
-        console.log("received forward payment request");
-        // todo: validate that the proposed state update is "good"
-
-        // add the HTLC to our state
-        const mySig = this.signState(req.updatedState.state);
-        this.addSignedState({
-          ...req.updatedState,
-          ownerSignature: mySig.ownerSignature,
-          intermediarySignature: req.updatedState.intermediarySignature,
-        });
-        this.ack(mySig.ownerSignature);
-
-        // claim the payment if it is for us
-        const preimage = this.hashStore.get(req.hashLock);
-
-        if (preimage === undefined) {
-          throw new Error("Hashlock not found");
-          // todo: or forward the payment if it is multihop (not in scope for now)
-        }
-
-        // we are the end claimant, so we should:
-        //  - unlock the payment
-        //  - send the updated state to the intermediary
-        //  - store the updated state with both signatures
-        this.log("attempting unlock w/ Irene");
-        const updatedAfterUnlock = await this.unlockHTLC(preimage);
-        const intermediaryAck = await this.sendPeerMessage({
-          type: MessageType.UnlockHTLC,
-          preimage,
-          updatedState: updatedAfterUnlock,
-        });
-        this.log("unlocked w/ Irene:" + intermediaryAck.signature);
-        this.addSignedState({
-          state: updatedAfterUnlock.state,
-          ownerSignature: updatedAfterUnlock.ownerSignature,
-          intermediarySignature: intermediaryAck.signature,
-        });
+        void this.handleIncomingHTLC(req);
       } else if (req.type === MessageType.UnlockHTLC) {
         console.log("received unlock HTLC request");
         // run the preimage through the state update function
@@ -111,6 +75,45 @@ export class OwnerClient extends StateChannelWallet {
         });
       }
     };
+  }
+
+  private async handleIncomingHTLC(req: ForwardPaymentRequest): Promise<void> {
+    console.log("received forward payment request");
+    // todo: validate that the proposed state update is "good"
+    // add the HTLC to our state
+    const mySig = this.signState(req.updatedState.state);
+    this.addSignedState({
+      ...req.updatedState,
+      ownerSignature: mySig.ownerSignature,
+      intermediarySignature: req.updatedState.intermediarySignature,
+    });
+    this.ack(mySig.ownerSignature);
+
+    // claim the payment if it is for us
+    const preimage = this.hashStore.get(req.hashLock);
+
+    if (preimage === undefined) {
+      throw new Error("Hashlock not found");
+      // todo: or forward the payment if it is multihop (not in scope for now)
+    }
+
+    // we are the end claimant, so we should:
+    //  - unlock the payment
+    //  - send the updated state to the intermediary
+    //  - store the updated state with both signatures
+    this.log("attempting unlock w/ Irene");
+    const updatedAfterUnlock = await this.unlockHTLC(preimage);
+    const intermediaryAck = await this.sendPeerMessage({
+      type: MessageType.UnlockHTLC,
+      preimage,
+      updatedState: updatedAfterUnlock,
+    });
+    this.log("unlocked w/ Irene:" + intermediaryAck.signature);
+    this.addSignedState({
+      state: updatedAfterUnlock.state,
+      ownerSignature: updatedAfterUnlock.ownerSignature,
+      intermediarySignature: intermediaryAck.signature,
+    });
   }
 
   static async create(params: StateChannelWalletParams): Promise<OwnerClient> {
