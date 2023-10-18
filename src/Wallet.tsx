@@ -93,12 +93,18 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
     import.meta.env.VITE_IRENE_ADDRESS,
   );
 
+  // Default the payment size to 1% of the deposit
+  const defaultPaymentSize = // @ts-expect-error
+    BigInt(parseInt(import.meta.env.VITE_SCW_DEPOSIT, 10) / 100);
+
   const [recipient, setRecipient] = useState(myPeer);
   const [hostNetwork, setHostNetwork] = useState("Scroll");
   const [isModalL1PayOpen, setModalL1PayOpen] = useState<boolean>(false);
   const [isModalEjectOpen, setModalEjectOpen] = useState<boolean>(false);
   const [userOpHash, setUserOpHash] = useState<string | null>(null);
-  const [payAmount, setPayAmount] = useState<string>("0.05");
+  const [payAmount, setPayAmount] = useState<string>(
+    ethers.formatEther(defaultPaymentSize),
+  );
   const [errorL1Pay, setErrorL1Pay] = useState<string | null>(null);
 
   const handleL1Pay = async (payee: string, amount: bigint): Promise<void> => {
