@@ -276,7 +276,7 @@ describe("SCBridgeWallet", function () {
         .staticCall(userOp, hash, 0);
       expect(result).to.equal(0);
     });
-    it("only allows specific functions to be called when signed by one actor", async function () {
+    it("allows specific functions to be called when signed by one actor", async function () {
       const { nitroSCW, owner } = await deploySCBridgeWallet();
       const n = await ethers.provider.getNetwork();
 
