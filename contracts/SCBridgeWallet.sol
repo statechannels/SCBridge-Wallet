@@ -147,40 +147,58 @@ contract SCBridgeWallet is IAccount {
     }
   }
 
+  function validateUserOpOPEN(
+    UserOperation calldata userOp,
+    bytes32 userOpHash
+  ) internal view returns (uint256 validationData) {
+    // If the wallet is OPEN, require intermediary signature on every operation
+    bytes memory intermediarySig = userOp.signature[65:130];
+    return validateSignature(userOpHash, intermediarySig, intermediary);
+  }
+
+  function permitted(bytes4 functionSelector) internal pure returns (bool) {
+    return (functionSelector == this.challenge.selector ||
+      functionSelector == this.reclaim.selector ||
+      functionSelector == this.unlockHTLC.selector);
+  }
+
+  function validateUserOpCHALLENGE_RAISED(
+    UserOperation calldata userOp,
+    bytes32 // userOpHash
+  ) internal pure returns (uint256 validationData) {
+    // If the wallet is in CHALLENGE_RAISED, restrict operations by function selector
+    bytes4 functionSelector = bytes4(userOp.callData[0:4]);
+    require(permitted(functionSelector), "Invalid function selector");
+    return 0;
+  }
+
   function validateUserOp(
     UserOperation calldata userOp,
     bytes32 userOpHash,
     uint256 // missingAccountFunds
   ) external view returns (uint256 validationData) {
-    require(userOp.signature.length == 2 * 65, "Invalid signature length");
-    require(userOp.signature.length != 0x0, "Empty signature");
-
     bytes memory ownerSig = userOp.signature[0:65];
-    bytes memory intermediarySig = userOp.signature[65:130];
-
     // The owner of the wallet must always approve of any user operation to execute on it's behalf
     require(!isZero(ownerSig), "Must be signed by owner");
 
     // If the wallet is finalized then the owner can do whatever they want with the remaining funds
     if (getStatus() == WalletStatus.FINALIZED) {
-      return validateSignature(userOpHash, ownerSig, owner);
-    }
-    // If the user op is doubly-signed then the wallet is allowed to do whatever it wants since everyone has approved it
-    if (!isZero(ownerSig) && !isZero(intermediarySig)) {
-      return
-        validateSignature(userOpHash, ownerSig, owner) |
-        validateSignature(userOpHash, intermediarySig, intermediary);
+      return 0;
     }
 
-    // Otherwise the wallet is open or has a challenge raised and the owner is only allowed to do certain things
+    // escape hatch for permitted functions (can be called any time)
     bytes4 functionSelector = bytes4(userOp.callData[0:4]);
-    require(
-      functionSelector == this.challenge.selector ||
-        functionSelector == this.reclaim.selector ||
-        functionSelector == this.unlockHTLC.selector,
-      "Invalid function selector"
-    );
-    return validateSignature(userOpHash, ownerSig, owner);
+    if (permitted(functionSelector)) return 0;
+
+    // Otherwise the wallet either:
+
+    // has a challenge raised and is only allowed to do certain things
+    if (getStatus() == WalletStatus.CHALLENGE_RAISED) {
+      return validateUserOpCHALLENGE_RAISED(userOp, userOpHash);
+    }
+
+    // or is open, in which case we need to appy extra conditions:
+    return validateUserOpOPEN(userOp, userOpHash);
   }
 
   constructor(address o, address payable i, address e) {
