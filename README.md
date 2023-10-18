@@ -10,7 +10,7 @@ An L2 state channel bridge contract which is also an EIP-4337 compliant smart co
 
 - In a new terminal start the origin chain by running `yarn chain:origin`
 - In a new terminal start the destination chain by running `yarn chain:destination`
-- In a new terminal deploy the contracts and start the UI by running: `yarn deploy:origin && yarn deploy:destination && yarn start`
+- In a new terminal deploy the contracts and start the UI by running: `yarn deploy-and-start`
 
 ### Ingredients
 

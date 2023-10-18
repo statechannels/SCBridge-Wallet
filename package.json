@@ -16,7 +16,8 @@
     "deploy:origin": "npx hardhat run --network origin deploy/00_deploy_entrypoint_and_wallets.ts",
     "chain:origin": "yarn hardhat node",
     "chain:destination": "IS_DESTINATION=true yarn hardhat node --port 8546",
-    "deploy:destination": "npx hardhat run --network destination deploy/00_deploy_entrypoint_and_wallets.ts"
+    "deploy:destination": "npx hardhat run --network destination deploy/00_deploy_entrypoint_and_wallets.ts",
+    "deploy-and-start": "yarn deploy:origin && yarn deploy:destination && yarn start"
   },
   "packageManager": "yarn@1.22.19",
   "devDependencies": {
