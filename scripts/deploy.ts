@@ -50,7 +50,7 @@ const deployFunc = async function (): Promise<void> {
     )}) SCBridgeWallet deployed to: ${await bobWallet.getAddress()}`,
   );
 
-  const initialFunding = parseInt(process.env.VITE_SCW_DEPOSIT ?? "", 10);
+  const initialFunding = BigInt(process.env.VITE_SCW_DEPOSIT ?? "");
   await fund(
     [
       await entrypoint.getAddress(),
@@ -61,13 +61,11 @@ const deployFunc = async function (): Promise<void> {
     BigInt(initialFunding),
     hardhatFundedAccount,
   );
-  // Fund irene with a smaller amount to pay for gas
-  await fund([ireneAddress], BigInt(initialFunding / 10), hardhatFundedAccount);
 
   // Fund the Entrypoint to pay for gas for the SCWs
   await fundEntryPoint(
     [await aliceWallet.getAddress(), await bobWallet.getAddress()],
-    BigInt(initialFunding / 10),
+    initialFunding,
     await entrypoint.getAddress(),
     hardhatFundedAccount,
   );
