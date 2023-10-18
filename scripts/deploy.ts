@@ -75,11 +75,17 @@ async function fundEntryPoint(
   fundedAccount: HardhatEthersSigner,
 ): Promise<void> {
   for (const address of addresses) {
-    console.log(`Funding EntryPoint for ${address} with ${amount.toString()}`);
-    await EntryPoint__factory.connect(
-      entryPointAddress,
-      fundedAccount,
-    ).depositTo(address, { value: amount });
+    console.log(
+      `Funding EntryPoint for ${address} with ${ethers.formatEther(
+        amount,
+      )} ETH`,
+    );
+    await (
+      await EntryPoint__factory.connect(
+        entryPointAddress,
+        fundedAccount,
+      ).depositTo(address, { value: amount })
+    ).wait();
   }
 }
 async function fund(
@@ -88,11 +94,22 @@ async function fund(
   fundedAccount: HardhatEthersSigner,
 ): Promise<void> {
   for (const address of addresses) {
-    console.log(`Funding ${address} with ${amount.toString()}`);
-    await fundedAccount.sendTransaction({
-      to: address,
-      value: amount,
-    });
+    const balance = await ethers.provider.getBalance(address);
+    if (balance >= amount) {
+      console.log(
+        `Skipping funding ${address} it already has ${ethers.formatEther(
+          amount,
+        )} ETH`,
+      );
+      continue;
+    }
+    console.log(`Funding ${address} with ${ethers.formatEther(amount)} ETH`);
+    await (
+      await fundedAccount.sendTransaction({
+        to: address,
+        value: amount,
+      })
+    ).wait();
   }
 }
 
