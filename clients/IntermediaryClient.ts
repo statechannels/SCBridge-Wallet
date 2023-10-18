@@ -37,16 +37,20 @@ export class IntermediaryCoordinator {
     });
   }
 
+  log(s: string): void {
+    console.log(`[Coordinator] ${s}`);
+  }
+
   /**
    * forwardHTLC moves a payment across the network. It is called by a channelWallet who has
    * verified that the payment is safe to forward.
    *
    * @param htlc the HTLC to forward
    */
-  forwardHTLC(htlc: ForwardPaymentRequest): void {
+  async forwardHTLC(htlc: ForwardPaymentRequest): Promise<void> {
     // Locate the target client
     const targetClient = this.channelClients.find(
-      (c) => c.getAddress() === htlc.target,
+      (c) => c.getAddress() === htlc.target || c.ownerAddress === htlc.target,
     );
 
     if (targetClient === undefined) {
@@ -55,15 +59,26 @@ export class IntermediaryCoordinator {
     }
 
     const fee = 0; // for example
-    const updatedState = targetClient.addHTLC(htlc.amount - fee, htlc.hashLock);
+    const updatedState = targetClient.addHTLC(
+      htlc.amount - BigInt(fee),
+      htlc.hashLock,
+    );
 
-    targetClient.sendPeerMessage({
+    // this.log("adding HTLC to Irene-Bob");
+    const ownerAck = await targetClient.sendPeerMessage({
       type: MessageType.ForwardPayment,
       target: htlc.target,
       amount: htlc.amount,
       hashLock: htlc.hashLock,
-      timelock: 0, // todo
+      timelock: BigInt(0), // todo
       updatedState,
+    });
+    // this.log("added HTLC to Irene-Bob: " + ownerAck.signature);
+
+    targetClient.addSignedState({
+      ...updatedState,
+      intermediarySignature: updatedState.intermediarySignature,
+      ownerSignature: ownerAck.signature,
     });
   }
 
@@ -77,13 +92,23 @@ export class IntermediaryCoordinator {
       throw new Error("Target not found");
     }
 
+    // this.log("removing HTLC from Alice-Irene:" + targetClient.getAddress());
     // claim the payment and coordinate with the channel owner to update
     // the shared state
     const updated = await targetClient.unlockHTLC(req.preimage);
-    targetClient.sendPeerMessage({
+
+    // the intermediary asks the channel owner to update the state
+    const ownerAck = await targetClient.sendPeerMessage({
       type: MessageType.UnlockHTLC,
       preimage: req.preimage,
       updatedState: updated,
+    });
+    // this.log("removed HTLC from Alice-Irene:" + ownerAck.signature);
+
+    targetClient.addSignedState({
+      state: updated.state,
+      intermediarySignature: updated.intermediarySignature,
+      ownerSignature: ownerAck.signature,
     });
   }
 }
@@ -92,6 +117,12 @@ export class IntermediaryClient extends StateChannelWallet {
   private coordinator: IntermediaryCoordinator = new IntermediaryCoordinator(
     [],
   );
+
+  private log(s: string): void {
+    console.log(
+      `[IntermediaryClient-${this.ownerAddress.substring(0, 5)}] ${s}`,
+    );
+  }
 
   constructor(params: StateChannelWalletParams) {
     super(params);
@@ -106,14 +137,11 @@ export class IntermediaryClient extends StateChannelWallet {
     // peer channel
     this.peerBroadcastChannel.onmessage = async (ev: scwMessageEvent) => {
       const req = ev.data;
+      this.log(`received message of type ${req.type}`);
 
       switch (req.type) {
         case MessageType.ForwardPayment:
-          // todo: more robust checks. EG: signature of counterparty
-          if (req.amount > (await this.getOwnerBalance())) {
-            throw new Error("Insufficient balance");
-          }
-          this.coordinator.forwardHTLC(req);
+          await this.handleForwardPaymentRequest(req);
           break;
         case MessageType.UserOperation:
           void this.handleUserOp(req);
@@ -127,24 +155,54 @@ export class IntermediaryClient extends StateChannelWallet {
     };
   }
 
+  private async handleForwardPaymentRequest(
+    req: ForwardPaymentRequest,
+  ): Promise<void> {
+    // todo: more robust checks. EG: signature of counterparty
+    if (req.amount > (await this.getOwnerBalance())) {
+      throw new Error("Insufficient balance");
+    }
+    const mySig = this.signState(req.updatedState.state);
+    this.addSignedState({
+      state: req.updatedState.state,
+      ownerSignature: req.updatedState.ownerSignature,
+      intermediarySignature: mySig.intermediarySignature,
+    });
+    this.ack(mySig.intermediarySignature);
+    await this.coordinator.forwardHTLC(req);
+  }
+
   private async handleUnlockHTLC(req: UnlockHTLCRequest): Promise<void> {
+    console.log("received unlock HTLC request");
     // run the preimage through the state update function
-    const updated = await this.unlockHTLC(req.preimage);
-    const updatedHash = hashState(updated.state);
+    const locallyUpdated = await this.unlockHTLC(req.preimage);
+    const updatedHash = hashState(locallyUpdated.state);
 
     // check that the proposed update is correct
     if (updatedHash !== hashState(req.updatedState.state)) {
       throw new Error("Invalid state update");
       // todo: peerMessage to sender with failure
     }
+
     const signer = ethers.recoverAddress(
       ethers.hashMessage(getBytes(updatedHash)),
-      req.updatedState.intermediarySignature,
+      req.updatedState.ownerSignature,
     );
-    if (signer !== this.intermediaryAddress) {
-      throw new Error("Invalid signature");
+    if (signer !== this.ownerAddress) {
+      throw new Error(
+        `Invalid signature: recovered ${signer}, wanted ${this.ownerAddress}`,
+      );
       // todo: peerMessage to sender with failure
     }
+
+    // update our state
+    this.addSignedState({
+      state: req.updatedState.state,
+      ownerSignature: req.updatedState.ownerSignature,
+      intermediarySignature: locallyUpdated.intermediarySignature,
+    });
+    // return our signature to the owner so that they can update the state
+    this.ack(locallyUpdated.intermediarySignature);
 
     // Bob has claimed is payment, so we now claim our linked payment from Alice
     // via the channel coordinator
@@ -194,6 +252,7 @@ export class IntermediaryClient extends StateChannelWallet {
     );
     // Waiting for the transaction to be mined let's us catch the error
     await result.wait();
+    this.ack(userOp.signature);
   }
 
   static async create(

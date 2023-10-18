@@ -59,8 +59,6 @@ export const Coordinator: React.FunctionComponent = () => {
     () => new IntermediaryCoordinator([withAlice, withBob]),
   );
 
-  console.log(withAlice.ownerAddress);
-
   return (
     <Card
       variant="outlined"
