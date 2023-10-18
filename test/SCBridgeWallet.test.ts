@@ -114,9 +114,8 @@ describe("SCBridgeWallet", function () {
     });
     const n = await ethers.provider.getNetwork();
 
-    const payee = ethers.Wallet.createRandom();
-
     // Generate a random payee address that we can use for the transfer.
+    const payee = ethers.Wallet.createRandom();
 
     // Encode calldata that calls the execute function to perform a simple transfer of ether to the payee.
     const callData =
