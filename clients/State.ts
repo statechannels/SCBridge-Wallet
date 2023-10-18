@@ -56,15 +56,15 @@ export function encodeState(state: StateStruct): string {
 
 export function logState(s: StateStruct): void {
   console.log("State:");
-  console.log(`  owner: ${s.owner}`);
-  console.log(`  intermediary: ${s.intermediary}`);
+  console.log(`  owner: ${s.owner as string}`);
+  console.log(`  intermediary: ${s.intermediary as string}`);
   console.log(`  turnNum: ${s.turnNum}`);
   console.log(`  intermediaryBalance: ${Number(s.intermediaryBalance)}`);
   console.log(`  htlcs:`);
   s.htlcs.forEach((h) => {
     console.log(`    to: ${h.to}`);
     console.log(`    amount: ${h.amount}`);
-    console.log(`    hashLock: ${h.hashLock}`);
+    console.log(`    hashLock: ${h.hashLock.toString()}`);
     console.log(`    timelock: ${h.timelock}\n\n`);
   });
 }
