@@ -147,15 +147,6 @@ contract SCBridgeWallet is IAccount {
     }
   }
 
-  function validateUserOpOPEN(
-    UserOperation calldata userOp,
-    bytes32 userOpHash
-  ) internal view returns (uint256 validationData) {
-    // If the wallet is OPEN, require intermediary signature on every operation
-    bytes memory intermediarySig = userOp.signature[65:130];
-    return validateSignature(userOpHash, intermediarySig, intermediary);
-  }
-
   function permitted(bytes4 functionSelector) internal pure returns (bool) {
     return (functionSelector == this.challenge.selector ||
       functionSelector == this.reclaim.selector ||
@@ -198,7 +189,12 @@ contract SCBridgeWallet is IAccount {
     }
 
     // or is open, in which case we need to apply extra conditions:
-    return validateUserOpOPEN(userOp, userOpHash);
+    if (getStatus() == WalletStatus.OPEN) {
+      bytes memory intermediarySig = userOp.signature[65:130];
+      return validateSignature(userOpHash, intermediarySig, intermediary);
+    }
+
+    return SIG_VALIDATION_FAILED;
   }
 
   constructor(address o, address payable i, address e) {
