@@ -30,6 +30,7 @@ import logo from "./assets/logo.png";
 import L1PaymentModal from "./modals/L1Payment";
 import { useBalances } from "./useBalances";
 import EjectModal from "./modals/Eject";
+import { chains, type ChainData } from "./chains";
 
 let myAddress: string = "placholder";
 let mySigningKey: string;
@@ -39,6 +40,8 @@ const entrypointAddress = import.meta.env.VITE_ENTRYPOINT_ADDRESS;
 let myScwAddress: string;
 let myPeerSCWAddress: string;
 let myChainUrl: string;
+let myChain: ChainData;
+
 const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
   role: Role;
 }) => {
@@ -56,6 +59,11 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
       myPeerSCWAddress = import.meta.env.VITE_BOB_SCW_ADDRESS;
       // @ts-expect-error
       myChainUrl = import.meta.env.VITE_ALICE_CHAIN_URL;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      myChain = chains.find(
+        // @ts-expect-error
+        (c) => c.url === import.meta.env.VITE_ALICE_CHAIN_URL,
+      )!;
 
       break;
     case "bob":
@@ -71,6 +79,11 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
       myPeerSCWAddress = import.meta.env.VITE_ALICE_SCW_ADDRESS;
       // @ts-expect-error
       myChainUrl = import.meta.env.VITE_BOB_CHAIN_URL;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      myChain = chains.find(
+        // @ts-expect-error
+        (c) => c.url === import.meta.env.VITE_BOB_CHAIN_URL,
+      )!;
 
       break;
   }
@@ -127,6 +140,10 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
     [prefersDarkMode],
   );
 
+  function paymentLabel(): string {
+    return `Amount (${myChain.symbol})`;
+  }
+
   return (
     <ThemeProvider theme={theme}>
       <Card
@@ -158,7 +175,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
 
           <Typography>
             {" "}
-            <b> Host Network:</b> {hostNetwork}
+            <b> Host Network:</b> {myChain.name}
           </Typography>
           <Typography>
             {" "}
@@ -211,7 +228,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
             <Container maxWidth="xs">
               <TextField
                 fullWidth
-                label="Amount (ETH)"
+                label={paymentLabel()}
                 id="outlined-start-adornment"
                 value={payAmount}
                 onChange={(e) => {
