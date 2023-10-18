@@ -153,16 +153,6 @@ contract SCBridgeWallet is IAccount {
       functionSelector == this.unlockHTLC.selector);
   }
 
-  function validateUserOpCHALLENGE_RAISED(
-    UserOperation calldata userOp,
-    bytes32 // userOpHash
-  ) internal pure returns (uint256 validationData) {
-    // If the wallet is in CHALLENGE_RAISED, restrict operations by function selector
-    bytes4 functionSelector = bytes4(userOp.callData[0:4]);
-    require(permitted(functionSelector), "Invalid function selector");
-    return 0;
-  }
-
   function validateUserOp(
     UserOperation calldata userOp,
     bytes32 userOpHash,
@@ -180,13 +170,6 @@ contract SCBridgeWallet is IAccount {
     // escape hatch for permitted functions (can be called any time)
     bytes4 functionSelector = bytes4(userOp.callData[0:4]);
     if (permitted(functionSelector)) return 0;
-
-    // Otherwise the wallet either:
-
-    // has a challenge raised and is only allowed to do certain things
-    if (getStatus() == WalletStatus.CHALLENGE_RAISED) {
-      return validateUserOpCHALLENGE_RAISED(userOp, userOpHash);
-    }
 
     // or is open, in which case we need to apply extra conditions:
     if (getStatus() == WalletStatus.OPEN) {
