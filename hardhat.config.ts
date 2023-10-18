@@ -18,7 +18,12 @@ const config: HardhatUserConfig = {
     },
     // Used for testing
     hardhat: {
-      chainId: 31337,
+      chainId:
+        // Unfortunately hardhat node doesn't support specifying a chainId or network; it just uses the default hardhat network.
+        // To work around this we use an environment variable to specify which chain we're on, and then set the chainId accordingly.
+        (process.env.IS_DESTINATION ?? "").toLowerCase() === "true"
+          ? 31338
+          : 31337,
     },
   },
   solidity: {
