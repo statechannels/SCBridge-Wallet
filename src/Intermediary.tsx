@@ -30,31 +30,33 @@ export const Coordinator: React.FunctionComponent = () => {
   const bobScwAddress = import.meta.env.VITE_BOB_SCW_ADDRESS;
 
   const [withAlice] = useState(
-    new IntermediaryClient({
-      signingKey: myKey,
-      // @ts-expect-error
-      ownerAddress: import.meta.env.VITE_ALICE_ADDRESS,
-      intermediaryAddress: myAddress,
-      chainRpcUrl: "http://localhost:8545",
-      entrypointAddress,
-      scwAddress: aliceScwAddress,
-    }),
+    () =>
+      new IntermediaryClient({
+        signingKey: myKey,
+        // @ts-expect-error
+        ownerAddress: import.meta.env.VITE_ALICE_ADDRESS,
+        intermediaryAddress: myAddress,
+        chainRpcUrl: "http://localhost:8545",
+        entrypointAddress,
+        scwAddress: aliceScwAddress,
+      }),
   );
   const [withBob] = useState(
-    new IntermediaryClient({
-      signingKey: myKey,
-      // @ts-expect-error
-      ownerAddress: import.meta.env.VITE_BOB_ADDRESS,
-      intermediaryAddress: myAddress,
-      chainRpcUrl: "http://localhost:8545",
-      entrypointAddress,
-      scwAddress: bobScwAddress,
-    }),
+    () =>
+      new IntermediaryClient({
+        signingKey: myKey,
+        // @ts-expect-error
+        ownerAddress: import.meta.env.VITE_BOB_ADDRESS,
+        intermediaryAddress: myAddress,
+        chainRpcUrl: "http://localhost:8545",
+        entrypointAddress,
+        scwAddress: bobScwAddress,
+      }),
   );
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [coordinator] = useState(
-    new IntermediaryCoordinator([withAlice, withBob]),
+    () => new IntermediaryCoordinator([withAlice, withBob]),
   );
 
   return (

@@ -1,17 +1,11 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useEffect, useState } from "react";
-import BoltIcon from "@mui/icons-material/Bolt";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import logo from "./assets/logo.png";
-import "./Wallet.css";
+import BoltIcon from "@mui/icons-material/Bolt";
 import {
   Avatar,
   Button,
   ButtonGroup,
-  Dialog,
-  DialogContent,
-  DialogTitle,
   Card,
   Container,
   Divider,
@@ -24,13 +18,15 @@ import {
   createTheme,
   useMediaQuery,
 } from "@mui/material";
-import { type Role } from "./WalletContainer";
-import L1PaymentModal from "./modals/L1Payment";
+import { blo } from "blo";
+import { formatEther } from "ethers";
+import React, { useState } from "react";
 import { OwnerClient } from "../clients/OwnerClient";
 import { AddressIcon, AddressIconSmall } from "./AddressIcon";
-import { blo } from "blo";
-import { UI_UPDATE_PERIOD, PAYMENT_AMOUNT } from "./constants";
-import { formatEther } from "ethers";
+import "./Wallet.css";
+import { type Role } from "./WalletContainer";
+import logo from "./assets/logo.png";
+import L1PaymentModal from "./modals/L1Payment";
 import { useBalances } from "./useBalances";
 
 let myAddress: string = "placholder";
@@ -99,14 +95,15 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
   };
 
   const [wallet, _] = useState(
-    new OwnerClient({
-      signingKey: mySigningKey,
-      ownerAddress: myAddress,
-      intermediaryAddress: intermediary,
-      chainRpcUrl: "http://localhost:8545",
-      entrypointAddress,
-      scwAddress: myScwAddress,
-    }),
+    () =>
+      new OwnerClient({
+        signingKey: mySigningKey,
+        ownerAddress: myAddress,
+        intermediaryAddress: intermediary,
+        chainRpcUrl: "http://localhost:8545",
+        entrypointAddress,
+        scwAddress: myScwAddress,
+      }),
   );
 
   const [ownerBalance, intermediaryBalance] = useBalances(wallet);
