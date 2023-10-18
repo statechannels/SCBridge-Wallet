@@ -21,31 +21,40 @@ export const Coordinator: React.FunctionComponent = () => {
   const myAddress = import.meta.env.VITE_IRENE_ADDRESS;
   // @ts-expect-error
   const myKey = import.meta.env.VITE_IRENE_SK;
+  // @ts-expect-error
+  const entrypointAddress = import.meta.env.VITE_ENTRYPOINT_ADDRESS;
+  // @ts-expect-error
+  const aliceScwAddress = import.meta.env.VITE_ALICE_SCW_ADDRESS;
+  // @ts-expect-error
+  const bobScwAddress = import.meta.env.VITE_BOB_SCW_ADDRESS;
 
-  const withAlice = new IntermediaryClient({
-    signingKey: myKey,
-    // @ts-expect-error
-    ownerAddress: import.meta.env.VITE_ALICE_ADDRESS,
-    intermediaryAddress: myAddress,
-    chainRpcUrl: "",
-    entrypointAddress: "",
-    scwAddress: "",
-  });
-  const withBob = new IntermediaryClient({
-    signingKey: myKey,
-    // @ts-expect-error
-    ownerAddress: import.meta.env.VITE_BOB_ADDRESS,
-    intermediaryAddress: myAddress,
-    chainRpcUrl: "",
-    entrypointAddress: "",
-    scwAddress: "",
-  });
+  const [withAlice] = useState(
+    new IntermediaryClient({
+      signingKey: myKey,
+      // @ts-expect-error
+      ownerAddress: import.meta.env.VITE_ALICE_ADDRESS,
+      intermediaryAddress: myAddress,
+      chainRpcUrl: "http://localhost:8545",
+      entrypointAddress,
+      scwAddress: aliceScwAddress,
+    }),
+  );
+  const [withBob] = useState(
+    new IntermediaryClient({
+      signingKey: myKey,
+      // @ts-expect-error
+      ownerAddress: import.meta.env.VITE_BOB_ADDRESS,
+      intermediaryAddress: myAddress,
+      chainRpcUrl: "http://localhost:8545",
+      entrypointAddress,
+      scwAddress: bobScwAddress,
+    }),
+  );
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const coordinator: IntermediaryCoordinator = new IntermediaryCoordinator([
-    withAlice,
-    withBob,
-  ]);
+  const [coordinator] = useState(
+    new IntermediaryCoordinator([withAlice, withBob]),
+  );
 
   console.log(withAlice.ownerAddress);
 

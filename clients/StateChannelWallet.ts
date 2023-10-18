@@ -79,7 +79,7 @@ export class StateChannelWallet {
 
     this.entrypointContract = EntryPoint__factory.connect(
       this.entrypointAddress,
-      this.chainProvider,
+      this.signer,
     );
 
     this.scwContract = SCBridgeWallet__factory.connect(
