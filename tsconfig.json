@@ -17,6 +17,6 @@
     "hardhat.config.ts",
     "tsconfig.json",
     "vite.config.ts",
-    "deploy"
+    "scripts/deploy.ts"
   ]
 }
