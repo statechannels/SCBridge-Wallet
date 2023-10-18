@@ -135,7 +135,7 @@ export class IntermediaryClient extends StateChannelWallet {
     // peer channel
     this.peerBroadcastChannel.onmessage = async (ev: scwMessageEvent) => {
       const req = ev.data;
-      this.log("received peer message: " + JSON.stringify(req));
+      this.log(`received message of type ${req.type}`);
 
       switch (req.type) {
         case MessageType.ForwardPayment:
