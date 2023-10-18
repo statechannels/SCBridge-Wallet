@@ -44,10 +44,15 @@ export class OwnerClient extends StateChannelWallet {
     // These handlers are for messages from the channel/wallet peer (our intermediary).
     this.peerBroadcastChannel.onmessage = async (ev: scwMessageEvent) => {
       const req = ev.data;
-      if (req.type === MessageType.ForwardPayment) {
-        void this.handleIncomingHTLC(req);
-      } else if (req.type === MessageType.UnlockHTLC) {
-        await this.handleUnlockHTLCRequest(req);
+      switch (req.type) {
+        case MessageType.ForwardPayment:
+          await this.handleIncomingHTLC(req);
+          break;
+        case MessageType.UnlockHTLC:
+          await this.handleUnlockHTLCRequest(req);
+          break;
+        default:
+          throw new Error(`Message type ${req.type} not yet handled`);
       }
     };
   }
