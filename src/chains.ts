@@ -1,6 +1,5 @@
 export interface ChainData {
   url: string;
-  chainId: number;
   /**
    * The name of the chain. Populates eg, the "Host Network" UI field for channel wallets.
    */
@@ -22,7 +21,6 @@ export interface ChainData {
 export const chains: ChainData[] = [
   {
     url: "http://localhost:8545",
-    chainId: 31337,
     name: "hardhat 1",
     symbol: "hh1ETH",
     explorer: "",
@@ -30,7 +28,6 @@ export const chains: ChainData[] = [
   },
   {
     url: "http://localhost:8546",
-    chainId: 31338,
     name: "hardhat 2",
     symbol: "hh2ETH",
     explorer: "",
