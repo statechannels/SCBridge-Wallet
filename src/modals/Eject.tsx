@@ -35,15 +35,9 @@ const EjectModal: React.FC<EjectProps> = ({ isOpen, onClose }) => {
           <br></br>
           <Typography variant="body1">
             If implemented, this would initiate a challenge where the
-          </Typography>
-          <Typography variant="body1">
-            SCBridge-Wallet owner sends its latest known state on-chain
-          </Typography>
-          <Typography variant="body1">
-            and the Intermediary has a timeout period where they can{" "}
-          </Typography>
-          <Typography variant="body1">
-            respond with their latest state if it has a higher turn number.
+            SCBridge-Wallet owner sends its latest known state on-chain and the
+            Intermediary has a timeout period where they can respond with their
+            latest state if it has a higher turn number.
           </Typography>
         </Box>
       </DialogContent>
