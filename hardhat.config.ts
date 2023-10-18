@@ -6,13 +6,13 @@ import "@nomicfoundation/hardhat-chai-matchers";
 
 const config: HardhatUserConfig = {
   networks: {
-    // Used for the origin chain started by `yarn chain:origin`
-    origin: {
+    // Used for the origin chain started by `yarn chain:a`
+    a: {
       url: "http://127.0.0.1:8545",
       chainId: 31337,
     },
-    // Used for the destination chain started by `yarn chain:destination`
-    destination: {
+    // Used for the destination chain started by `yarn chain:b`
+    b: {
       url: "http://127.0.0.1:8546",
       chainId: 31338,
     },
