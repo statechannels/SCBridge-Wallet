@@ -20,13 +20,13 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import { blo } from "blo";
-import { formatEther } from "ethers";
 import { OwnerClient } from "../clients/OwnerClient";
 import { AddressIcon, AddressIconSmall } from "./AddressIcon";
 import "./Wallet.css";
 import { type Role } from "./WalletContainer";
 import logo from "./assets/logo.png";
 import L1PaymentModal from "./modals/L1Payment";
+import { ethers, formatEther } from "ethers";
 import { useBalances } from "./useBalances";
 
 let myAddress: string = "placholder";
@@ -80,7 +80,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
   const [payAmount, setPayAmount] = useState<string>("0.05");
   const [errorL1Pay, setErrorL1Pay] = useState<string | null>(null);
 
-  const handleL1Pay = async (payee: string, amount: number): Promise<void> => {
+  const handleL1Pay = async (payee: string, amount: bigint): Promise<void> => {
     try {
       const resultHash = await wallet.payL1(payee, amount);
       setUserOpHash(resultHash);
@@ -224,7 +224,10 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
                 size="medium"
                 disabled={recipient === ""}
                 onClick={() => {
-                  void handleL1Pay(myPeerSCWAddress, Number(payAmount));
+                  void handleL1Pay(
+                    myPeerSCWAddress,
+                    ethers.parseEther(payAmount),
+                  );
                 }}
               >
                 <AccessTimeIcon style={{ marginRight: "5px" }} /> L1 Pay
@@ -233,9 +236,11 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
                 size="medium"
                 disabled={recipient.toLowerCase() !== myPeer.toLowerCase()}
                 onClick={() => {
-                  wallet.pay(myPeer, Number(payAmount)).catch((e) => {
-                    console.error(e);
-                  });
+                  wallet
+                    .pay(myPeerSCWAddress, ethers.parseEther(payAmount))
+                    .catch((e) => {
+                      console.error(e);
+                    });
                 }}
               >
                 <BoltIcon /> L2 Pay
