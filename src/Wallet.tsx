@@ -110,7 +110,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
       wallet
         .getOwnerBalance()
         .then((b) => {
-          setOwnerBalance(b);
+          setOwnerBalance(Number(b));
         })
         .catch((e) => {
           console.error(e);

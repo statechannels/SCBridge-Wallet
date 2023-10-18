@@ -111,7 +111,7 @@ export const Intermediary: React.FunctionComponent<{
       props.client
         .getOwnerBalance()
         .then((b) => {
-          setOwnerBalance(b);
+          setOwnerBalance(Number(b));
         })
         .catch((e) => {
           console.error(e);
