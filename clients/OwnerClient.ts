@@ -33,7 +33,7 @@ export class OwnerClient extends StateChannelWallet {
     // These handlers are for messages from parties outside of our wallet / channel.
     this.globalBroadcastChannel.onmessage = async (ev: scwMessageEvent) => {
       const req = ev.data;
-      console.log("received message: " + JSON.stringify(req));
+      console.log("received message: ", req);
 
       if (req.type === MessageType.RequestInvoice) {
         const hash = await this.createNewHash();
@@ -160,7 +160,7 @@ export class OwnerClient extends StateChannelWallet {
     if (invoice.type !== MessageType.Invoice) {
       throw new Error("Unexpected response");
     }
-    console.log("received invoice: " + JSON.stringify(invoice));
+    console.log("received invoice: ", invoice);
 
     // create a state update with the hashlock
     const signedUpdate = this.addHTLC(amount, invoice.hashLock);
