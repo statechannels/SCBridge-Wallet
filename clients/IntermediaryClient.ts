@@ -133,18 +133,7 @@ export class IntermediaryClient extends StateChannelWallet {
 
       switch (req.type) {
         case MessageType.ForwardPayment:
-          // todo: more robust checks. EG: signature of counterparty
-          if (req.amount > (await this.getOwnerBalance())) {
-            throw new Error("Insufficient balance");
-          }
-          mySig = this.signState(req.updatedState.state);
-          this.addSignedState({
-            state: req.updatedState.state,
-            ownerSignature: req.updatedState.ownerSignature,
-            intermediarySignature: mySig.intermediarySignature,
-          });
-          this.ack(mySig.intermediarySignature);
-          await this.coordinator.forwardHTLC(req);
+          await this.handleForwardPaymentRequest(req);
           break;
         case MessageType.UserOperation:
           void this.handleUserOp(req);
@@ -156,6 +145,23 @@ export class IntermediaryClient extends StateChannelWallet {
           throw new Error(`Message type ${req.type} not yet handled`);
       }
     };
+  }
+
+  private async handleForwardPaymentRequest(
+    req: ForwardPaymentRequest,
+  ): Promise<void> {
+    // todo: more robust checks. EG: signature of counterparty
+    if (req.amount > (await this.getOwnerBalance())) {
+      throw new Error("Insufficient balance");
+    }
+    const mySig = this.signState(req.updatedState.state);
+    this.addSignedState({
+      state: req.updatedState.state,
+      ownerSignature: req.updatedState.ownerSignature,
+      intermediarySignature: mySig.intermediarySignature,
+    });
+    this.ack(mySig.intermediarySignature);
+    await this.coordinator.forwardHTLC(req);
   }
 
   private async handleUnlockHTLC(req: UnlockHTLCRequest): Promise<void> {
