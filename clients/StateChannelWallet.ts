@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+
 import { ethers, getBytes } from "ethers";
 import {
   type UserOperationStruct,
@@ -265,7 +267,7 @@ export class StateChannelWallet {
     }
     const intermediaryBalance = BigInt(
       parseInt(
-        // @ts-expect-error import meta
+        // @ts-expect-error
         import.meta.env.VITE_INTERMEDIARY_BALANCE,
         10,
       ),
