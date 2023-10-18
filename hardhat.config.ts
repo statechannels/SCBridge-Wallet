@@ -5,6 +5,27 @@ import "@nomicfoundation/hardhat-ethers";
 import "@nomicfoundation/hardhat-chai-matchers";
 
 const config: HardhatUserConfig = {
+  networks: {
+    // Used for the origin chain started by `yarn chain:a`
+    a: {
+      url: "http://127.0.0.1:8545",
+      chainId: 31337,
+    },
+    // Used for the destination chain started by `yarn chain:b`
+    b: {
+      url: "http://127.0.0.1:8546",
+      chainId: 31338,
+    },
+    // Used for testing
+    hardhat: {
+      chainId:
+        // Unfortunately hardhat node doesn't support specifying a chainId or network; it just uses the default hardhat network.
+        // To work around this we use an environment variable to specify which chain we're on, and then set the chainId accordingly.
+        (process.env.IS_DESTINATION ?? "").toLowerCase() === "true"
+          ? 31338
+          : 31337,
+    },
+  },
   solidity: {
     version: "0.8.19",
     settings: {

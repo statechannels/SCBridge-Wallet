@@ -36,7 +36,8 @@ export const Coordinator: React.FunctionComponent = () => {
         // @ts-expect-error
         ownerAddress: import.meta.env.VITE_ALICE_ADDRESS,
         intermediaryAddress: myAddress,
-        chainRpcUrl: "http://localhost:8545",
+        // @ts-expect-error
+        chainRpcUrl: import.meta.env.VITE_ALICE_CHAIN_URL,
         entrypointAddress,
         scwAddress: aliceScwAddress,
       }),
@@ -48,7 +49,8 @@ export const Coordinator: React.FunctionComponent = () => {
         // @ts-expect-error
         ownerAddress: import.meta.env.VITE_BOB_ADDRESS,
         intermediaryAddress: myAddress,
-        chainRpcUrl: "http://localhost:8545",
+        // @ts-expect-error
+        chainRpcUrl: import.meta.env.VITE_BOB_CHAIN_URL,
         entrypointAddress,
         scwAddress: bobScwAddress,
       }),

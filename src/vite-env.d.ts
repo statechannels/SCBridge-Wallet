@@ -12,6 +12,8 @@ interface ImportMetaEnv {
   readonly VITE_ENTRYPOINT_ADDRESS: string;
   readonly VITE_ALICE_SCW_ADDRESS: string;
   readonly VITE_BOB_SCW_ADDRESS: string;
+  readonly VITE_ALICE_CHAIN_URL: string;
+  readonly VITE_BOB_CHAIN_URL: string;
 }
 
 interface ImportMeta {

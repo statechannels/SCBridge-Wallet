@@ -6,6 +6,12 @@ SCBridge-Wallet
 An L2 state channel bridge contract which is also an EIP-4337 compliant smart contract wallet.
 </h3>
 
+# How to Run
+
+- In a new terminal start the first chain by running `yarn chain:a`
+- In a new terminal start the second chain by running `yarn chain:b`
+- In a new terminal deploy the contracts and start the UI by running: `yarn deploy-and-start`
+
 ### Ingredients
 
 This repo contains Solidity source code for a novel type of state channel bridge smart contract. It offers the unique feature that deposited funds can not only be used to send offchain payments to other channel network participants with zero fees and instant finality, but also to send arbitrary transactions on the underlying L1 blockchain without having to withdraw them first in a separate transaction.
