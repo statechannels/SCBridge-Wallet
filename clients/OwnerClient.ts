@@ -1,4 +1,10 @@
-import { type Invoice, type scwMessageEvent, MessageType } from "./Messages";
+import {
+  type Invoice,
+  type scwMessageEvent,
+  MessageType,
+  type ForwardPaymentRequest,
+  type UnlockHTLCRequest,
+} from "./Messages";
 import { ethers, getBytes } from "ethers";
 import {
   Participant,
@@ -19,11 +25,15 @@ export class OwnerClient extends StateChannelWallet {
     console.log("listening on " + this.globalBroadcastChannel.name);
   }
 
+  private log(s: string): void {
+    console.log(`[OwnerClient] ${s}`);
+  }
+
   private attachMessageHandlers(): void {
     // These handlers are for messages from parties outside of our wallet / channel.
     this.globalBroadcastChannel.onmessage = async (ev: scwMessageEvent) => {
       const req = ev.data;
-      console.log("received message: " + JSON.stringify(req));
+      console.log("received message: ", req);
 
       if (req.type === MessageType.RequestInvoice) {
         const hash = await this.createNewHash();
@@ -41,42 +51,83 @@ export class OwnerClient extends StateChannelWallet {
     // These handlers are for messages from the channel/wallet peer (our intermediary).
     this.peerBroadcastChannel.onmessage = async (ev: scwMessageEvent) => {
       const req = ev.data;
-      if (req.type === MessageType.ForwardPayment) {
-        // claim the payment if it is for us
-        const preimage = this.hashStore.get(req.hashLock);
-
-        if (preimage === undefined) {
-          throw new Error("Hashlock not found");
-
-          // todo: or forward the payment if it is multihop (not in scope for now)
-        }
-        const updated = await this.unlockHTLC(preimage);
-
-        this.sendPeerMessage({
-          type: MessageType.UnlockHTLC,
-          preimage,
-          updatedState: updated,
-        });
-      } else if (req.type === MessageType.UnlockHTLC) {
-        // run the preimage through the state update function
-        const updated = await this.unlockHTLC(req.preimage);
-        const updatedHash = hashState(updated.state);
-
-        // check that the proposed update is correct
-        if (updatedHash !== hashState(req.updatedState.state)) {
-          throw new Error("Invalid state update");
-          // todo: peerMessage to sender with failure
-        }
-        const signer = ethers.recoverAddress(
-          ethers.hashMessage(getBytes(updatedHash)),
-          req.updatedState.intermediarySignature,
-        );
-        if (signer !== this.intermediaryAddress) {
-          throw new Error("Invalid signature");
-          // todo: peerMessage to sender with failure
-        }
+      switch (req.type) {
+        case MessageType.ForwardPayment:
+          await this.handleIncomingHTLC(req);
+          break;
+        case MessageType.UnlockHTLC:
+          await this.handleUnlockHTLCRequest(req);
+          break;
+        default:
+          throw new Error(`Message type ${req.type} not yet handled`);
       }
     };
+  }
+
+  private async handleUnlockHTLCRequest(req: UnlockHTLCRequest): Promise<void> {
+    this.log("received unlock HTLC request");
+    // run the preimage through the state update function
+    const updated = await this.unlockHTLC(req.preimage);
+    const updatedHash = hashState(updated.state);
+
+    // check that the proposed update is correct
+    if (updatedHash !== hashState(req.updatedState.state)) {
+      throw new Error("Invalid state update");
+      // todo: peerMessage to sender with failure
+    }
+    const signer = ethers.recoverAddress(
+      ethers.hashMessage(getBytes(updatedHash)),
+      req.updatedState.intermediarySignature,
+    );
+    if (signer !== this.intermediaryAddress) {
+      throw new Error("Invalid signature");
+      // todo: peerMessage to sender with failure
+    }
+    this.ack(updated.ownerSignature);
+    this.addSignedState({
+      state: req.updatedState.state,
+      ownerSignature: updated.ownerSignature,
+      intermediarySignature: req.updatedState.intermediarySignature,
+    });
+  }
+
+  private async handleIncomingHTLC(req: ForwardPaymentRequest): Promise<void> {
+    this.log("received forward payment request");
+    // todo: validate that the proposed state update is "good"
+    // add the HTLC to our state
+    const mySig = this.signState(req.updatedState.state);
+    this.addSignedState({
+      ...req.updatedState,
+      ownerSignature: mySig.ownerSignature,
+      intermediarySignature: req.updatedState.intermediarySignature,
+    });
+    this.ack(mySig.ownerSignature);
+
+    // claim the payment if it is for us
+    const preimage = this.hashStore.get(req.hashLock);
+
+    if (preimage === undefined) {
+      throw new Error("Hashlock not found");
+      // todo: or forward the payment if it is multihop (not in scope for now)
+    }
+
+    // we are the end claimant, so we should:
+    //  - unlock the payment
+    //  - send the updated state to the intermediary
+    //  - store the updated state with both signatures
+    this.log("attempting unlock w/ Irene");
+    const updatedAfterUnlock = await this.unlockHTLC(preimage);
+    const intermediaryAck = await this.sendPeerMessage({
+      type: MessageType.UnlockHTLC,
+      preimage,
+      updatedState: updatedAfterUnlock,
+    });
+    this.log("unlocked w/ Irene:" + intermediaryAck.signature);
+    this.addSignedState({
+      state: updatedAfterUnlock.state,
+      ownerSignature: updatedAfterUnlock.ownerSignature,
+      intermediarySignature: intermediaryAck.signature,
+    });
   }
 
   static async create(params: StateChannelWalletParams): Promise<OwnerClient> {
@@ -98,7 +149,7 @@ export class OwnerClient extends StateChannelWallet {
    * @param payee the SCBridgeWallet address we want to pay to
    * @param amount the amount we want to pay
    */
-  async pay(payee: string, amount: number): Promise<void> {
+  async pay(payee: string, amount: bigint): Promise<void> {
     // contact `payee` and request an invoice
     const invoice = await this.sendGlobalMessage(payee, {
       type: MessageType.RequestInvoice,
@@ -109,27 +160,35 @@ export class OwnerClient extends StateChannelWallet {
     if (invoice.type !== MessageType.Invoice) {
       throw new Error("Unexpected response");
     }
+    console.log("received invoice: ", invoice);
 
     // create a state update with the hashlock
     const signedUpdate = this.addHTLC(amount, invoice.hashLock);
 
     // send the state update to the intermediary
-    this.sendPeerMessage({
+    const intermediaryAck = await this.sendPeerMessage({
       type: MessageType.ForwardPayment,
       target: payee,
       amount,
       hashLock: invoice.hashLock,
-      timelock: 0, // todo
+      timelock: BigInt(0), // todo
       updatedState: signedUpdate,
+    });
+
+    // and store co-signed state locally
+    this.addSignedState({
+      state: signedUpdate.state,
+      ownerSignature: signedUpdate.ownerSignature,
+      intermediarySignature: intermediaryAck.signature,
     });
   }
 
   // Create L1 payment UserOperation and forward to intermediary
-  async payL1(payee: string, amount: number): Promise<string> {
+  async payL1(payee: string, amount: bigint): Promise<string> {
     // Only need to encode 'to' and 'amount' fields (i.e. no 'data') for basic eth transfer
     const callData = IAccount.encodeFunctionData("execute", [
       payee,
-      ethers.parseEther(amount.toString()),
+      amount,
       "0x", // specifying no data makes sure the call is interpreted as a basic eth transfer
     ]);
     const partialUserOp: Partial<UserOperationStruct> = {
@@ -149,13 +208,16 @@ export class OwnerClient extends StateChannelWallet {
       ...userOp,
       signature,
     };
-    this.sendPeerMessage({
+
+    void this.sendPeerMessage({
       type: MessageType.UserOperation,
       ...signedUserOp,
     });
 
     console.log(
-      `Initiated transfer of ${amount} ETH to ${payee} (userOpHash: ${hash})`,
+      `Initiated transfer of ${ethers.formatEther(
+        amount,
+      )} ETH to ${payee} (userOpHash: ${hash})`,
     );
 
     // Increment nonce for next transfer

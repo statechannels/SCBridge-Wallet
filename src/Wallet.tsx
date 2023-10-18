@@ -4,8 +4,6 @@ import React, { useState } from "react";
 import BoltIcon from "@mui/icons-material/Bolt";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import EjectIcon from "@mui/icons-material/Eject";
-import logo from "./assets/logo.png";
-import "./Wallet.css";
 import {
   Avatar,
   Button,
@@ -22,12 +20,14 @@ import {
   createTheme,
   useMediaQuery,
 } from "@mui/material";
-import { type Role } from "./WalletContainer";
-import L1PaymentModal from "./modals/L1Payment";
+import { blo } from "blo";
+import { formatEther, ethers } from "ethers";
 import { OwnerClient } from "../clients/OwnerClient";
 import { AddressIcon, AddressIconSmall } from "./AddressIcon";
-import { blo } from "blo";
-import { formatEther } from "ethers";
+import "./Wallet.css";
+import { type Role } from "./WalletContainer";
+import logo from "./assets/logo.png";
+import L1PaymentModal from "./modals/L1Payment";
 import { useBalances } from "./useBalances";
 import EjectModal from "./modals/Eject";
 
@@ -83,11 +83,12 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
   const [payAmount, setPayAmount] = useState<string>("0.05");
   const [errorL1Pay, setErrorL1Pay] = useState<string | null>(null);
 
-  const handleL1Pay = async (payee: string, amount: number): Promise<void> => {
+  const handleL1Pay = async (payee: string, amount: bigint): Promise<void> => {
     try {
       const resultHash = await wallet.payL1(payee, amount);
       setUserOpHash(resultHash);
       setErrorL1Pay(null); // Clear any previous error
+      setModalL1PayOpen(true);
     } catch (e: any) {
       console.error(e);
       setErrorL1Pay("Error initiating L1 payment");
@@ -226,7 +227,10 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
                 size="medium"
                 disabled={recipient === ""}
                 onClick={() => {
-                  void handleL1Pay(myPeerSCWAddress, Number(payAmount));
+                  void handleL1Pay(
+                    myPeerSCWAddress,
+                    ethers.parseEther(payAmount),
+                  );
                 }}
               >
                 <AccessTimeIcon style={{ marginRight: "5px" }} /> L1 Pay
@@ -235,9 +239,11 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
                 size="medium"
                 disabled={recipient.toLowerCase() !== myPeer.toLowerCase()}
                 onClick={() => {
-                  wallet.pay(myPeerSCWAddress, Number(payAmount)).catch((e) => {
-                    console.error(e);
-                  });
+                  wallet
+                    .pay(myPeerSCWAddress, ethers.parseEther(payAmount))
+                    .catch((e) => {
+                      console.error(e);
+                    });
                 }}
               >
                 <BoltIcon /> L2 Pay

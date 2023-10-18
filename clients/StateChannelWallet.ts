@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { ethers, getBytes } from "ethers";
 import {
   type UserOperationStruct,
   type HTLCStruct,
@@ -11,8 +11,13 @@ import {
   EntryPoint__factory,
   SCBridgeWallet__factory,
 } from "../typechain-types";
-import { type scwMessageEvent, type Message } from "./Messages";
-import { hashState } from "./State";
+import {
+  type scwMessageEvent,
+  type Message,
+  type SignatureMessage,
+  MessageType,
+} from "./Messages";
+import { hashState, logState } from "./State";
 
 const HTLC_TIMEOUT = 5 * 60; // 5 minutes
 
@@ -65,7 +70,7 @@ export class StateChannelWallet {
       this.ownerAddress + "-peer",
     );
     this.globalBroadcastChannel = new BroadcastChannel(
-      this.ownerAddress + "-global",
+      this.scBridgeWalletAddress + "-global",
     );
 
     const wallet = new ethers.Wallet(params.signingKey);
@@ -101,6 +106,14 @@ export class StateChannelWallet {
     return instance;
   }
 
+  public addSignedState(ss: SignedState): void {
+    // todo: recover signers and throw if invalid
+    console.log("adding signed state");
+    logState(ss.state);
+
+    this.signedStates.push(ss);
+  }
+
   protected static async hydrateWithChainData(
     instance: StateChannelWallet,
   ): Promise<void> {
@@ -108,8 +121,37 @@ export class StateChannelWallet {
     instance.ownerAddress = await instance.scwContract.owner();
   }
 
-  sendPeerMessage(message: Message): void {
+  /**
+   * used to return a co-signature on proposed updates.
+   *
+   * @param signature the signature to send to the peer
+   */
+  protected ack(signature: string): void {
+    const ackPipe = new BroadcastChannel(this.scBridgeWalletAddress + "-ack");
+    ackPipe.postMessage({
+      type: MessageType.Signature,
+      signature,
+    });
+  }
+
+  async sendPeerMessage(message: Message): Promise<SignatureMessage> {
+    const ackPipe = new BroadcastChannel(this.scBridgeWalletAddress + "-ack");
+
+    const resp = new Promise<SignatureMessage>((resolve, reject) => {
+      ackPipe.onmessage = (ev: scwMessageEvent) => {
+        if (ev.data.type === MessageType.Signature) {
+          resolve(ev.data);
+        } else {
+          reject(
+            new Error(`Unexpected message type: ${JSON.stringify(ev.data)}`),
+          );
+        }
+      };
+    });
+
     this.peerBroadcastChannel.postMessage(message);
+
+    return await resp;
   }
 
   /**
@@ -211,7 +253,7 @@ export class StateChannelWallet {
     for (let i = this.signedStates.length - 1; i >= 0; i--) {
       const signedState = this.signedStates[i];
       if (
-        signedState.intermediarySignature !== "" &&
+        signedState.intermediarySignature !== "" ||
         signedState.ownerSignature !== ""
       ) {
         // todo: deep copy?
@@ -231,7 +273,7 @@ export class StateChannelWallet {
 
   signState(s: StateStruct): SignedState {
     const stateHash = hashState(s);
-    const signature: string = this.signer.signMessageSync(stateHash);
+    const signature: string = this.signer.signMessageSync(getBytes(stateHash));
 
     const signedState: SignedState = {
       state: s,
@@ -244,7 +286,7 @@ export class StateChannelWallet {
   }
 
   // Craft an HTLC struct, put it inside a state, hash the state, sign and return it
-  addHTLC(amount: number, hash: string): SignedState {
+  addHTLC(amount: bigint, hash: string): SignedState {
     const currentTimestamp: number = Math.floor(Date.now() / 1000); // Unix timestamp in seconds
 
     if (this.myRole() === Participant.Intermediary) {
@@ -262,21 +304,21 @@ export class StateChannelWallet {
 
     const htlc: HTLCStruct = {
       to: this.theirRole(),
-      amount,
+      amount: BigInt(amount),
       hashLock: hash,
       timelock: currentTimestamp + HTLC_TIMEOUT * 2, // payment creator always uses TIMEOUT * 2
     };
 
     const updatedIntermediaryBalance =
       this.myRole() === Participant.Intermediary
-        ? Number(this.currentState().intermediaryBalance) - amount
+        ? BigInt(this.currentState().intermediaryBalance) - amount
         : this.currentState().intermediaryBalance;
 
     const updated: StateStruct = {
       owner: this.ownerAddress,
       intermediary: this.intermediaryAddress,
       turnNum: Number(this.currentState().turnNum) + 1,
-      intermediaryBalance: updatedIntermediaryBalance,
+      intermediaryBalance: BigInt(updatedIntermediaryBalance),
       htlcs: [...this.currentState().htlcs, htlc],
     };
 
@@ -295,6 +337,7 @@ export class StateChannelWallet {
 
     // with well-behaved clients, we should not see this
     if (unlockTarget === undefined) {
+      logState(this.currentState());
       throw new Error("No matching HTLC found");
     }
 
