@@ -42,7 +42,6 @@ export class StateChannelWallet {
   protected readonly entrypointAddress: string;
   ownerAddress: string;
   intermediaryAddress: string;
-  protected intermediaryBalance: bigint;
   protected readonly scBridgeWalletAddress: string;
   protected readonly scwContract: SCBridgeWallet;
   protected readonly entrypointContract: EntryPoint;
@@ -91,9 +90,6 @@ export class StateChannelWallet {
     ) {
       throw Error("secret key does not correspond to owner nor intermediary");
     }
-
-    // These values should be set in 'create' method
-    this.intermediaryBalance = BigInt(0);
   }
 
   static async create(
@@ -109,8 +105,6 @@ export class StateChannelWallet {
     instance: StateChannelWallet,
   ): Promise<void> {
     instance.intermediaryAddress = await instance.scwContract.intermediary();
-    instance.intermediaryBalance =
-      await instance.scwContract.intermediaryBalance();
     instance.ownerAddress = await instance.scwContract.owner();
   }
 
@@ -181,13 +175,13 @@ export class StateChannelWallet {
     );
   }
 
-  async getIntermediaryBalance(): Promise<number> {
+  get intermediaryBalance(): number {
     return Number(this.currentState().intermediaryBalance);
   }
 
   async getOwnerBalance(): Promise<number> {
     const walletBalance = await this.getBalance();
-    return walletBalance - (await this.getIntermediaryBalance());
+    return walletBalance - this.intermediaryBalance;
   }
 
   async getCurrentBlockNumber(): Promise<number> {
@@ -315,15 +309,16 @@ export class StateChannelWallet {
     // update balance of the party that sent the HTLC. If the HTLC is for
     // the owner, then the released funds implicitly return to them. If
     // the HTLC is for the intermediary, then the update must be recorded.
+    let newintermediaryBalance = this.intermediaryBalance;
     if (unlockTarget.to === Participant.Intermediary) {
-      this.intermediaryBalance += BigInt(unlockTarget.amount);
+      newintermediaryBalance += Number(BigInt(unlockTarget.amount));
     }
 
     const updated: StateStruct = {
       intermediary: this.intermediaryAddress,
       owner: this.ownerAddress,
       turnNum: Number(this.currentState().turnNum) + 1,
-      intermediaryBalance: this.intermediaryBalance,
+      intermediaryBalance: newintermediaryBalance,
       htlcs: this.currentState().htlcs.filter((h) => h !== unlockTarget),
     };
 

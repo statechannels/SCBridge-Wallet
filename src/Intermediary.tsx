@@ -116,14 +116,7 @@ export const Intermediary: React.FunctionComponent<{
         .catch((e) => {
           console.error(e);
         });
-      props.client
-        .getIntermediaryBalance()
-        .then((b) => {
-          setIntermediaryBalance(b);
-        })
-        .catch((e) => {
-          console.error(e);
-        });
+      setIntermediaryBalance(props.client.intermediaryBalance);
     }, UI_UPDATE_PERIOD);
     return () => {
       clearInterval(interval);

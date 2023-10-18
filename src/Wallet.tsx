@@ -115,14 +115,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
         .catch((e) => {
           console.error(e);
         });
-      wallet
-        .getIntermediaryBalance()
-        .then((b) => {
-          setIntermediaryBalance(b);
-        })
-        .catch((e) => {
-          console.error(e);
-        });
+      setIntermediaryBalance(wallet.intermediaryBalance);
     }, UI_UPDATE_PERIOD);
     return () => {
       clearInterval(interval);
