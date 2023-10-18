@@ -108,11 +108,6 @@ export class StateChannelWallet {
     this.signedStates.push(ss);
   }
 
-  async hydrateWithChainData(): Promise<void> {
-    this.intermediaryAddress = await this.scwContract.intermediary();
-    this.ownerAddress = await this.scwContract.owner();
-  }
-
   /**
    * used to return a co-signature on proposed updates.
    *
