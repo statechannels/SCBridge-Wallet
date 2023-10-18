@@ -118,20 +118,29 @@ describe("SCBridgeWallet", function () {
       await entrypoint.getAddress(),
       Number(n.chainId),
     );
-    const { signature: intermediarySig } = signUserOp(
+    const { signature: intermediarySig, hash } = signUserOp(
       userOp,
       intermediary,
       await entrypoint.getAddress(),
       Number(n.chainId),
     );
+
     userOp.signature = ethers.concat([ownerSig, intermediarySig]);
+
+    // sanity check that the userOp is valid
+    const result = await nitroSCW
+      .getFunction("validateUserOp")
+      .staticCall(userOp, hash, 0);
+    expect(result).to.equal(0);
+
     // Submit the userOp to the entrypoint and wait for it to be mined.
     const res = await entrypoint.handleOps([userOp], owner.address);
     await res.wait();
+
+    // Check that the transfer executed..
     const balance = await hre.ethers.provider.getBalance(
       await payeeSCW.getAddress(),
     );
-    // Check that the transfer executed..
     expect(balance).to.equal(ethers.parseEther("0.5"));
   });
 
