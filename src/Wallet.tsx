@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import React, { useState } from "react";
 import BoltIcon from "@mui/icons-material/Bolt";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import {
   Avatar,
   Button,
@@ -20,7 +21,6 @@ import {
 } from "@mui/material";
 import { blo } from "blo";
 import { formatEther } from "ethers";
-import React, { useState } from "react";
 import { OwnerClient } from "../clients/OwnerClient";
 import { AddressIcon, AddressIconSmall } from "./AddressIcon";
 import "./Wallet.css";

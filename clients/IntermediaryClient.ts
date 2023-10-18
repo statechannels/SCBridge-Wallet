@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { ethers, getBytes } from "ethers";
 import {
   type scwMessageEvent,
   MessageType,
@@ -183,15 +183,13 @@ export class IntermediaryClient extends StateChannelWallet {
     }
 
     const signer = ethers.recoverAddress(
-      updatedHash,
+      ethers.hashMessage(getBytes(updatedHash)),
       req.updatedState.ownerSignature,
     );
     if (signer !== this.ownerAddress) {
-      // todo: fix signature recovery
-      //
-      // throw new Error(
-      //   `Invalid signature: recovered ${signer}, wanted ${this.ownerAddress}`,
-      // );
+      throw new Error(
+        `Invalid signature: recovered ${signer}, wanted ${this.ownerAddress}`,
+      );
       // todo: peerMessage to sender with failure
     }
 

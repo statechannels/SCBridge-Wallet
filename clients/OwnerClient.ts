@@ -5,7 +5,7 @@ import {
   type ForwardPaymentRequest,
   type UnlockHTLCRequest,
 } from "./Messages";
-import { ethers } from "ethers";
+import { ethers, getBytes } from "ethers";
 import {
   Participant,
   StateChannelWallet,
@@ -76,12 +76,11 @@ export class OwnerClient extends StateChannelWallet {
       // todo: peerMessage to sender with failure
     }
     const signer = ethers.recoverAddress(
-      updatedHash,
+      ethers.hashMessage(getBytes(updatedHash)),
       req.updatedState.intermediarySignature,
     );
     if (signer !== this.intermediaryAddress) {
-      // todo: fix signature recovery
-      // throw new Error("Invalid signature");
+      throw new Error("Invalid signature");
       // todo: peerMessage to sender with failure
     }
     this.ack(updated.ownerSignature);
