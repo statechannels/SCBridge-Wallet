@@ -5,6 +5,22 @@ import "@nomicfoundation/hardhat-ethers";
 import "@nomicfoundation/hardhat-chai-matchers";
 
 const config: HardhatUserConfig = {
+  networks: {
+    // Used for the origin chain started by `yarn chain:origin`
+    origin: {
+      url: "http://127.0.0.1:8545",
+      chainId: 31337,
+    },
+    // Used for the destination chain started by `yarn chain:destination`
+    destination: {
+      url: "http://127.0.0.1:8546",
+      chainId: 31338,
+    },
+    // Used for testing
+    hardhat: {
+      chainId: 31337,
+    },
+  },
   solidity: {
     version: "0.8.19",
     settings: {

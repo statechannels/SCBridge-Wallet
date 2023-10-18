@@ -13,8 +13,12 @@
     "lint:write": "eslint . --ext ts,tsx --fix",
     "prepack": "yarn build",
     "start": "yarn vite --open",
-    "deploy:local": "npx hardhat run --network localhost deploy/00_deploy_entrypoint_and_wallets.ts",
-    "chain:local": "yarn hardhat node"
+    "deploy:origin": "npx hardhat run --network origin deploy/00_deploy_entrypoint_and_wallets.ts",
+    "chain:origin": "yarn hardhat node",
+    "chain:destination": "yarn hardhat node --port 8546",
+    "deploy:destination": "npx hardhat run --network destination deploy/00_deploy_entrypoint_and_wallets.ts",
+    "chain:local": "yarn chain:origin",
+    "deploy:local": "yarn deploy:origin"
   },
   "packageManager": "yarn@1.22.19",
   "devDependencies": {
