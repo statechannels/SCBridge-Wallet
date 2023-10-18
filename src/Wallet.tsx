@@ -28,6 +28,7 @@ import { AddressIcon, AddressIconSmall } from "./AddressIcon";
 import { blo } from "blo";
 import { UI_UPDATE_PERIOD } from "./constants";
 import { formatEther } from "ethers";
+import { useBalances } from "./useBalances";
 
 let myAddress: string = "placholder";
 let mySigningKey: string;
@@ -72,8 +73,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
     // @ts-expect-error
     import.meta.env.VITE_IRENE_ADDRESS,
   );
-  const [intermediaryBalance, setIntermediaryBalance] = useState(0);
-  const [ownerBalance, setOwnerBalance] = useState(0);
+
   const [recipient, setRecipient] = useState(myPeer);
   const [hostNetwork, setHostNetwork] = useState("Scroll");
   const [isModalL1PayOpen, setModalL1PayOpen] = useState<boolean>(false);
@@ -105,22 +105,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
     }),
   );
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      wallet
-        .getOwnerBalance()
-        .then((b) => {
-          setOwnerBalance(Number(b));
-        })
-        .catch((e) => {
-          console.error(e);
-        });
-      setIntermediaryBalance(Number(wallet.intermediaryBalance));
-    }, UI_UPDATE_PERIOD);
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
+  const [ownerBalance, intermediaryBalance] = useBalances(wallet);
 
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
   const theme = React.useMemo(
