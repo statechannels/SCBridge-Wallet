@@ -3,6 +3,7 @@ import {
   type SCBridgeWallet,
   type EntryPoint,
   SCBridgeWallet__factory,
+  type SCBridgeAccountFactory,
 } from "../typechain-types";
 import { type BaseWallet } from "ethers";
 
@@ -75,6 +76,111 @@ describe("SCBridgeWallet", function () {
     };
   }
 
+  it("should support executing a simple L1 transfer through the entrypoint using a counterfactual deployment", async function () {
+    const owner = ethers.Wallet.createRandom();
+    const intermediary = ethers.Wallet.createRandom();
+    const hardhatFundedAccount = (await hre.ethers.getSigners())[0];
+
+    await hardhatFundedAccount.sendTransaction({
+      to: owner.address,
+      value: ethers.parseEther("1.0"),
+    });
+    await hardhatFundedAccount.sendTransaction({
+      to: intermediary.address,
+      value: ethers.parseEther("1.0"),
+    });
+    const entryPointDeployer = await ethers.getContractFactory("EntryPoint");
+    const entrypoint = await entryPointDeployer.deploy();
+    const entrypointAddress = await entrypoint.getAddress();
+
+    const salt = ethers.encodeBytes32String("Super secret salt");
+
+    const factoryDeployer = await hre.ethers.getContractFactory(
+      "SCBridgeAccountFactory",
+    );
+    const scwFactory =
+      (await factoryDeployer.deploy()) as unknown as SCBridgeAccountFactory;
+
+    // Call the factory function to compute the address of the SCW
+    // This can be done locally but it's easier to call into a view function
+    const precomputedSCWAddress = await scwFactory.computeAddress(
+      owner.address,
+      intermediary.address,
+      entrypointAddress,
+      salt,
+    );
+
+    await hardhatFundedAccount.sendTransaction({
+      to: precomputedSCWAddress,
+      value: ethers.parseEther("1.0"),
+    });
+
+    // The entrypoint contract requires a deposit from the submitter if not using a paymaster
+    await entrypoint.depositTo(precomputedSCWAddress, {
+      value: ethers.parseEther("1.0"),
+    });
+
+    const n = await ethers.provider.getNetwork();
+
+    const payee = ethers.Wallet.createRandom();
+
+    // Generate a random payee address that we can use for the transfer.
+
+    // Encode calldata that calls the execute function to perform a simple transfer of ether to the payee.
+    const callData =
+      SCBridgeWallet__factory.createInterface().encodeFunctionData("execute", [
+        payee.address,
+        ethers.parseEther("0.5"),
+        "0x",
+      ]);
+
+    const initCode = ethers.concat([
+      await scwFactory.getAddress(),
+      scwFactory.interface.encodeFunctionData("createAccount", [
+        owner.address,
+        intermediary.address,
+        entrypointAddress,
+        salt,
+      ]),
+    ]);
+
+    const userOp: UserOperationStruct = {
+      sender: precomputedSCWAddress,
+      nonce: 0,
+      initCode,
+      callData,
+      callGasLimit: 40_000,
+      verificationGasLimit: 3000000,
+      preVerificationGas: 21000,
+      maxFeePerGas: 40_000,
+      maxPriorityFeePerGas: 40_000,
+      paymasterAndData: hre.ethers.ZeroHash,
+      signature: hre.ethers.ZeroHash,
+    };
+
+    const { signature: ownerSig } = signUserOp(
+      userOp,
+      owner,
+      await entrypoint.getAddress(),
+      Number(n.chainId),
+    );
+    const { signature: intermediarySig } = signUserOp(
+      userOp,
+      intermediary,
+      await entrypoint.getAddress(),
+      Number(n.chainId),
+    );
+
+    userOp.signature = ethers.concat([ownerSig, intermediarySig]);
+
+    // Submit the userOp to the entrypoint and wait for it to be mined.
+    const res = await entrypoint.handleOps([userOp], owner.address);
+    await res.wait();
+
+    // Check that the transfer executed..
+    const balance = await hre.ethers.provider.getBalance(payee.address);
+    expect(balance).to.equal(ethers.parseEther("0.5"));
+  });
   it("should support executing a simple L1 transfer through the entrypoint", async function () {
     const { owner, intermediary, nitroSCW, entrypoint } =
       await deploySCBridgeWallet();
@@ -88,8 +194,6 @@ describe("SCBridgeWallet", function () {
       intermediary,
       entrypoint,
     );
-
-    // Generate a random payee address that we can use for the transfer.
 
     // Encode calldata that calls the execute function to perform a simple transfer of ether to the payee.
     const callData = nitroSCW.interface.encodeFunctionData("execute", [
