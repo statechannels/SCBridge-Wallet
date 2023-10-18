@@ -147,29 +147,10 @@ contract SCBridgeWallet is IAccount {
     }
   }
 
-  function validateUserOpOPEN(
-    UserOperation calldata userOp,
-    bytes32 userOpHash
-  ) internal view returns (uint256 validationData) {
-    // If the wallet is OPEN, require intermediary signature on every operation
-    bytes memory intermediarySig = userOp.signature[65:130];
-    return validateSignature(userOpHash, intermediarySig, intermediary);
-  }
-
   function permitted(bytes4 functionSelector) internal pure returns (bool) {
     return (functionSelector == this.challenge.selector ||
       functionSelector == this.reclaim.selector ||
       functionSelector == this.unlockHTLC.selector);
-  }
-
-  function validateUserOpCHALLENGE_RAISED(
-    UserOperation calldata userOp,
-    bytes32 // userOpHash
-  ) internal pure returns (uint256 validationData) {
-    // If the wallet is in CHALLENGE_RAISED, restrict operations by function selector
-    bytes4 functionSelector = bytes4(userOp.callData[0:4]);
-    require(permitted(functionSelector), "Invalid function selector");
-    return 0;
   }
 
   function validateUserOp(
@@ -179,26 +160,29 @@ contract SCBridgeWallet is IAccount {
   ) external view returns (uint256 validationData) {
     bytes memory ownerSig = userOp.signature[0:65];
     // The owner of the wallet must always approve of any user operation to execute on it's behalf
-    require(!isZero(ownerSig), "Must be signed by owner");
+    require(
+      validateSignature(userOpHash, ownerSig, owner) ==
+        SIG_VALIDATION_SUCCEEDED,
+      "owner must sign"
+    );
 
     // If the wallet is finalized then the owner can do whatever they want with the remaining funds
     if (getStatus() == WalletStatus.FINALIZED) {
-      return 0;
+      return SIG_VALIDATION_SUCCEEDED;
     }
 
-    // escape hatch for permitted functions (can be called any time)
+    // If the function is permitted, it can be called at any time
+    // (including when the wallet is in CHALLENGE_RAISED) with no futher checks.
     bytes4 functionSelector = bytes4(userOp.callData[0:4]);
-    if (permitted(functionSelector)) return 0;
+    if (permitted(functionSelector)) return SIG_VALIDATION_SUCCEEDED;
 
-    // Otherwise the wallet either:
-
-    // has a challenge raised and is only allowed to do certain things
-    if (getStatus() == WalletStatus.CHALLENGE_RAISED) {
-      return validateUserOpCHALLENGE_RAISED(userOp, userOpHash);
+    // If the wallet is open, we need to apply extra conditions:
+    if (getStatus() == WalletStatus.OPEN) {
+      bytes memory intermediarySig = userOp.signature[65:130];
+      return validateSignature(userOpHash, intermediarySig, intermediary);
     }
 
-    // or is open, in which case we need to apply extra conditions:
-    return validateUserOpOPEN(userOp, userOpHash);
+    return SIG_VALIDATION_FAILED;
   }
 
   constructor(address o, address payable i, address e) {
@@ -207,6 +191,7 @@ contract SCBridgeWallet is IAccount {
     entrypoint = e;
   }
 
+  uint256 internal constant SIG_VALIDATION_SUCCEEDED = 0;
   uint256 internal constant SIG_VALIDATION_FAILED = 1;
 
   function validateSignature(
