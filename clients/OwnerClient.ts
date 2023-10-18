@@ -134,6 +134,12 @@ export class OwnerClient extends StateChannelWallet {
     const partialUserOp: Partial<UserOperationStruct> = {
       sender: this.scBridgeWalletAddress,
       callData,
+      // TODO: Clean up these defaults
+      callGasLimit: 40_000,
+      verificationGasLimit: 150000,
+      preVerificationGas: 21000,
+      maxFeePerGas: 40_000,
+      maxPriorityFeePerGas: 40_000,
     };
     const userOp = fillUserOpDefaults(partialUserOp);
     const { signature, hash } = await this.signUserOperation(userOp);
