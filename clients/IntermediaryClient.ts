@@ -188,7 +188,12 @@ export class IntermediaryClient extends StateChannelWallet {
       throw new Error("Userop failed validation");
     }
 
-    await this.entrypointContract.handleOps([userOp], this.getAddress());
+    const result = await this.entrypointContract.handleOps(
+      [userOp],
+      this.getAddress(),
+    );
+    // Waiting for the transaction to be mined let's us catch the error
+    await result.wait();
   }
 
   static async create(
