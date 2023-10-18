@@ -304,7 +304,7 @@ export class StateChannelWallet {
 
     const htlc: HTLCStruct = {
       to: this.theirRole(),
-      amount,
+      amount: BigInt(amount),
       hashLock: hash,
       timelock: currentTimestamp + HTLC_TIMEOUT * 2, // payment creator always uses TIMEOUT * 2
     };
@@ -318,7 +318,7 @@ export class StateChannelWallet {
       owner: this.ownerAddress,
       intermediary: this.intermediaryAddress,
       turnNum: Number(this.currentState().turnNum) + 1,
-      intermediaryBalance: updatedIntermediaryBalance,
+      intermediaryBalance: BigInt(updatedIntermediaryBalance),
       htlcs: [...this.currentState().htlcs, htlc],
     };
 
