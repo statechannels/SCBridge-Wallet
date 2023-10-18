@@ -52,7 +52,12 @@ const deployFunc = async function (): Promise<void> {
 
   const initialFunding = parseInt(process.env.VITE_SCW_DEPOSIT ?? "", 10);
   await fund(
-    [await aliceWallet.getAddress(), await bobWallet.getAddress()],
+    [
+      await entrypoint.getAddress(),
+      await aliceWallet.getAddress(),
+      await bobWallet.getAddress(),
+      ireneAddress,
+    ],
     BigInt(initialFunding),
     hardhatFundedAccount,
   );
