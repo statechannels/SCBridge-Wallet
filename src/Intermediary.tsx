@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   IntermediaryClient,
   IntermediaryCoordinator,
@@ -14,8 +14,8 @@ import {
   Typography,
 } from "@mui/material";
 import { blo } from "blo";
-import { UI_UPDATE_PERIOD } from "./constants";
 import { formatEther } from "ethers";
+import { useBalances } from "./useBalances";
 
 export const Coordinator: React.FunctionComponent = () => {
   // @ts-expect-error
@@ -103,33 +103,7 @@ export const Coordinator: React.FunctionComponent = () => {
 export const Intermediary: React.FunctionComponent<{
   client: IntermediaryClient;
 }> = (props: { client: IntermediaryClient }) => {
-  const [ownerBalance, setOwnerBalance] = useState(0);
-  const [intermediaryBalance, setIntermediaryBalance] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      props.client
-        .getOwnerBalance()
-        .then((b) => {
-          setOwnerBalance(b);
-        })
-        .catch((e) => {
-          console.error(e);
-        });
-      props.client
-        .getIntermediaryBalance()
-        .then((b) => {
-          setIntermediaryBalance(b);
-        })
-        .catch((e) => {
-          console.error(e);
-        });
-    }, UI_UPDATE_PERIOD);
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
-
+  const [ownerBalance, intermediaryBalance] = useBalances(props.client);
   return (
     <>
       <Stack

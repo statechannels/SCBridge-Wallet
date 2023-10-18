@@ -42,7 +42,6 @@ export class StateChannelWallet {
   protected readonly entrypointAddress: string;
   ownerAddress: string;
   intermediaryAddress: string;
-  protected intermediaryBalance: bigint;
   protected readonly scBridgeWalletAddress: string;
   protected readonly scwContract: SCBridgeWallet;
   protected readonly entrypointContract: EntryPoint;
@@ -91,9 +90,6 @@ export class StateChannelWallet {
     ) {
       throw Error("secret key does not correspond to owner nor intermediary");
     }
-
-    // These values should be set in 'create' method
-    this.intermediaryBalance = BigInt(0);
   }
 
   static async create(
@@ -109,8 +105,6 @@ export class StateChannelWallet {
     instance: StateChannelWallet,
   ): Promise<void> {
     instance.intermediaryAddress = await instance.scwContract.intermediary();
-    instance.intermediaryBalance =
-      await instance.scwContract.intermediaryBalance();
     instance.ownerAddress = await instance.scwContract.owner();
   }
 
@@ -174,20 +168,17 @@ export class StateChannelWallet {
   /**
    * getBalance checks the blockchain for the current balance of the wallet.
    */
-  async getBalance(): Promise<number> {
-    // TODO: Casting a bigint to a number is dangerous
-    return Number(
-      await this.chainProvider.getBalance(this.scBridgeWalletAddress),
-    );
+  async getBalance(): Promise<bigint> {
+    return await this.chainProvider.getBalance(this.scBridgeWalletAddress);
   }
 
-  async getIntermediaryBalance(): Promise<number> {
-    return Number(this.intermediaryBalance);
+  get intermediaryBalance(): bigint {
+    return BigInt(this.currentState().intermediaryBalance);
   }
 
-  async getOwnerBalance(): Promise<number> {
+  async getOwnerBalance(): Promise<bigint> {
     const walletBalance = await this.getBalance();
-    return walletBalance - (await this.getIntermediaryBalance());
+    return walletBalance - this.intermediaryBalance;
   }
 
   async getCurrentBlockNumber(): Promise<number> {
@@ -257,11 +248,9 @@ export class StateChannelWallet {
     const currentTimestamp: number = Math.floor(Date.now() / 1000); // Unix timestamp in seconds
 
     if (this.myRole() === Participant.Intermediary) {
-      if (this.intermediaryBalance < BigInt(amount)) {
+      if (Number(this.currentState().intermediaryBalance) < BigInt(amount)) {
         throw new Error("Insufficient balance");
       }
-
-      this.intermediaryBalance -= BigInt(amount);
     }
 
     if (
@@ -278,11 +267,16 @@ export class StateChannelWallet {
       timelock: currentTimestamp + HTLC_TIMEOUT * 2, // payment creator always uses TIMEOUT * 2
     };
 
+    const updatedIntermediaryBalance =
+      this.myRole() === Participant.Intermediary
+        ? Number(this.currentState().intermediaryBalance) - amount
+        : this.currentState().intermediaryBalance;
+
     const updated: StateStruct = {
       owner: this.ownerAddress,
       intermediary: this.intermediaryAddress,
       turnNum: Number(this.currentState().turnNum) + 1,
-      intermediaryBalance: this.intermediaryBalance,
+      intermediaryBalance: updatedIntermediaryBalance,
       htlcs: [...this.currentState().htlcs, htlc],
     };
 
@@ -312,15 +306,16 @@ export class StateChannelWallet {
     // update balance of the party that sent the HTLC. If the HTLC is for
     // the owner, then the released funds implicitly return to them. If
     // the HTLC is for the intermediary, then the update must be recorded.
+    let newintermediaryBalance = this.intermediaryBalance;
     if (unlockTarget.to === Participant.Intermediary) {
-      this.intermediaryBalance += BigInt(unlockTarget.amount);
+      newintermediaryBalance += BigInt(unlockTarget.amount);
     }
 
     const updated: StateStruct = {
       intermediary: this.intermediaryAddress,
       owner: this.ownerAddress,
       turnNum: Number(this.currentState().turnNum) + 1,
-      intermediaryBalance: this.intermediaryBalance,
+      intermediaryBalance: newintermediaryBalance,
       htlcs: this.currentState().htlcs.filter((h) => h !== unlockTarget),
     };
 
