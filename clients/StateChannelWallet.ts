@@ -100,15 +100,6 @@ export class StateChannelWallet {
     });
   }
 
-  static async create(
-    params: StateChannelWalletParams,
-  ): Promise<StateChannelWallet> {
-    const instance = new StateChannelWallet(params);
-
-    await StateChannelWallet.hydrateWithChainData(instance);
-    return instance;
-  }
-
   public addSignedState(ss: SignedState): void {
     // todo: recover signers and throw if invalid
     console.log("adding signed state");
@@ -117,11 +108,9 @@ export class StateChannelWallet {
     this.signedStates.push(ss);
   }
 
-  protected static async hydrateWithChainData(
-    instance: StateChannelWallet,
-  ): Promise<void> {
-    instance.intermediaryAddress = await instance.scwContract.intermediary();
-    instance.ownerAddress = await instance.scwContract.owner();
+  async hydrateWithChainData(): Promise<void> {
+    this.intermediaryAddress = await this.scwContract.intermediary();
+    this.ownerAddress = await this.scwContract.owner();
   }
 
   /**
