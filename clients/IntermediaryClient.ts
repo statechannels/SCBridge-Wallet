@@ -7,7 +7,6 @@ import {
 } from "./Messages";
 import {
   Participant,
-  type SignedState,
   StateChannelWallet,
   type StateChannelWalletParams,
 } from "./StateChannelWallet";
