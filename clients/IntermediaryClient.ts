@@ -55,14 +55,17 @@ export class IntermediaryCoordinator {
     }
 
     const fee = 0; // for example
-    const updatedState = targetClient.addHTLC(htlc.amount - fee, htlc.hashLock);
+    const updatedState = targetClient.addHTLC(
+      htlc.amount - BigInt(fee),
+      htlc.hashLock,
+    );
 
     targetClient.sendPeerMessage({
       type: MessageType.ForwardPayment,
       target: htlc.target,
       amount: htlc.amount,
       hashLock: htlc.hashLock,
-      timelock: 0, // todo
+      timelock: BigInt(0), // todo
       updatedState,
     });
   }

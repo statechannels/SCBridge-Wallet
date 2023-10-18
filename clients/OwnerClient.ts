@@ -98,7 +98,7 @@ export class OwnerClient extends StateChannelWallet {
    * @param payee the SCBridgeWallet address we want to pay to
    * @param amount the amount we want to pay
    */
-  async pay(payee: string, amount: number): Promise<void> {
+  async pay(payee: string, amount: bigint): Promise<void> {
     // contact `payee` and request an invoice
     const invoice = await this.sendGlobalMessage(payee, {
       type: MessageType.RequestInvoice,
@@ -119,17 +119,17 @@ export class OwnerClient extends StateChannelWallet {
       target: payee,
       amount,
       hashLock: invoice.hashLock,
-      timelock: 0, // todo
+      timelock: BigInt(0), // todo
       updatedState: signedUpdate,
     });
   }
 
   // Create L1 payment UserOperation and forward to intermediary
-  async payL1(payee: string, amount: number): Promise<string> {
+  async payL1(payee: string, amount: bigint): Promise<string> {
     // Only need to encode 'to' and 'amount' fields (i.e. no 'data') for basic eth transfer
     const callData = IAccount.encodeFunctionData("execute", [
       payee,
-      ethers.parseEther(amount.toString()),
+      amount,
       "0x", // specifying no data makes sure the call is interpreted as a basic eth transfer
     ]);
     const partialUserOp: Partial<UserOperationStruct> = {
@@ -155,7 +155,9 @@ export class OwnerClient extends StateChannelWallet {
     });
 
     console.log(
-      `Initiated transfer of ${amount} ETH to ${payee} (userOpHash: ${hash})`,
+      `Initiated transfer of ${ethers.formatEther(
+        amount,
+      )} ETH to ${payee} (userOpHash: ${hash})`,
     );
 
     // Increment nonce for next transfer

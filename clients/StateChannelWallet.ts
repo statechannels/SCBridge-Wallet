@@ -244,7 +244,7 @@ export class StateChannelWallet {
   }
 
   // Craft an HTLC struct, put it inside a state, hash the state, sign and return it
-  addHTLC(amount: number, hash: string): SignedState {
+  addHTLC(amount: bigint, hash: string): SignedState {
     const currentTimestamp: number = Math.floor(Date.now() / 1000); // Unix timestamp in seconds
 
     if (this.myRole() === Participant.Intermediary) {
@@ -269,7 +269,7 @@ export class StateChannelWallet {
 
     const updatedIntermediaryBalance =
       this.myRole() === Participant.Intermediary
-        ? Number(this.currentState().intermediaryBalance) - amount
+        ? BigInt(this.currentState().intermediaryBalance) - amount
         : this.currentState().intermediaryBalance;
 
     const updated: StateStruct = {
