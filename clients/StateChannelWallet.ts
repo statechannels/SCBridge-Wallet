@@ -95,6 +95,9 @@ export class StateChannelWallet {
     ) {
       throw Error("secret key does not correspond to owner nor intermediary");
     }
+    void this.chainProvider.getNetwork().then((network) => {
+      console.log(`Connected to chain id ${network.chainId}`);
+    });
   }
 
   static async create(
