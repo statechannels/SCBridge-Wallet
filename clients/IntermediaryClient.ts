@@ -190,7 +190,7 @@ export class IntermediaryClient extends StateChannelWallet {
 
     const result = await this.entrypointContract.handleOps(
       [userOp],
-      this.getAddress(),
+      this.signer.address,
     );
     // Waiting for the transaction to be mined let's us catch the error
     await result.wait();
