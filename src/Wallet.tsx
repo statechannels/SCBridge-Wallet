@@ -158,13 +158,21 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
           direction="column"
           justifyContent="center"
           alignItems="center"
-          spacing={2}
+          spacing={1}
         >
           <AddressIcon address={myAddress as `0x${string}`} />
 
-          <Typography> Host Network: {hostNetwork}</Typography>
           <Typography>
-            Balance: {ownerBalance} / Inbound Capacity: {intermediaryBalance}
+            {" "}
+            <b> Host Network:</b> {hostNetwork}
+          </Typography>
+          <Typography>
+            {" "}
+            <b> Balance:</b> {ownerBalance}{" "}
+          </Typography>
+          <Typography>
+            {" "}
+            <b> Inbound Capacity:</b> {intermediaryBalance}{" "}
           </Typography>
         </Stack>
         <br />
