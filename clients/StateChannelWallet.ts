@@ -168,18 +168,15 @@ export class StateChannelWallet {
   /**
    * getBalance checks the blockchain for the current balance of the wallet.
    */
-  async getBalance(): Promise<number> {
-    // TODO: Casting a bigint to a number is dangerous
-    return Number(
-      await this.chainProvider.getBalance(this.scBridgeWalletAddress),
-    );
+  async getBalance(): Promise<bigint> {
+    return await this.chainProvider.getBalance(this.scBridgeWalletAddress);
   }
 
-  get intermediaryBalance(): number {
-    return Number(this.currentState().intermediaryBalance);
+  get intermediaryBalance(): bigint {
+    return BigInt(this.currentState().intermediaryBalance);
   }
 
-  async getOwnerBalance(): Promise<number> {
+  async getOwnerBalance(): Promise<bigint> {
     const walletBalance = await this.getBalance();
     return walletBalance - this.intermediaryBalance;
   }
@@ -311,7 +308,7 @@ export class StateChannelWallet {
     // the HTLC is for the intermediary, then the update must be recorded.
     let newintermediaryBalance = this.intermediaryBalance;
     if (unlockTarget.to === Participant.Intermediary) {
-      newintermediaryBalance += Number(BigInt(unlockTarget.amount));
+      newintermediaryBalance += BigInt(unlockTarget.amount);
     }
 
     const updated: StateStruct = {
