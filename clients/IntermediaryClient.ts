@@ -59,7 +59,10 @@ export class IntermediaryCoordinator {
     }
 
     const fee = 0; // for example
-    const updatedState = targetClient.addHTLC(htlc.amount - fee, htlc.hashLock);
+    const updatedState = targetClient.addHTLC(
+      htlc.amount - BigInt(fee),
+      htlc.hashLock,
+    );
 
     // this.log("adding HTLC to Irene-Bob");
     const ownerAck = await targetClient.sendPeerMessage({
@@ -67,7 +70,7 @@ export class IntermediaryCoordinator {
       target: htlc.target,
       amount: htlc.amount,
       hashLock: htlc.hashLock,
-      timelock: 0, // todo
+      timelock: BigInt(0), // todo
       updatedState,
     });
     // this.log("added HTLC to Irene-Bob: " + ownerAck.signature);
