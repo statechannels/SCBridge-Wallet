@@ -11,6 +11,7 @@ import { IAccount } from "./utils";
 import { hashState } from "./State";
 
 export class OwnerClient extends StateChannelWallet {
+  private nonce = 0;
   constructor(params: StateChannelWalletParams) {
     super(params);
 
@@ -134,6 +135,7 @@ export class OwnerClient extends StateChannelWallet {
     const partialUserOp: Partial<UserOperationStruct> = {
       sender: this.scBridgeWalletAddress,
       callData,
+      nonce: this.nonce,
       // TODO: Clean up these defaults
       callGasLimit: 40_000,
       verificationGasLimit: 150000,
@@ -155,6 +157,9 @@ export class OwnerClient extends StateChannelWallet {
     console.log(
       `Initiated transfer of ${amount} ETH to ${payee} (userOpHash: ${hash})`,
     );
+
+    // Increment nonce for next transfer
+    this.nonce++;
 
     return hash;
   }
