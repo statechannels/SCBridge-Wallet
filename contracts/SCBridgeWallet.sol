@@ -197,7 +197,7 @@ contract SCBridgeWallet is IAccount {
       return validateUserOpCHALLENGE_RAISED(userOp, userOpHash);
     }
 
-    // or is open, in which case we need to appy extra conditions:
+    // or is open, in which case we need to apply extra conditions:
     return validateUserOpOPEN(userOp, userOpHash);
   }
 
