@@ -4,6 +4,7 @@ import { EntryPoint__factory } from "../typechain-types";
 import { type HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
 const deployFunc = async function (): Promise<void> {
+  dotenv.config();
   const hardhatFundedAccount = (await ethers.getSigners())[0];
   const startingBalance = await ethers.provider.getBalance(
     hardhatFundedAccount.address,
@@ -21,7 +22,6 @@ const deployFunc = async function (): Promise<void> {
   const entrypoint = await entryPointDeployer.deploy();
   const walletDeployer = await ethers.getContractFactory("SCBridgeWallet");
   console.log("EntryPoint deployed to:", await entrypoint.getAddress());
-  dotenv.config();
 
   const aliceWallet = await walletDeployer.deploy(
     aliceAddress,
