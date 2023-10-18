@@ -2,7 +2,15 @@ import { ethers } from "hardhat";
 import dotenv from "dotenv";
 import { EntryPoint__factory } from "../typechain-types";
 const deployFunc = async function (): Promise<void> {
+  const hardhatFundedAccount = (await ethers.getSigners())[0];
+  const startingBalance = await ethers.provider.getBalance(
+    hardhatFundedAccount.address,
+  );
+  console.log(
+    `Deployer (${hardhatFundedAccount.address}) starting balance ${startingBalance}`,
+  );
   console.log("Starting deployment...");
+
   const entryPointDeployer = await ethers.getContractFactory("EntryPoint");
   const entrypoint = await entryPointDeployer.deploy();
   const walletDeployer = await ethers.getContractFactory("SCBridgeWallet");
@@ -26,8 +34,6 @@ const deployFunc = async function (): Promise<void> {
   );
 
   const initialFunding = parseInt(process.env.VITE_SCW_DEPOSIT ?? "", 10);
-
-  const hardhatFundedAccount = (await ethers.getSigners())[0];
 
   console.log("Funding Alice wallet with", initialFunding.toString());
   await hardhatFundedAccount.sendTransaction({
