@@ -111,30 +111,6 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
 
   const [ownerBalance, intermediaryBalance] = useBalances(wallet);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      wallet
-        .getOwnerBalance()
-        .then((b) => {
-          setOwnerBalance(b);
-        })
-        .catch((e) => {
-          console.error(e);
-        });
-      wallet
-        .getIntermediaryBalance()
-        .then((b) => {
-          setIntermediaryBalance(b);
-        })
-        .catch((e) => {
-          console.error(e);
-        });
-    }, 400);
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
-
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
   const theme = React.useMemo(
     () =>
