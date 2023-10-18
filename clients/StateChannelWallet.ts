@@ -263,13 +263,19 @@ export class StateChannelWallet {
         return signedState.state;
       }
     }
-
+    const intermediaryBalance = BigInt(
+      parseInt(
+        // @ts-expect-error import meta
+        import.meta.env.VITE_INTERMEDIARY_BALANCE,
+        10,
+      ),
+    );
     // throw new Error("No signed state found");
     return {
       turnNum: 0,
       owner: this.ownerAddress,
       intermediary: this.intermediaryAddress,
-      intermediaryBalance: BigInt(ethers.parseEther("5")),
+      intermediaryBalance,
       htlcs: [],
     };
   }

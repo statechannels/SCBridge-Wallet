@@ -25,7 +25,8 @@ const deployFunc = async function (): Promise<void> {
     )}) SCBridgeWallet deployed to: ${await aliceWallet.getAddress()}`,
   );
 
-  const initialFunding = ethers.parseEther("10.0");
+  const initialFunding = parseInt(process.env.VITE_SCW_DEPOSIT ?? "", 10);
+
   const hardhatFundedAccount = (await ethers.getSigners())[0];
 
   console.log("Funding Alice wallet with", initialFunding.toString());
