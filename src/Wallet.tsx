@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import BoltIcon from "@mui/icons-material/Bolt";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import logo from "./assets/logo.png";
@@ -26,7 +26,6 @@ import L1PaymentModal from "./modals/L1Payment";
 import { OwnerClient } from "../clients/OwnerClient";
 import { AddressIcon, AddressIconSmall } from "./AddressIcon";
 import { blo } from "blo";
-import { UI_UPDATE_PERIOD } from "./constants";
 import { formatEther } from "ethers";
 import { useBalances } from "./useBalances";
 
@@ -95,14 +94,15 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
   };
 
   const [wallet, _] = useState(
-    new OwnerClient({
-      signingKey: mySigningKey,
-      ownerAddress: myAddress,
-      intermediaryAddress: intermediary,
-      chainRpcUrl: "http://localhost:8545",
-      entrypointAddress,
-      scwAddress: myScwAddress,
-    }),
+    () =>
+      new OwnerClient({
+        signingKey: mySigningKey,
+        ownerAddress: myAddress,
+        intermediaryAddress: intermediary,
+        chainRpcUrl: "http://localhost:8545",
+        entrypointAddress,
+        scwAddress: myScwAddress,
+      }),
   );
 
   const [ownerBalance, intermediaryBalance] = useBalances(wallet);
