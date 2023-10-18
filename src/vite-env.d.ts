@@ -10,7 +10,7 @@ interface ImportMetaEnv {
   readonly VITE_IRENE_ADDRESS: string;
   readonly VITE_DEPLOY_SALT_STRING: string;
   readonly VITE_ENTRYPOINT_ADDRESS: string;
-  readonly VITE_SCW_ADDRESS: string;
+  readonly VITE_ALICE_SCW_ADDRESS: string;
   readonly VITE_BOB_SCW_ADDRESS: string;
 }
 

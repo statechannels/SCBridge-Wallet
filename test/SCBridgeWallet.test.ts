@@ -4,7 +4,7 @@ import {
   type EntryPoint,
   SCBridgeWallet__factory,
 } from "../typechain-types";
-import { ZeroHash, type BaseWallet } from "ethers";
+import { type BaseWallet } from "ethers";
 
 import { expect } from "chai";
 import { getUserOpHash, signUserOp } from "../clients/UserOp";
@@ -37,6 +37,7 @@ describe("SCBridgeWallet", function () {
     const deployer = await hre.ethers.getContractFactory("SCBridgeWallet");
 
     const owner = ethers.Wallet.createRandom();
+
     const intermediary = ethers.Wallet.createRandom();
     const hardhatFundedAccount = (await hre.ethers.getSigners())[0];
 
@@ -80,14 +81,21 @@ describe("SCBridgeWallet", function () {
 
     const n = await ethers.provider.getNetwork();
 
+    const deployer = await hre.ethers.getContractFactory("SCBridgeWallet");
+
+    const payeeSCW = await deployer.deploy(
+      ethers.Wallet.createRandom(),
+      intermediary,
+      entrypoint,
+    );
+
     // Generate a random payee address that we can use for the transfer.
-    const payee = hre.ethers.Wallet.createRandom().address;
 
     // Encode calldata that calls the execute function to perform a simple transfer of ether to the payee.
     const callData = nitroSCW.interface.encodeFunctionData("execute", [
-      payee,
+      await payeeSCW.getAddress(),
       ethers.parseEther("0.5"),
-      ZeroHash,
+      "0x",
     ]);
 
     const userOp: UserOperationStruct = {
@@ -110,20 +118,29 @@ describe("SCBridgeWallet", function () {
       await entrypoint.getAddress(),
       Number(n.chainId),
     );
-    const { signature: intermediarySig } = signUserOp(
+    const { signature: intermediarySig, hash } = signUserOp(
       userOp,
       intermediary,
       await entrypoint.getAddress(),
       Number(n.chainId),
     );
+
     userOp.signature = ethers.concat([ownerSig, intermediarySig]);
+
+    // sanity check that the userOp is valid
+    const result = await nitroSCW
+      .getFunction("validateUserOp")
+      .staticCall(userOp, hash, 0);
+    expect(result).to.equal(0);
 
     // Submit the userOp to the entrypoint and wait for it to be mined.
     const res = await entrypoint.handleOps([userOp], owner.address);
     await res.wait();
 
-    // Check that the transfer executed.
-    const balance = await hre.ethers.provider.getBalance(payee);
+    // Check that the transfer executed..
+    const balance = await hre.ethers.provider.getBalance(
+      await payeeSCW.getAddress(),
+    );
     expect(balance).to.equal(ethers.parseEther("0.5"));
   });
 
