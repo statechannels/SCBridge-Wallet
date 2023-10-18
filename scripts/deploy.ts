@@ -28,7 +28,7 @@ const deployFunc = async function (): Promise<void> {
     ireneAddress,
     await entrypoint.getAddress(),
   );
-
+  await aliceWallet.waitForDeployment();
   console.log(
     `Alice (${aliceAddress?.slice(
       0,
@@ -41,6 +41,7 @@ const deployFunc = async function (): Promise<void> {
     ireneAddress,
     await entrypoint.getAddress(),
   );
+  await bobWallet.waitForDeployment();
 
   console.log(
     `Bob (${bobAddress?.slice(
