@@ -163,10 +163,17 @@ describe("SCBridgeWallet", function () {
     );
 
     userOp.signature = ethers.concat([ownerSig, intermediarySig]);
+    // confirm the contract does not exist
+    const preCode = await hre.ethers.provider.getCode(precomputedSCWAddress);
+    expect(preCode).to.equal("0x");
 
     // Submit the userOp to the entrypoint and wait for it to be mined.
     const res = await entrypoint.handleOps([userOp], owner.address);
     await res.wait();
+
+    // confirm the contract now exists
+    const postCode = await hre.ethers.provider.getCode(precomputedSCWAddress);
+    expect(postCode).to.not.equal("0x");
 
     // Check that the transfer executed..
     const balance = await hre.ethers.provider.getBalance(payee.address);
