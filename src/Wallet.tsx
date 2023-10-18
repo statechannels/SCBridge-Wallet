@@ -26,7 +26,7 @@ import L1PaymentModal from "./modals/L1Payment";
 import { OwnerClient } from "../clients/OwnerClient";
 import { AddressIcon, AddressIconSmall } from "./AddressIcon";
 import { blo } from "blo";
-import { PAYMENT_AMOUNT, UI_UPDATE_PERIOD } from "./constants";
+import { UI_UPDATE_PERIOD } from "./constants";
 
 let myAddress: string = "placholder";
 let mySigningKey: string;
@@ -212,7 +212,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
                 size="medium"
                 disabled={recipient === ""}
                 onClick={() => {
-                  void handleL1Pay(myPeer, PAYMENT_AMOUNT);
+                  void handleL1Pay(myPeer, payAmount);
                 }}
               >
                 <AccessTimeIcon style={{ marginRight: "5px" }} /> L1 Pay
@@ -221,7 +221,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
                 size="medium"
                 disabled={recipient.toLowerCase() !== myPeer.toLowerCase()}
                 onClick={() => {
-                  wallet.pay(myPeer, PAYMENT_AMOUNT).catch((e) => {
+                  wallet.pay(myPeer, payAmount).catch((e) => {
                     console.error(e);
                   });
                 }}
