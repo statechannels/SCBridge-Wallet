@@ -27,6 +27,19 @@ async function getBlockTimestamp(): Promise<number> {
   return block.timestamp;
 }
 
+async function fundAddresses(
+  accounts: string[],
+  amount: bigint,
+): Promise<void> {
+  const hardhatFundedAccount = (await hre.ethers.getSigners())[0];
+
+  for (const account of accounts) {
+    await hardhatFundedAccount.sendTransaction({
+      to: account,
+      value: amount,
+    });
+  }
+}
 describe("SCBridgeWallet", function () {
   async function deploySCBridgeWallet(): Promise<{
     nitroSCW: SCBridgeWallet;
@@ -40,27 +53,16 @@ describe("SCBridgeWallet", function () {
     const owner = ethers.Wallet.createRandom();
 
     const intermediary = ethers.Wallet.createRandom();
-    const hardhatFundedAccount = (await hre.ethers.getSigners())[0];
-
-    await hardhatFundedAccount.sendTransaction({
-      to: owner.address,
-      value: ethers.parseEther("1.0"),
-    });
-    await hardhatFundedAccount.sendTransaction({
-      to: intermediary.address,
-      value: ethers.parseEther("1.0"),
-    });
 
     const entryPointDeployer = await ethers.getContractFactory("EntryPoint");
     const entrypoint = await entryPointDeployer.deploy();
     const entrypointAddress = await entrypoint.getAddress();
 
     const nitroSCW = await deployer.deploy(owner, intermediary, entrypoint);
-
-    await hardhatFundedAccount.sendTransaction({
-      to: await nitroSCW.getAddress(),
-      value: ethers.parseEther("1.0"),
-    });
+    await fundAddresses(
+      [owner.address, intermediary.address, await nitroSCW.getAddress()],
+      ethers.parseEther("1.0"),
+    );
 
     // The entrypoint contract requires a deposit from the submitter if not using a paymaster
     await entrypoint.depositTo(await nitroSCW.getAddress(), {
@@ -79,16 +81,7 @@ describe("SCBridgeWallet", function () {
   it("should support executing a simple L1 transfer through the entrypoint using a counterfactual deployment", async function () {
     const owner = ethers.Wallet.createRandom();
     const intermediary = ethers.Wallet.createRandom();
-    const hardhatFundedAccount = (await hre.ethers.getSigners())[0];
 
-    await hardhatFundedAccount.sendTransaction({
-      to: owner.address,
-      value: ethers.parseEther("1.0"),
-    });
-    await hardhatFundedAccount.sendTransaction({
-      to: intermediary.address,
-      value: ethers.parseEther("1.0"),
-    });
     const entryPointDeployer = await ethers.getContractFactory("EntryPoint");
     const entrypoint = await entryPointDeployer.deploy();
     const entrypointAddress = await entrypoint.getAddress();
@@ -110,16 +103,15 @@ describe("SCBridgeWallet", function () {
       salt,
     );
 
-    await hardhatFundedAccount.sendTransaction({
-      to: precomputedSCWAddress,
-      value: ethers.parseEther("1.0"),
-    });
+    await fundAddresses(
+      [owner.address, intermediary.address, precomputedSCWAddress],
+      ethers.parseEther("1.0"),
+    );
 
     // The entrypoint contract requires a deposit from the submitter if not using a paymaster
     await entrypoint.depositTo(precomputedSCWAddress, {
       value: ethers.parseEther("1.0"),
     });
-
     const n = await ethers.provider.getNetwork();
 
     const payee = ethers.Wallet.createRandom();
