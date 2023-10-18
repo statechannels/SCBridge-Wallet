@@ -127,7 +127,7 @@ export class IntermediaryClient extends StateChannelWallet {
   constructor(params: StateChannelWalletParams) {
     super(params);
     if (this.myRole() !== Participant.Intermediary) {
-      throw new Error("Signer is not owner");
+      throw new Error("Signer is not intermediary");
     }
     this.attachMessageHandlers();
   }
