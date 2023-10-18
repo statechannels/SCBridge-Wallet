@@ -36,6 +36,7 @@ let myPeer: string; // If I'm Alice, this is Bob. If I'm Bob, this is Alice.
 const entrypointAddress = import.meta.env.VITE_ENTRYPOINT_ADDRESS;
 let myScwAddress: string;
 let myPeerSCWAddress: string;
+let myChainUrl: string;
 const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
   role: Role;
 }) => {
@@ -51,6 +52,8 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
       myScwAddress = import.meta.env.VITE_ALICE_SCW_ADDRESS;
       // @ts-expect-error
       myPeerSCWAddress = import.meta.env.VITE_BOB_SCW_ADDRESS;
+      // @ts-expect-error
+      myChainUrl = import.meta.env.VITE_ALICE_CHAIN_URL;
 
       break;
     case "bob":
@@ -64,6 +67,8 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
       myScwAddress = import.meta.env.VITE_BOB_SCW_ADDRESS;
       // @ts-expect-error
       myPeerSCWAddress = import.meta.env.VITE_ALICE_SCW_ADDRESS;
+      // @ts-expect-error
+      myChainUrl = import.meta.env.VITE_BOB_CHAIN_URL;
 
       break;
   }
@@ -100,7 +105,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
         signingKey: mySigningKey,
         ownerAddress: myAddress,
         intermediaryAddress: intermediary,
-        chainRpcUrl: "http://localhost:8545",
+        chainRpcUrl: myChainUrl,
         entrypointAddress,
         scwAddress: myScwAddress,
       }),
