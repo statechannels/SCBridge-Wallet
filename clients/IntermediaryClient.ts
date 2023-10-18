@@ -116,6 +116,12 @@ export class IntermediaryClient extends StateChannelWallet {
     [],
   );
 
+  private log(s: string): void {
+    console.log(
+      `[IntermediaryClient-${this.ownerAddress.substring(0, 5)}] ${s}`,
+    );
+  }
+
   constructor(params: StateChannelWalletParams) {
     super(params);
     this.attachMessageHandlers();
@@ -129,7 +135,7 @@ export class IntermediaryClient extends StateChannelWallet {
     // peer channel
     this.peerBroadcastChannel.onmessage = async (ev: scwMessageEvent) => {
       const req = ev.data;
-      let mySig: SignedState;
+      this.log("received peer message: " + JSON.stringify(req));
 
       switch (req.type) {
         case MessageType.ForwardPayment:
