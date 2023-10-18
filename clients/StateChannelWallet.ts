@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-
 import { ethers, getBytes } from "ethers";
 import {
   type UserOperationStruct,
