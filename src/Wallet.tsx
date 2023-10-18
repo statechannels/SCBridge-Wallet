@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import BoltIcon from "@mui/icons-material/Bolt";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import EjectIcon from "@mui/icons-material/Eject";
 import logo from "./assets/logo.png";
 import "./Wallet.css";
 import {
@@ -28,6 +29,7 @@ import { AddressIcon, AddressIconSmall } from "./AddressIcon";
 import { blo } from "blo";
 import { formatEther } from "ethers";
 import { useBalances } from "./useBalances";
+import EjectModal from "./modals/Eject";
 
 let myAddress: string = "placholder";
 let mySigningKey: string;
@@ -76,6 +78,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
   const [recipient, setRecipient] = useState(myPeer);
   const [hostNetwork, setHostNetwork] = useState("Scroll");
   const [isModalL1PayOpen, setModalL1PayOpen] = useState<boolean>(false);
+  const [isModalEjectOpen, setModalEjectOpen] = useState<boolean>(false);
   const [userOpHash, setUserOpHash] = useState<string | null>(null);
   const [payAmount, setPayAmount] = useState<string>("0.05");
   const [errorL1Pay, setErrorL1Pay] = useState<string | null>(null);
@@ -266,7 +269,22 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
                 sx={{ width: 24, height: 24 }}
               />
             </Tooltip>
-            <Button>Eject</Button>
+            <ButtonGroup variant="outlined" aria-label="outlined button group">
+              <Button
+                size="medium"
+                onClick={() => {
+                  setModalEjectOpen(true);
+                }}
+              >
+                <EjectIcon style={{ marginRight: "5px" }} /> Eject
+              </Button>
+            </ButtonGroup>
+            <EjectModal
+              isOpen={isModalEjectOpen}
+              onClose={() => {
+                setModalEjectOpen(false);
+              }}
+            />
           </Stack>
         </Stack>
       </Card>
