@@ -27,8 +27,6 @@ export const Coordinator: React.FunctionComponent = () => {
   // @ts-expect-error
   const myKey = import.meta.env.VITE_IRENE_SK;
   // @ts-expect-error
-  const entrypointAddress = import.meta.env.VITE_ENTRYPOINT_ADDRESS;
-  // @ts-expect-error
   const aliceScwAddress = import.meta.env.VITE_ALICE_SCW_ADDRESS;
   // @ts-expect-error
   const bobScwAddress = import.meta.env.VITE_BOB_SCW_ADDRESS;
@@ -42,7 +40,8 @@ export const Coordinator: React.FunctionComponent = () => {
         intermediaryAddress: myAddress,
         // @ts-expect-error
         chainRpcUrl: import.meta.env.VITE_ALICE_CHAIN_URL,
-        entrypointAddress,
+        // @ts-expect-error
+        entrypointAddress: import.meta.env.VITE_ALICE_ENTRYPOINT_ADDRESS,
         scwAddress: aliceScwAddress,
         startingIntermediaryBalance,
       }),
@@ -56,7 +55,8 @@ export const Coordinator: React.FunctionComponent = () => {
         intermediaryAddress: myAddress,
         // @ts-expect-error
         chainRpcUrl: import.meta.env.VITE_BOB_CHAIN_URL,
-        entrypointAddress,
+        // @ts-expect-error
+        entrypointAddress: import.meta.env.VITE_BOB_ENTRYPOINT_ADDRESS,
         scwAddress: bobScwAddress,
         startingIntermediaryBalance,
       }),

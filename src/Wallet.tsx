@@ -35,8 +35,7 @@ import { chains, type ChainData } from "./chains";
 let myAddress: string = "placholder";
 let mySigningKey: string;
 let myPeer: string; // If I'm Alice, this is Bob. If I'm Bob, this is Alice.
-// @ts-expect-error
-const entrypointAddress = import.meta.env.VITE_ENTRYPOINT_ADDRESS;
+let entrypointAddress: string;
 let myScwAddress: string;
 let myPeerSCWAddress: string;
 let myChainUrl: string;
@@ -69,6 +68,8 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
         // @ts-expect-error
         (c) => c.url === import.meta.env.VITE_ALICE_CHAIN_URL,
       )!;
+      // @ts-expect-error
+      entrypointAddress = import.meta.env.VITE_ALICE_ENTRYPOINT_ADDRESS;
 
       break;
     case "bob":
@@ -89,7 +90,8 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
         // @ts-expect-error
         (c) => c.url === import.meta.env.VITE_BOB_CHAIN_URL,
       )!;
-
+      // @ts-expect-error
+      entrypointAddress = import.meta.env.VITE_BOB_ENTRYPOINT_ADDRESS;
       break;
   }
 
