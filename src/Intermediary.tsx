@@ -92,19 +92,20 @@ export const Coordinator: React.FunctionComponent = () => {
             import.meta.env.VITE_IRENE_ADDRESS as `0x${string}`
           }
         />
+        <br />
+        <Stack
+          direction="row"
+          justifyContent="left"
+          alignItems="left"
+          spacing={2}
+        >
+          <Network name="Hardhat A" clients={[withAlice]} />
+          <Divider orientation="vertical" flexItem />
+          <Network name="Hardhat B" clients={[withBob]} />
+        </Stack>
+        <CoordinatorTailLogger coordinator={coordinator} />
       </Stack>
-      <br />
-      <Stack
-        direction="row"
-        justifyContent="left"
-        alignItems="left"
-        spacing={2}
-      >
-        <Network name="Hardhat A" clients={[withAlice]} />
-        <Divider orientation="vertical" flexItem />
-        <Network name="Hardhat B" clients={[withBob]} />
-      </Stack>
-      <CoordinatorTailLogger coordinator={coordinator} />
+      {/* <Divider /> */}
     </Card>
   );
 };
