@@ -59,7 +59,7 @@ export class IntermediaryCoordinator {
     }
 
     const fee = 0; // for example
-    const updatedState = targetClient.addHTLC(
+    const updatedState = await targetClient.addHTLC(
       htlc.amount - BigInt(fee),
       htlc.hashLock,
     );

@@ -191,11 +191,11 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
           </Typography>
           <Typography>
             {" "}
-            <b> Balance:</b> {formatEther(BigInt(ownerBalance))}{" "}
+            <b> Balance:</b> {formatEther(ownerBalance)}{" "}
           </Typography>
           <Typography>
             {" "}
-            <b> Inbound Capacity:</b> {formatEther(BigInt(intermediaryBalance))}{" "}
+            <b> Inbound Capacity:</b> {formatEther(intermediaryBalance)}{" "}
           </Typography>
         </Stack>
         <br />

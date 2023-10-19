@@ -126,9 +126,7 @@ export const Intermediary: React.FunctionComponent<{
             sx={{ width: 24, height: 24 }}
           />
         </Tooltip>
-        <Typography>
-          Owner balance: {formatEther(BigInt(ownerBalance))}
-        </Typography>
+        <Typography>Owner balance: {formatEther(ownerBalance)}</Typography>
       </Stack>
       <Stack
         direction="row"
@@ -143,7 +141,7 @@ export const Intermediary: React.FunctionComponent<{
           />
         </Tooltip>
         <Typography>
-          IntermediaryBalance: {formatEther(BigInt(intermediaryBalance))}
+          IntermediaryBalance: {formatEther(intermediaryBalance)}
         </Typography>
       </Stack>
     </>
