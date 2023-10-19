@@ -261,10 +261,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
                 size="medium"
                 disabled={recipient === ""}
                 onClick={() => {
-                  void handleL1Pay(
-                    myPeerSCWAddress,
-                    ethers.parseEther(payAmount),
-                  );
+                  void handleL1Pay(recipient, ethers.parseEther(payAmount));
                 }}
               >
                 <AccessTimeIcon style={{ marginRight: "5px" }} /> L1 Pay
