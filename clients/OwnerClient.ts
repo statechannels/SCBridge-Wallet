@@ -145,7 +145,6 @@ export class OwnerClient extends StateChannelWallet {
     const invoice = await this.sendGlobalMessage(payee, {
       type: MessageType.RequestInvoice,
       amount,
-      from: this.ownerAddress,
     });
 
     if (invoice.type !== MessageType.Invoice) {

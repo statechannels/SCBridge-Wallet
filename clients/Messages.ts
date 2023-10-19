@@ -25,7 +25,6 @@ export interface Invoice {
 interface RequestInvoice {
   type: MessageType.RequestInvoice;
   amount: bigint;
-  from: string; // where to send the invoice
 }
 export interface ForwardPaymentRequest {
   type: MessageType.ForwardPayment;
