@@ -126,6 +126,9 @@ export class IntermediaryClient extends StateChannelWallet {
 
   constructor(params: StateChannelWalletParams) {
     super(params);
+    if (this.myRole() !== Participant.Intermediary) {
+      throw new Error("Signer is not intermediary");
+    }
     this.attachMessageHandlers();
   }
 
@@ -253,18 +256,5 @@ export class IntermediaryClient extends StateChannelWallet {
     // Waiting for the transaction to be mined let's us catch the error
     await result.wait();
     this.ack(userOp.signature);
-  }
-
-  static async create(
-    params: StateChannelWalletParams,
-  ): Promise<IntermediaryClient> {
-    const instance = new IntermediaryClient(params);
-
-    if (instance.myRole() !== Participant.Intermediary) {
-      throw new Error("Signer is not owner");
-    }
-
-    await IntermediaryClient.hydrateWithChainData(instance);
-    return instance;
   }
 }

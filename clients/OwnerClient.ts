@@ -20,7 +20,9 @@ export class OwnerClient extends StateChannelWallet {
   private nonce = 0;
   constructor(params: StateChannelWalletParams) {
     super(params);
-
+    if (this.myRole() !== Participant.Owner) {
+      throw new Error("Signer is not owner");
+    }
     this.attachMessageHandlers();
     console.log("listening on " + this.globalBroadcastChannel.name);
   }
@@ -128,17 +130,6 @@ export class OwnerClient extends StateChannelWallet {
       ownerSignature: updatedAfterUnlock.ownerSignature,
       intermediarySignature: intermediaryAck.signature,
     });
-  }
-
-  static async create(params: StateChannelWalletParams): Promise<OwnerClient> {
-    const instance = new OwnerClient(params);
-
-    if (instance.myRole() !== Participant.Owner) {
-      throw new Error("Signer is not owner");
-    }
-
-    await OwnerClient.hydrateWithChainData(instance);
-    return instance;
   }
 
   /**
