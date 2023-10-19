@@ -43,6 +43,6 @@ export const chains: ChainData[] = [
     name: "hardhat 2",
     symbol: "hh2ETH",
     explorer: "",
-    exchangeRate: 1,
+    exchangeRate: 2,
   },
 ];
