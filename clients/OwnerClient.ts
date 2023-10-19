@@ -17,7 +17,6 @@ import { IAccount } from "./utils";
 import { hashState } from "./State";
 
 export class OwnerClient extends StateChannelWallet {
-  private nonce = 0;
   constructor(params: StateChannelWalletParams) {
     super(params);
     if (this.myRole() !== Participant.Owner) {
@@ -182,10 +181,16 @@ export class OwnerClient extends StateChannelWallet {
       amount,
       "0x", // specifying no data makes sure the call is interpreted as a basic eth transfer
     ]);
+
+    // Fetch the latest nonce from the entrypointract
+    const nonce = await this.entrypointContract
+      .getFunction("getNonce")
+      .staticCall(this.scBridgeWalletAddress, 0);
+
     const partialUserOp: Partial<UserOperationStruct> = {
       sender: this.scBridgeWalletAddress,
       callData,
-      nonce: this.nonce,
+      nonce,
       // TODO: Clean up these defaults
       callGasLimit: 40_000,
       verificationGasLimit: 150000,
@@ -210,9 +215,6 @@ export class OwnerClient extends StateChannelWallet {
         amount,
       )} ETH to ${payee} (userOpHash: ${hash})`,
     );
-
-    // Increment nonce for next transfer
-    this.nonce++;
 
     return hash;
   }
