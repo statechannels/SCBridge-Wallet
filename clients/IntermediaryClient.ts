@@ -13,6 +13,7 @@ import {
 import { type UserOperationStruct } from "../typechain-types/contracts/SCBridgeWallet";
 import { IAccount } from "./utils";
 import { hashState } from "./State";
+import { convertInvoice } from "./Accounting";
 
 /**
  * The IntermediaryCoordinator orchestrates an intermediary's participation in the network. It contains
@@ -56,6 +57,12 @@ export class IntermediaryCoordinator {
     if (targetClient === undefined) {
       throw new Error("Target not found");
       // todo: return a failure message to the sender?
+    }
+
+    const targetNetwork = await targetClient.getHostNetwork();
+
+    if (targetNetwork !== htlc.invoice.chain) {
+      htlc.invoice = convertInvoice(htlc.invoice, targetNetwork);
     }
 
     const fee = 0; // for example
