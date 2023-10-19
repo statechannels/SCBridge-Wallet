@@ -41,6 +41,7 @@ let myScwAddress: string;
 let myPeerSCWAddress: string;
 let myChainUrl: string;
 let myChain: ChainData;
+let myPeerChain: ChainData;
 
 const startingIntermediaryBalance = BigInt(
   // @ts-expect-error
@@ -69,7 +70,11 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
         // @ts-expect-error
         (c) => c.url === import.meta.env.VITE_ALICE_CHAIN_URL,
       )!;
-
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      myPeerChain = chains.find(
+        // @ts-expect-error
+        (c) => c.url === import.meta.env.VITE_BOB_CHAIN_URL,
+      )!;
       break;
     case "bob":
       // @ts-expect-error
@@ -89,7 +94,11 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
         // @ts-expect-error
         (c) => c.url === import.meta.env.VITE_BOB_CHAIN_URL,
       )!;
-
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      myPeerChain = chains.find(
+        // @ts-expect-error
+        (c) => c.url === import.meta.env.VITE_ALICE_CHAIN_URL,
+      )!;
       break;
   }
 
@@ -267,7 +276,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
                   );
                 }}
               >
-                <AccessTimeIcon style={{ marginRight: "5px" }} /> L1 Pay
+                <AccessTimeIcon style={{ marginRight: "5px" }} /> Send
               </Button>
               <Button
                 size="medium"
@@ -280,7 +289,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
                     });
                 }}
               >
-                <BoltIcon /> L2 Pay
+                <BoltIcon /> Bridge to {myPeerChain.symbol}
               </Button>
             </ButtonGroup>
 
