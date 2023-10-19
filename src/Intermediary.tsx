@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 import { blo } from "blo";
 import { formatEther } from "ethers";
+import { useLogs } from "./useLogs";
 import { useBalances } from "./useBalances";
 
 const startingIntermediaryBalance = BigInt(
@@ -103,6 +104,7 @@ export const Coordinator: React.FunctionComponent = () => {
         <Divider orientation="vertical" flexItem />
         <Network name="Hardhat B" clients={[withBob]} />
       </Stack>
+      <CoordinatorTailLogger coordinator={coordinator} />
     </Card>
   );
 };
@@ -176,5 +178,28 @@ export const IntermediaryChannel: React.FunctionComponent<{
         </Stack>
       </Stack>
     </>
+  );
+};
+
+export const CoordinatorTailLogger: React.FunctionComponent<{
+  coordinator: IntermediaryCoordinator;
+}> = (props: { coordinator: IntermediaryCoordinator }) => {
+  // log a max of 6 lines
+  const [logs] = useLogs(props.coordinator);
+  // const pruned = logs.slice(-6);
+  return (
+    <Card
+      variant="outlined"
+      sx={{
+        bgcolor: "background.paper",
+        boxShadow: 1,
+        borderRadius: 2,
+        p: 2,
+        minWidth: 300,
+      }}
+    >
+      <h4>Network Activity</h4>
+      <pre>{logs.join("\n")}</pre>
+    </Card>
   );
 };
