@@ -16,6 +16,11 @@ const config: HardhatUserConfig = {
       url: "http://127.0.0.1:8546",
       chainId: 31338,
     },
+    scroll: {
+      url: "https://sepolia-rpc.scroll.io",
+      accounts:
+        process.env.DEPLOY_KEY !== undefined ? [process.env.DEPLOY_KEY] : [],
+    },
     // Used for testing
     hardhat: {
       chainId:

@@ -20,6 +20,8 @@ const deployFunc = async function (): Promise<void> {
 
   const entryPointDeployer = await ethers.getContractFactory("EntryPoint");
   const entrypoint = await entryPointDeployer.deploy();
+  await entrypoint.waitForDeployment();
+
   const walletDeployer = await ethers.getContractFactory("SCBridgeWallet");
   console.log("EntryPoint deployed to:", await entrypoint.getAddress());
 
