@@ -1,24 +1,23 @@
 ## Demo script:
 
 - ERC-4337 compatible Smart Contract wallet
-- Unique feature: gasless off-chain txs with instant finality enabled by HTLC technology, as used in Bitcoin Lightning
+- Unique feature: gasless off-chain txs with instant finality enabled by HTLC technology, as used in Bitcoin Lightning. Funds can be moved in and out of the off-chain payment system without any on-chain txs!
 - Setup required:
-  - wallet owners must designate an Intermediary in their SC wallet
-  - wallet owners and Intermediary must sign-off on some amount of wallet funds designated for off-chain txs
-  - run in-browser client to interact with SC wallet and peers
+  - on-chain: wallet owners must designate an Intermediary in their SC wallet
+  - off-chain: wallet owners and Intermediary must sign-off on some amount of wallet funds designated for off-chain txs
+  - run in-browser client(s) to interact with SC wallet and peers
   - `Explain browser tab setup with Alice(left), Irene(middle), Bob(right)`
 - How it works:
   - on-chain txs are 2/2 multi-sig (user + intermediary)
   - `Show on-chain tx from Alice to Metamask account`
   - user can remove intermediary at any point to claim full ownership of wallet/funds
   - `Point to 'Eject' button on UI`
-  - off-chain payments are multisig between payor, intermediary, and payee
+  - off-chain payments involve a pair of atomic payments: (1) payer-->intermediary, (2) intermediary-->payee
   - off-chain payments require users to be connected to the same intermediary (or have a path to each other through multiple intermediaries)
   - `Show off-chain payment Alice to Bob`
 - Cross-chain payments
   - works for off-chain payments only
   - Alice on Network1 can pay Bob on Network2 if the following conditions are met:
-    - Alice designates some of her Network1 funds to Intermediary
-    - Bob designates some of his Network2 funds Intermediary
+    - Alice has sufficient funds on Network1
+    - Bob has designated enough of his Network2 funds for Intermediary
     - Intermediary has an exchange rate to convert between Network1 funds and Network2 funds
-    - Intermediary can access both Network1 and Network2 to monitor Alice & Bob balances
