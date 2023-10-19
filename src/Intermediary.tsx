@@ -187,7 +187,6 @@ export const CoordinatorTailLogger: React.FunctionComponent<{
 }> = (props: { coordinator: IntermediaryCoordinator }) => {
   // log a max of 6 lines
   const [logs] = useLogs(props.coordinator);
-  // const pruned = logs.slice(-6);
   return (
     <Card
       variant="outlined"
