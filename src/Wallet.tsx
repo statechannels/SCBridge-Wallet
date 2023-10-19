@@ -291,7 +291,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
               errorMessage={errorL1Pay}
               userOpHash={userOpHash}
               amount={Number(payAmount)}
-              payee={myPeer}
+              payee={recipient}
             />
           </Stack>
           <Divider />
