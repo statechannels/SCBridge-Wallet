@@ -1,5 +1,6 @@
 import { type SignedState } from "./StateChannelWallet";
 import { type UserOperationStruct } from "../typechain-types/contracts/SCBridgeWallet";
+import { type ChainID } from "../src/chains";
 
 export enum MessageType {
   RequestInvoice = "requestInvoice",
@@ -20,10 +21,12 @@ export type Message =
 export interface Invoice {
   type: MessageType.Invoice;
   amount: bigint;
+  chain: ChainID;
   hashLock: string;
 }
 interface RequestInvoice {
   type: MessageType.RequestInvoice;
+  chain: ChainID;
   amount: bigint;
 }
 export interface ForwardPaymentRequest {
