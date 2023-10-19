@@ -17,6 +17,10 @@ import { blo } from "blo";
 import { formatEther } from "ethers";
 import { useBalances } from "./useBalances";
 
+const startingIntermediaryBalance = BigInt(
+  // @ts-expect-error
+  parseInt(import.meta.env.VITE_INTERMEDIARY_BALANCE, 10),
+);
 export const Coordinator: React.FunctionComponent = () => {
   // @ts-expect-error
   const myAddress = import.meta.env.VITE_IRENE_ADDRESS;
@@ -40,6 +44,7 @@ export const Coordinator: React.FunctionComponent = () => {
         chainRpcUrl: import.meta.env.VITE_ALICE_CHAIN_URL,
         entrypointAddress,
         scwAddress: aliceScwAddress,
+        startingIntermediaryBalance,
       }),
   );
   const [withBob] = useState(
@@ -53,6 +58,7 @@ export const Coordinator: React.FunctionComponent = () => {
         chainRpcUrl: import.meta.env.VITE_BOB_CHAIN_URL,
         entrypointAddress,
         scwAddress: bobScwAddress,
+        startingIntermediaryBalance,
       }),
   );
 
