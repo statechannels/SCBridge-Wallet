@@ -43,6 +43,7 @@ export class OwnerClient extends StateChannelWallet {
           type: MessageType.Invoice,
           hashLock: hash,
           amount: req.amount,
+          chain: req.chain,
         };
 
         // return the invoice to the payer on the same channel we received the request
@@ -144,6 +145,7 @@ export class OwnerClient extends StateChannelWallet {
     // contact `payee` and request an invoice
     const invoice = await this.sendGlobalMessage(payee, {
       type: MessageType.RequestInvoice,
+      chain: await this.getHostNetwork(),
       amount,
     });
 
