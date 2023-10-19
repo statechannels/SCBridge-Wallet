@@ -1,5 +1,6 @@
 import { type SignedState } from "./StateChannelWallet";
 import { type UserOperationStruct } from "../typechain-types/contracts/SCBridgeWallet";
+import { type ChainID } from "../src/chains";
 
 export enum MessageType {
   RequestInvoice = "requestInvoice",
@@ -20,12 +21,13 @@ export type Message =
 export interface Invoice {
   type: MessageType.Invoice;
   amount: bigint;
+  chain: ChainID;
   hashLock: string;
 }
 interface RequestInvoice {
   type: MessageType.RequestInvoice;
+  chain: ChainID;
   amount: bigint;
-  from: string; // where to send the invoice
 }
 export interface ForwardPaymentRequest {
   type: MessageType.ForwardPayment;
@@ -33,8 +35,7 @@ export interface ForwardPaymentRequest {
    * the scw address whose owner is the payee
    */
   target: string;
-  amount: bigint;
-  hashLock: string;
+  invoice: Invoice;
   timelock: bigint;
   updatedState: SignedState; // includes the "source" HTLC which makes the payment safe for the intermediary
 }

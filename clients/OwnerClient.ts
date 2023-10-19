@@ -43,6 +43,7 @@ export class OwnerClient extends StateChannelWallet {
           type: MessageType.Invoice,
           hashLock: hash,
           amount: req.amount,
+          chain: req.chain,
         };
 
         // return the invoice to the payer on the same channel we received the request
@@ -106,7 +107,7 @@ export class OwnerClient extends StateChannelWallet {
     this.ack(mySig.ownerSignature);
 
     // claim the payment if it is for us
-    const preimage = this.hashStore.get(req.hashLock);
+    const preimage = this.hashStore.get(req.invoice.hashLock);
 
     if (preimage === undefined) {
       throw new Error("Hashlock not found");
@@ -144,8 +145,8 @@ export class OwnerClient extends StateChannelWallet {
     // contact `payee` and request an invoice
     const invoice = await this.sendGlobalMessage(payee, {
       type: MessageType.RequestInvoice,
+      chain: await this.getHostNetwork(),
       amount,
-      from: this.ownerAddress,
     });
 
     if (invoice.type !== MessageType.Invoice) {
@@ -160,8 +161,7 @@ export class OwnerClient extends StateChannelWallet {
     const intermediaryAck = await this.sendPeerMessage({
       type: MessageType.ForwardPayment,
       target: payee,
-      amount,
-      hashLock: invoice.hashLock,
+      invoice,
       timelock: BigInt(0), // todo
       updatedState: signedUpdate,
     });

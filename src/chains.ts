@@ -1,5 +1,13 @@
 export interface ChainData {
+  /**
+   * the RPC endpoint that a provider should be pointed to. EG, http://localhost:8548 for
+   * a default hardhat node
+   */
   url: string;
+  /**
+   * the chainID.
+   */
+  chainID: ChainID;
   /**
    * The name of the chain. Populates eg, the "Host Network" UI field for channel wallets.
    */
@@ -18,9 +26,12 @@ export interface ChainData {
   exchangeRate: number;
 }
 
+export type ChainID = bigint;
+
 export const chains: ChainData[] = [
   {
     url: "http://localhost:8545",
+    chainID: 31337n,
     name: "hardhat 1",
     symbol: "hh1ETH",
     explorer: "",
@@ -28,9 +39,10 @@ export const chains: ChainData[] = [
   },
   {
     url: "http://localhost:8546",
+    chainID: 31338n,
     name: "hardhat 2",
     symbol: "hh2ETH",
     explorer: "",
-    exchangeRate: 1,
+    exchangeRate: 2,
   },
 ];

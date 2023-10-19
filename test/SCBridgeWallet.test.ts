@@ -15,6 +15,8 @@ import {
   type StateStruct,
 } from "../typechain-types/contracts/SCBridgeWallet";
 import { Participant } from "../clients/StateChannelWallet";
+import { type Invoice, MessageType } from "../clients/Messages";
+import { convertInvoice } from "../clients/Accounting";
 const ONE_DAY = 86400;
 const TIMELOCK_DELAY = 1000;
 async function getBlockTimestamp(): Promise<number> {
@@ -313,6 +315,22 @@ describe("SCBridgeWallet", function () {
         .staticCall(userOp, hash, 0);
       expect(result).to.equal(0);
     });
+  });
+});
+
+describe("invoice conversions", () => {
+  it("recovers original invoice when converting back and forth", () => {
+    const invoice: Invoice = {
+      amount: 50n,
+      chain: 31337n,
+      hashLock: "hello",
+      type: MessageType.Invoice,
+    };
+    const converted = convertInvoice(invoice, 31338n);
+    const recovered = convertInvoice(converted, 31337n);
+
+    expect(converted.amount).to.not.equal(invoice.amount);
+    expect(recovered.amount).to.equal(invoice.amount);
   });
 });
 

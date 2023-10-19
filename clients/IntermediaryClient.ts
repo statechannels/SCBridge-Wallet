@@ -13,6 +13,7 @@ import {
 import { type UserOperationStruct } from "../typechain-types/contracts/SCBridgeWallet";
 import { IAccount } from "./utils";
 import { hashState } from "./State";
+import { convertInvoice } from "./Accounting";
 
 /**
  * The IntermediaryCoordinator orchestrates an intermediary's participation in the network. It contains
@@ -58,18 +59,24 @@ export class IntermediaryCoordinator {
       // todo: return a failure message to the sender?
     }
 
+    const targetNetwork = await targetClient.getHostNetwork();
+
+    if (targetNetwork !== htlc.invoice.chain) {
+      htlc.invoice = convertInvoice(htlc.invoice, targetNetwork);
+    }
+
     const fee = 0; // for example
+
     const updatedState = await targetClient.addHTLC(
-      htlc.amount - BigInt(fee),
-      htlc.hashLock,
+      htlc.invoice.amount - BigInt(fee),
+      htlc.invoice.hashLock,
     );
 
     // this.log("adding HTLC to Irene-Bob");
     const ownerAck = await targetClient.sendPeerMessage({
       type: MessageType.ForwardPayment,
       target: htlc.target,
-      amount: htlc.amount,
-      hashLock: htlc.hashLock,
+      invoice: htlc.invoice,
       timelock: BigInt(0), // todo
       updatedState,
     });
@@ -162,7 +169,7 @@ export class IntermediaryClient extends StateChannelWallet {
     req: ForwardPaymentRequest,
   ): Promise<void> {
     // todo: more robust checks. EG: signature of counterparty
-    if (req.amount > (await this.getOwnerBalance())) {
+    if (req.invoice.amount > (await this.getOwnerBalance())) {
       throw new Error("Insufficient balance");
     }
     const mySig = this.signState(req.updatedState.state);

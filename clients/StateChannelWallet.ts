@@ -18,6 +18,8 @@ import {
   MessageType,
 } from "./Messages";
 import { hashState, logState } from "./State";
+import { type ChainID } from "../src/chains";
+
 const HTLC_TIMEOUT = 5 * 60; // 5 minutes
 
 export enum Participant {
@@ -43,6 +45,7 @@ export interface SignedState {
 
 export class StateChannelWallet {
   protected readonly chainProvider: ethers.Provider;
+  protected chainID: ChainID = 0n;
   protected readonly signer: ethers.Wallet;
   protected readonly entrypointAddress: string;
   ownerAddress: string;
@@ -195,6 +198,18 @@ export class StateChannelWallet {
    */
   getAddress(): string {
     return this.scBridgeWalletAddress;
+  }
+
+  /**
+   * @returns the chainID of the network.
+   */
+  async getHostNetwork(): Promise<ChainID> {
+    if (this.chainID !== 0n) {
+      return this.chainID;
+    }
+    // cache this to avoid a network trip each lookup
+    this.chainID = (await this.chainProvider.getNetwork()).chainId;
+    return this.chainID;
   }
 
   /**
