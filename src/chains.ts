@@ -30,6 +30,14 @@ export type ChainID = bigint;
 
 export const chains: ChainData[] = [
   {
+    name: "Polygon zkEVM Testnet",
+    symbol: "polyETH",
+    url: "https://rpc.public.zkevm-test.net",
+    chainID: 1442n,
+    exchangeRate: 1,
+    explorer: "",
+  },
+  {
     url: "http://localhost:8545",
     chainID: 31337n,
     name: "hardhat 1",

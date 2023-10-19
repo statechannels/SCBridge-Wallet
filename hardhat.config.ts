@@ -21,6 +21,11 @@ const config: HardhatUserConfig = {
       accounts:
         process.env.DEPLOY_KEY !== undefined ? [process.env.DEPLOY_KEY] : [],
     },
+    polygonzkevm: {
+      url: "https://rpc.public.zkevm-test.net",
+      accounts:
+        process.env.DEPLOY_KEY !== undefined ? [process.env.DEPLOY_KEY] : [],
+    },
     // Used for testing
     hardhat: {
       chainId:
