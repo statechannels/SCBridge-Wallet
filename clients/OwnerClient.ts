@@ -107,7 +107,7 @@ export class OwnerClient extends StateChannelWallet {
     this.ack(mySig.ownerSignature);
 
     // claim the payment if it is for us
-    const preimage = this.hashStore.get(req.hashLock);
+    const preimage = this.hashStore.get(req.invoice.hashLock);
 
     if (preimage === undefined) {
       throw new Error("Hashlock not found");

@@ -60,16 +60,15 @@ export class IntermediaryCoordinator {
 
     const fee = 0; // for example
     const updatedState = targetClient.addHTLC(
-      htlc.amount - BigInt(fee),
-      htlc.hashLock,
+      htlc.invoice.amount - BigInt(fee),
+      htlc.invoice.hashLock,
     );
 
     // this.log("adding HTLC to Irene-Bob");
     const ownerAck = await targetClient.sendPeerMessage({
       type: MessageType.ForwardPayment,
       target: htlc.target,
-      amount: htlc.amount,
-      hashLock: htlc.hashLock,
+      invoice: htlc.invoice,
       timelock: BigInt(0), // todo
       updatedState,
     });
@@ -162,7 +161,7 @@ export class IntermediaryClient extends StateChannelWallet {
     req: ForwardPaymentRequest,
   ): Promise<void> {
     // todo: more robust checks. EG: signature of counterparty
-    if (req.amount > (await this.getOwnerBalance())) {
+    if (req.invoice.amount > (await this.getOwnerBalance())) {
       throw new Error("Insufficient balance");
     }
     const mySig = this.signState(req.updatedState.state);

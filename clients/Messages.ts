@@ -35,8 +35,7 @@ export interface ForwardPaymentRequest {
    * the scw address whose owner is the payee
    */
   target: string;
-  amount: bigint;
-  hashLock: string;
+  invoice: Invoice;
   timelock: bigint;
   updatedState: SignedState; // includes the "source" HTLC which makes the payment safe for the intermediary
 }
