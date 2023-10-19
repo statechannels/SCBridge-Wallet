@@ -161,8 +161,7 @@ export class OwnerClient extends StateChannelWallet {
     const intermediaryAck = await this.sendPeerMessage({
       type: MessageType.ForwardPayment,
       target: payee,
-      amount,
-      hashLock: invoice.hashLock,
+      invoice,
       timelock: BigInt(0), // todo
       updatedState: signedUpdate,
     });
