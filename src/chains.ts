@@ -58,7 +58,7 @@ export const chains: ChainData[] = [
     symbol: "polyETH",
     url: "https://rpc.public.zkevm-test.net",
     chainID: 1442n,
-    explorer: "https://mumbai.polygonscan.com/",
+    explorer: "https://testnet-zkevm.polygonscan.com/",
     exchangeRate: 1,
   },
   {
