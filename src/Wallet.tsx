@@ -102,7 +102,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
   const defaultPaymentSize = // @ts-expect-error
     BigInt(parseInt(import.meta.env.VITE_SCW_DEPOSIT, 10) / 100);
 
-  const [recipient, setRecipient] = useState(myPeer);
+  const [recipient, setRecipient] = useState(myPeerSCWAddress);
   const [hostNetwork, setHostNetwork] = useState("Scroll");
   const [isModalL1PayOpen, setModalL1PayOpen] = useState<boolean>(false);
   const [isModalEjectOpen, setModalEjectOpen] = useState<boolean>(false);
@@ -183,7 +183,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
           alignItems="center"
           spacing={1}
         >
-          <AddressIcon address={myAddress as `0x${string}`} />
+          <AddressIcon address={myScwAddress as `0x${string}`} />
 
           <Typography>
             {" "}
@@ -221,7 +221,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
                     <InputAdornment
                       position="start"
                       onClick={() => {
-                        setRecipient(myPeer);
+                        setRecipient(myPeerSCWAddress);
                       }}
                     >
                       <AddressIconSmall address={recipient as `0x${string}`} />
@@ -268,7 +268,9 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
               </Button>
               <Button
                 size="medium"
-                disabled={recipient.toLowerCase() !== myPeer.toLowerCase()}
+                disabled={
+                  recipient.toLowerCase() !== myPeerSCWAddress.toLowerCase()
+                }
                 onClick={() => {
                   wallet
                     .pay(recipient, ethers.parseEther(payAmount))
