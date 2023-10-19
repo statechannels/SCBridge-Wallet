@@ -6,11 +6,29 @@ SCBridge-Wallet
 An L2 state channel bridge contract which is also an ERC-4337 compliant smart contract wallet.
 </h3>
 
-# How to Run
+# Quickstart
 
-- In a new terminal start the first chain by running `yarn chain:a`
-- In a new terminal start the second chain by running `yarn chain:b`
-- In a new terminal deploy the contracts and start the UI by running: `yarn deploy-and-start`
+Run each of these commands from the repo root directory:
+
+```
+yarn
+yarn chain:a
+yarn chain:b
+yarn deploy-and-start
+```
+
+These commands do the following:
+
+1. starts two different `hardhat` blockchain networks (chain a and chain b)
+2. deploys the necessary smart contracts:
+
+- `EntryPoint` on both chains
+- `SCBridge-Wallet` for Alice on chain a
+- `SCBridge-Wallet` for Bob on chain b
+
+3. serves the UI on `http://localhost:5173/`
+
+Open three browser tabs (all accessing `http://localhost:5173/`) and select a different user (Alice, Irene, Bob) for each tab to allow the cross-user messaging to work.
 
 ### Ingredients
 
@@ -21,24 +39,6 @@ This functionality is achieved by inviting a channel network peer to be a co-sig
 By having that Intermediary perform the same role in several users' smart contract wallets, the off-chain payments can be routed over arbitrary hops through a payment network (a la Bitcoin Lightning).
 
 This repo also contains Typescript source code for off-chain clients that can be run by a user and by a Intermediary, to enable to orchestrate the functionality described above.
-
-### Quickstart
-
-Run the following sequence of commands to spin up a local demo environment.
-
-```
-yarn
-yarn chain:local
-yarn deploy:local && yarn start
-```
-
-These commands do the following:
-
-1. starts a local `hardhat` blockchain network
-2. deploys the necessary smart contracts: `EntryPoint`, `SCBridge-Wallet` for Alice, `SCBridge-Wallet` for Bob
-3. serves the UI on `http://localhost:5173/`
-
-Open three browser tabs (all accessing `http://localhost:5173/`) and select a different user (Alice, Irene, Bob) for each tab to allow the cross-user messaging to work.
 
 ### Sequence Diagram
 
