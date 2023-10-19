@@ -94,55 +94,86 @@ export const Coordinator: React.FunctionComponent = () => {
       </Stack>
       <br />
       <Stack
-        direction="column"
+        direction="row"
         justifyContent="left"
         alignItems="left"
         spacing={2}
       >
-        <Divider />
-        <Intermediary client={withAlice} />
-        <Divider />
-        <Intermediary client={withBob} />
+        <Network name="Hardhat A" clients={[withAlice]} />
+        <Divider orientation="vertical" flexItem />
+        <Network name="Hardhat B" clients={[withBob]} />
       </Stack>
     </Card>
   );
 };
 
-export const Intermediary: React.FunctionComponent<{
+export const Network: React.FunctionComponent<{
+  name: string;
+  clients: IntermediaryClient[];
+}> = (props: { name: string; clients: IntermediaryClient[] }) => {
+  return (
+    <>
+      <Stack
+        direction="column"
+        justifyContent="left"
+        alignItems="left"
+        spacing={2}
+      >
+        <h4>{props.name}</h4>
+        {props.clients.map((client, i) => (
+          <>
+            {/* render dividers between channels if more than one exists */}
+            {i > 0 && <Divider />}
+            <IntermediaryChannel key={client.ownerAddress} client={client} />
+          </>
+        ))}
+      </Stack>
+    </>
+  );
+};
+
+export const IntermediaryChannel: React.FunctionComponent<{
   client: IntermediaryClient;
 }> = (props: { client: IntermediaryClient }) => {
   const [ownerBalance, intermediaryBalance] = useBalances(props.client);
   return (
     <>
       <Stack
-        direction="row"
+        direction="column"
         justifyContent="left"
-        alignItems="center"
+        alignItems="left"
         spacing={2}
       >
-        <Tooltip title={props.client.ownerAddress} placement="top">
-          <Avatar
-            src={blo(props.client.ownerAddress as `0x${string}`)}
-            sx={{ width: 24, height: 24 }}
-          />
-        </Tooltip>
-        <Typography>Owner balance: {formatEther(ownerBalance)}</Typography>
-      </Stack>
-      <Stack
-        direction="row"
-        justifyContent="left"
-        alignItems="center"
-        spacing={2}
-      >
-        <Tooltip title={props.client.intermediaryAddress} placement="top">
-          <Avatar
-            src={blo(props.client.intermediaryAddress as `0x${string}`)}
-            sx={{ width: 24, height: 24 }}
-          />
-        </Tooltip>
-        <Typography>
-          IntermediaryBalance: {formatEther(intermediaryBalance)}
-        </Typography>
+        <Stack
+          direction="row"
+          justifyContent="left"
+          alignItems="center"
+          spacing={2}
+        >
+          <Tooltip title={props.client.ownerAddress} placement="top">
+            <Avatar
+              src={blo(props.client.ownerAddress as `0x${string}`)}
+              sx={{ width: 24, height: 24 }}
+            />
+          </Tooltip>
+          <Typography>Owner balance: {formatEther(ownerBalance)}</Typography>
+        </Stack>
+        <Stack
+          direction="row"
+          justifyContent="left"
+          alignItems="center"
+          spacing={2}
+        >
+          <Tooltip title={props.client.intermediaryAddress} placement="top">
+            <Avatar
+              src={blo(props.client.intermediaryAddress as `0x${string}`)}
+              sx={{ width: 24, height: 24 }}
+            />
+          </Tooltip>
+          <Typography>
+            IntermediaryBalance: {formatEther(intermediaryBalance)}
+          </Typography>
+        </Stack>
       </Stack>
     </>
   );
