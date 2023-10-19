@@ -28,6 +28,56 @@ async function getBlockTimestamp(): Promise<number> {
   return block.timestamp;
 }
 
+describe("characters", function () {
+  it("have correct keys", () => {
+    const characters: Array<{ key: string; address: string; name: string }> = [
+      {
+        name: "Alice",
+        address: "0xAAA6628Ec44A8a742987EF3A114dDFE2D4F7aDCE",
+        key: "0x2d999770f7b5d49b694080f987b82bbc9fc9ac2b4dcc10b0f8aba7d700f69c6d",
+      },
+      {
+        name: "Bob",
+        address: "0xBBB676f9cFF8D242e9eaC39D063848807d3D1D94",
+        key: "0x0279651921cd800ac560c21ceea27aab0107b67daf436cdd25ce84cad30159b4",
+      },
+      {
+        name: "Charlie",
+        key: "0x827d8121978e93d2e9b01be98fd8bdb08eaa0145184442bb6ab0be17f6ab4248",
+        address: "0xccc182e9C61ABed84B4df353C8a066EB7a2FeE6f",
+      },
+      {
+        name: "Debbie",
+        address: "0xddd63cb783fF61D683e4BED42a03Aa6b5AF7De2B",
+        key: "0x07dbfb9cdfa0dcddcc82f86da46ca63db210eaddeab7410d5dda9a18bbf3eb5f",
+      },
+
+      {
+        name: "Eve",
+        address: "0xeeef433cD1EF1714d176202D0Aa7680F20aa7F89",
+        key: "0x22215c87ad66bed27b715e39c3fd105a6616eb139a4106773b1b67233b7796d4",
+      },
+
+      {
+        name: "Fred",
+        address: "0xfff1b9434a6B6402508911028545Aa9CE080ab12",
+        key: "0x1234f96c85acb25dff1f20e03ba287a008c99a02541ba5a9ae8b4392dd12d4ff",
+      },
+      {
+        name: "Irene",
+        address: "0x111A00868581f73AB42FEEF67D235Ca09ca1E8db",
+        key: "0xfebb3b74b0b52d0976f6571d555f4ac8b91c308dfa25c7b58d1e6a7c3f50c781",
+      },
+    ];
+
+    characters.forEach((c) => {
+      // const signingKey = new ethers.SigningKey(getBytes(c.key));
+      const foundAddress = new ethers.Wallet(c.key).address;
+      expect(foundAddress).to.equal(c.address);
+    });
+  });
+});
+
 describe("SCBridgeWallet", function () {
   async function deploySCBridgeWallet(): Promise<{
     nitroSCW: SCBridgeWallet;
