@@ -271,7 +271,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
                 disabled={recipient.toLowerCase() !== myPeer.toLowerCase()}
                 onClick={() => {
                   wallet
-                    .pay(myPeerSCWAddress, ethers.parseEther(payAmount))
+                    .pay(recipient, ethers.parseEther(payAmount))
                     .catch((e) => {
                       console.error(e);
                     });
