@@ -26,12 +26,12 @@ export interface ChainData {
   exchangeRate: number;
 }
 
-export type ChainID = number;
+export type ChainID = bigint;
 
 export const chains: ChainData[] = [
   {
     url: "http://localhost:8545",
-    chainID: 31337,
+    chainID: 31337n,
     name: "hardhat 1",
     symbol: "hh1ETH",
     explorer: "",
@@ -39,7 +39,7 @@ export const chains: ChainData[] = [
   },
   {
     url: "http://localhost:8546",
-    chainID: 31338,
+    chainID: 31338n,
     name: "hardhat 2",
     symbol: "hh2ETH",
     explorer: "",
