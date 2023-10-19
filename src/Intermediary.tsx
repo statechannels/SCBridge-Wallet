@@ -16,7 +16,7 @@ import {
 import { blo } from "blo";
 import { formatEther } from "ethers";
 import { useBalances } from "./useBalances";
-import { ChainData, chains } from "./chains";
+import { type ChainData, chains } from "./chains";
 
 const startingIntermediaryBalance = BigInt(
   // @ts-expect-error
