@@ -12,6 +12,9 @@ export function useLogs(coordinator: IntermediaryCoordinator): [string[]] {
       for (let i = 0; i < updated.length; i++) {
         newLogs.push(updated[i]);
       }
+      while (newLogs.length < 10) {
+        newLogs.push("");
+      }
       setLogs(newLogs);
     }, UI_UPDATE_PERIOD);
 
