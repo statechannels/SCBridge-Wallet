@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import Wallet from "./Wallet";
 import { Coordinator } from "./Intermediary";
 
-export type Role = "alice" | "bob" | "irene" | undefined;
+export type Role = "alice" | "bob" | "charlie" | "irene" | undefined;
 
 const WalletContainer: React.FunctionComponent = () => {
   const [role, setRole] = useState<Role>(undefined);
@@ -49,6 +49,13 @@ const ChooseRole: React.FunctionComponent<{
         }}
       >
         Bob
+      </Button>
+      <Button
+        onClick={() => {
+          props.setRole("charlie");
+        }}
+      >
+        Charlie
       </Button>
     </div>
   );

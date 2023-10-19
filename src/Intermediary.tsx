@@ -30,6 +30,8 @@ export const Coordinator: React.FunctionComponent = () => {
   const aliceScwAddress = import.meta.env.VITE_ALICE_SCW_ADDRESS;
   // @ts-expect-error
   const bobScwAddress = import.meta.env.VITE_BOB_SCW_ADDRESS;
+  // @ts-expect-error
+  const charlieScwAddress = import.meta.env.VITE_CHARLIE_SCW_ADDRESS;
 
   const [withAlice] = useState(
     () =>
@@ -61,10 +63,25 @@ export const Coordinator: React.FunctionComponent = () => {
         startingIntermediaryBalance,
       }),
   );
+  const [withCharlie] = useState(
+    () =>
+      new IntermediaryClient({
+        signingKey: myKey,
+        // @ts-expect-error
+        ownerAddress: import.meta.env.VITE_CHARLIE_ADDRESS,
+        intermediaryAddress: myAddress,
+        // @ts-expect-error
+        chainRpcUrl: import.meta.env.VITE_CHARLIE_CHAIN_URL,
+        // @ts-expect-error
+        entrypointAddress: import.meta.env.VITE_CHARLIE_ENTRYPOINT_ADDRESS,
+        scwAddress: charlieScwAddress,
+        startingIntermediaryBalance,
+      }),
+  );
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [coordinator] = useState(
-    () => new IntermediaryCoordinator([withAlice, withBob]),
+    () => new IntermediaryCoordinator([withAlice, withBob, withCharlie]),
   );
 
   return (

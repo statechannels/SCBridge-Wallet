@@ -93,6 +93,27 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
       // @ts-expect-error
       entrypointAddress = import.meta.env.VITE_BOB_ENTRYPOINT_ADDRESS;
       break;
+    case "charlie":
+      // @ts-expect-error
+      myAddress = import.meta.env.VITE_CHARLIE_ADDRESS;
+      // @ts-expect-error
+      myPeer = import.meta.env.VITE_ALICE_ADDRESS;
+      // @ts-expect-error
+      mySigningKey = import.meta.env.VITE_CHARLIE_SK;
+      // @ts-expect-error
+      myScwAddress = import.meta.env.VITE_CHARLIE_SCW_ADDRESS;
+      // @ts-expect-error
+      myPeerSCWAddress = import.meta.env.VITE_ALICE_SCW_ADDRESS;
+      // @ts-expect-error
+      myChainUrl = import.meta.env.VITE_CHARLIE_CHAIN_URL;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      myChain = chains.find(
+        // @ts-expect-error
+        (c) => c.url === import.meta.env.VITE_CHARLIE_CHAIN_URL,
+      )!;
+      // @ts-expect-error
+      entrypointAddress = import.meta.env.VITE_CHARLIE_ENTRYPOINT_ADDRESS;
+      break;
   }
 
   const [intermediary, setIntermediary] = useState(
