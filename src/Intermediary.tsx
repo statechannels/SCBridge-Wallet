@@ -17,6 +17,10 @@ import { blo } from "blo";
 import { formatEther } from "ethers";
 import { useBalances } from "./useBalances";
 
+const startingIntermediaryBalance = BigInt(
+  // @ts-expect-error
+  parseInt(import.meta.env.VITE_INTERMEDIARY_BALANCE, 10),
+);
 export const Coordinator: React.FunctionComponent = () => {
   // @ts-expect-error
   const myAddress = import.meta.env.VITE_IRENE_ADDRESS;
@@ -40,6 +44,7 @@ export const Coordinator: React.FunctionComponent = () => {
         chainRpcUrl: import.meta.env.VITE_ALICE_CHAIN_URL,
         entrypointAddress,
         scwAddress: aliceScwAddress,
+        startingIntermediaryBalance,
       }),
   );
   const [withBob] = useState(
@@ -53,6 +58,7 @@ export const Coordinator: React.FunctionComponent = () => {
         chainRpcUrl: import.meta.env.VITE_BOB_CHAIN_URL,
         entrypointAddress,
         scwAddress: bobScwAddress,
+        startingIntermediaryBalance,
       }),
   );
 
@@ -120,9 +126,7 @@ export const Intermediary: React.FunctionComponent<{
             sx={{ width: 24, height: 24 }}
           />
         </Tooltip>
-        <Typography>
-          Owner balance: {formatEther(BigInt(ownerBalance))}
-        </Typography>
+        <Typography>Owner balance: {formatEther(ownerBalance)}</Typography>
       </Stack>
       <Stack
         direction="row"
@@ -137,7 +141,7 @@ export const Intermediary: React.FunctionComponent<{
           />
         </Tooltip>
         <Typography>
-          IntermediaryBalance: {formatEther(BigInt(intermediaryBalance))}
+          IntermediaryBalance: {formatEther(intermediaryBalance)}
         </Typography>
       </Stack>
     </>

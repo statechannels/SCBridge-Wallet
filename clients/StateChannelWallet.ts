@@ -34,6 +34,7 @@ export interface StateChannelWalletParams {
   chainRpcUrl: string;
   entrypointAddress: string;
   scwAddress: string;
+  startingIntermediaryBalance: bigint;
 }
 
 export interface SignedState {
@@ -55,6 +56,8 @@ export class StateChannelWallet {
   protected readonly hashStore: Map<string, Uint8Array>; // maps hash-->preimage
   protected readonly peerBroadcastChannel: BroadcastChannel;
   protected readonly globalBroadcastChannel: BroadcastChannel;
+
+  protected readonly startingIntermediaryBalance: bigint;
   /**
    * Signed states are stored as long as they are deemed useful. All stored
    * signatures are valid.
@@ -66,6 +69,7 @@ export class StateChannelWallet {
     this.entrypointAddress = params.entrypointAddress;
     this.scBridgeWalletAddress = params.scwAddress;
     this.ownerAddress = params.ownerAddress;
+    this.startingIntermediaryBalance = params.startingIntermediaryBalance;
 
     this.chainProvider = new ethers.JsonRpcProvider(params.chainRpcUrl);
     this.peerBroadcastChannel = new BroadcastChannel(
@@ -267,7 +271,7 @@ export class StateChannelWallet {
       turnNum: 0,
       owner: this.ownerAddress,
       intermediary: this.intermediaryAddress,
-      intermediaryBalance: BigInt(ethers.parseEther("5")),
+      intermediaryBalance: this.startingIntermediaryBalance,
       htlcs: [],
     };
   }
@@ -287,18 +291,18 @@ export class StateChannelWallet {
   }
 
   // Craft an HTLC struct, put it inside a state, hash the state, sign and return it
-  addHTLC(amount: bigint, hash: string): SignedState {
+  async addHTLC(amount: bigint, hash: string): Promise<SignedState> {
     const currentTimestamp: number = Math.floor(Date.now() / 1000); // Unix timestamp in seconds
 
     if (this.myRole() === Participant.Intermediary) {
-      if (Number(this.currentState().intermediaryBalance) < BigInt(amount)) {
+      if (BigInt(this.currentState().intermediaryBalance) < BigInt(amount)) {
         throw new Error("Insufficient balance");
       }
     }
 
     if (
       this.myRole() === Participant.Owner &&
-      Number(this.getOwnerBalance()) < BigInt(amount)
+      (await this.getOwnerBalance()) < amount
     ) {
       throw new Error("Insufficient balance");
     }
@@ -318,7 +322,7 @@ export class StateChannelWallet {
     const updated: StateStruct = {
       owner: this.ownerAddress,
       intermediary: this.intermediaryAddress,
-      turnNum: Number(this.currentState().turnNum) + 1,
+      turnNum: BigInt(this.currentState().turnNum) + 1n,
       intermediaryBalance: BigInt(updatedIntermediaryBalance),
       htlcs: [...this.currentState().htlcs, htlc],
     };
@@ -358,7 +362,7 @@ export class StateChannelWallet {
     const updated: StateStruct = {
       intermediary: this.intermediaryAddress,
       owner: this.ownerAddress,
-      turnNum: Number(this.currentState().turnNum) + 1,
+      turnNum: BigInt(this.currentState().turnNum) + 1n,
       intermediaryBalance: newintermediaryBalance,
       htlcs: this.currentState().htlcs.filter((h) => h !== unlockTarget),
     };

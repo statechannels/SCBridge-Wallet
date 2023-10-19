@@ -42,6 +42,11 @@ let myPeerSCWAddress: string;
 let myChainUrl: string;
 let myChain: ChainData;
 
+const startingIntermediaryBalance = BigInt(
+  // @ts-expect-error
+  parseInt(import.meta.env.VITE_INTERMEDIARY_BALANCE, 10),
+);
+
 const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
   role: Role;
 }) => {
@@ -93,12 +98,18 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
     import.meta.env.VITE_IRENE_ADDRESS,
   );
 
-  const [recipient, setRecipient] = useState(myPeer);
+  // Default the payment size to 1% of the deposit
+  const defaultPaymentSize = // @ts-expect-error
+    BigInt(parseInt(import.meta.env.VITE_SCW_DEPOSIT, 10) / 100);
+
+  const [recipient, setRecipient] = useState(myPeerSCWAddress);
   const [hostNetwork, setHostNetwork] = useState("Scroll");
   const [isModalL1PayOpen, setModalL1PayOpen] = useState<boolean>(false);
   const [isModalEjectOpen, setModalEjectOpen] = useState<boolean>(false);
   const [userOpHash, setUserOpHash] = useState<string | null>(null);
-  const [payAmount, setPayAmount] = useState<string>("0.05");
+  const [payAmount, setPayAmount] = useState<string>(
+    ethers.formatEther(defaultPaymentSize),
+  );
   const [errorL1Pay, setErrorL1Pay] = useState<string | null>(null);
 
   const handleL1Pay = async (payee: string, amount: bigint): Promise<void> => {
@@ -124,6 +135,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
         chainRpcUrl: myChainUrl,
         entrypointAddress,
         scwAddress: myScwAddress,
+        startingIntermediaryBalance,
       }),
   );
 
@@ -171,7 +183,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
           alignItems="center"
           spacing={1}
         >
-          <AddressIcon address={myAddress as `0x${string}`} />
+          <AddressIcon address={myScwAddress as `0x${string}`} />
 
           <Typography>
             {" "}
@@ -179,11 +191,11 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
           </Typography>
           <Typography>
             {" "}
-            <b> Balance:</b> {formatEther(BigInt(ownerBalance))}{" "}
+            <b> Balance:</b> {formatEther(ownerBalance)}{" "}
           </Typography>
           <Typography>
             {" "}
-            <b> Inbound Capacity:</b> {formatEther(BigInt(intermediaryBalance))}{" "}
+            <b> Inbound Capacity:</b> {formatEther(intermediaryBalance)}{" "}
           </Typography>
         </Stack>
         <br />
@@ -209,7 +221,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
                     <InputAdornment
                       position="start"
                       onClick={() => {
-                        setRecipient(myPeer);
+                        setRecipient(myPeerSCWAddress);
                       }}
                     >
                       <AddressIconSmall address={recipient as `0x${string}`} />
@@ -249,20 +261,19 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
                 size="medium"
                 disabled={recipient === ""}
                 onClick={() => {
-                  void handleL1Pay(
-                    myPeerSCWAddress,
-                    ethers.parseEther(payAmount),
-                  );
+                  void handleL1Pay(recipient, ethers.parseEther(payAmount));
                 }}
               >
                 <AccessTimeIcon style={{ marginRight: "5px" }} /> L1 Pay
               </Button>
               <Button
                 size="medium"
-                disabled={recipient.toLowerCase() !== myPeer.toLowerCase()}
+                disabled={
+                  recipient.toLowerCase() !== myPeerSCWAddress.toLowerCase()
+                }
                 onClick={() => {
                   wallet
-                    .pay(myPeerSCWAddress, ethers.parseEther(payAmount))
+                    .pay(recipient, ethers.parseEther(payAmount))
                     .catch((e) => {
                       console.error(e);
                     });
@@ -280,7 +291,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
               errorMessage={errorL1Pay}
               userOpHash={userOpHash}
               amount={Number(payAmount)}
-              payee={myPeer}
+              payee={recipient}
             />
           </Stack>
           <Divider />
