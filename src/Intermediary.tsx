@@ -103,7 +103,9 @@ export const Coordinator: React.FunctionComponent = () => {
         <Intermediary client={withAlice} />
         <Divider />
         <Intermediary client={withBob} />
+        <Divider />
       </Stack>
+      <CoordinatorTailLogger logs={coordinator.logs} />
     </Card>
   );
 };
@@ -145,5 +147,38 @@ export const Intermediary: React.FunctionComponent<{
         </Typography>
       </Stack>
     </>
+  );
+};
+
+export const CoordinatorTailLogger: React.FunctionComponent<{
+  logs: string[];
+}> = (props: { logs: string[] }) => {
+  // log a max of 6 lines
+  const pruned = props.logs.slice(-6);
+  return (
+    <Card
+      variant="outlined"
+      sx={{
+        bgcolor: "background.paper",
+        boxShadow: 1,
+        borderRadius: 2,
+        p: 2,
+        minWidth: 300,
+      }}
+    >
+      <h4>Network Activity</h4>
+      {/* <Stack
+        direction="column"
+        justifyContent="left"
+        alignItems="left"
+        spacing={2}
+      >
+        {pruned.map((log, index) => (
+          <Typography key={index}>{log}</Typography>
+        ))}
+      </Stack> */}
+      {/* <pre style="{align: left}">{pruned.join("\n")}</pre> */}
+      <pre>{pruned.join("\n")}</pre>
+    </Card>
   );
 };

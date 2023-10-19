@@ -41,6 +41,22 @@ export class IntermediaryCoordinator {
     console.log(`[Coordinator] ${s}`);
   }
 
+  public uiLog(s: string): void {
+    // newLogs is a hack to trigger react rerender
+    const newLogs = [];
+    for (let i = 0; i < this.logs.length; i++) {
+      newLogs.push(this.logs[i]);
+    }
+    newLogs.push(s);
+    this.logs = newLogs;
+  }
+
+  public logs: string[] = [];
+
+  public getLogs(): string[] {
+    return this.logs;
+  }
+
   /**
    * forwardHTLC moves a payment across the network. It is called by a channelWallet who has
    * verified that the payment is safe to forward.
@@ -80,6 +96,7 @@ export class IntermediaryCoordinator {
       intermediarySignature: updatedState.intermediarySignature,
       ownerSignature: ownerAck.signature,
     });
+    this.uiLog("completed HTLC forwarding to " + targetClient.getAddress());
   }
 
   async unlockHTLC(req: UnlockHTLCRequest): Promise<void> {
@@ -172,6 +189,7 @@ export class IntermediaryClient extends StateChannelWallet {
       intermediarySignature: mySig.intermediarySignature,
     });
     this.ack(mySig.intermediarySignature);
+    this.coordinator.uiLog("forwarding HTLC from " + this.ownerAddress);
     await this.coordinator.forwardHTLC(req);
   }
 
