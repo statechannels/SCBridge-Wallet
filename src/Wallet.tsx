@@ -112,7 +112,6 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
     BigInt(parseInt(import.meta.env.VITE_SCW_DEPOSIT, 10) / 100);
 
   const [recipient, setRecipient] = useState(myPeer);
-  const [hostNetwork, setHostNetwork] = useState("Scroll");
   const [isModalL1PayOpen, setModalL1PayOpen] = useState<boolean>(false);
   const [isModalEjectOpen, setModalEjectOpen] = useState<boolean>(false);
   const [userOpHash, setUserOpHash] = useState<string | null>(null);
@@ -200,11 +199,13 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
           </Typography>
           <Typography>
             {" "}
-            <b> Balance:</b> {formatEther(ownerBalance)}{" "}
+            <b> Balance:</b>{" "}
+            {formatEther(BigInt(ownerBalance)) + " " + myChain.symbol}{" "}
           </Typography>
           <Typography>
             {" "}
-            <b> Inbound Capacity:</b> {formatEther(intermediaryBalance)}{" "}
+            <b> Inbound Capacity:</b>{" "}
+            {formatEther(BigInt(intermediaryBalance)) + " " + myChain.symbol}{" "}
           </Typography>
         </Stack>
         <br />

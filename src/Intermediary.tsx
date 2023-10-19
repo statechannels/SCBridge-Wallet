@@ -16,6 +16,7 @@ import {
 import { blo } from "blo";
 import { formatEther } from "ethers";
 import { useBalances } from "./useBalances";
+import { ChainData, chains } from "./chains";
 
 const startingIntermediaryBalance = BigInt(
   // @ts-expect-error
@@ -32,6 +33,16 @@ export const Coordinator: React.FunctionComponent = () => {
   const aliceScwAddress = import.meta.env.VITE_ALICE_SCW_ADDRESS;
   // @ts-expect-error
   const bobScwAddress = import.meta.env.VITE_BOB_SCW_ADDRESS;
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const aliceChain = chains.find(
+    // @ts-expect-error
+    (c) => c.url === import.meta.env.VITE_ALICE_CHAIN_URL,
+  )!;
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const bobChain = chains.find(
+    // @ts-expect-error
+    (c) => c.url === import.meta.env.VITE_BOB_CHAIN_URL,
+  )!;
 
   const [withAlice] = useState(
     () =>
@@ -100,9 +111,9 @@ export const Coordinator: React.FunctionComponent = () => {
         spacing={2}
       >
         <Divider />
-        <Intermediary client={withAlice} />
+        <Intermediary client={withAlice} chain={aliceChain} />
         <Divider />
-        <Intermediary client={withBob} />
+        <Intermediary client={withBob} chain={bobChain} />
       </Stack>
     </Card>
   );
@@ -110,10 +121,12 @@ export const Coordinator: React.FunctionComponent = () => {
 
 export const Intermediary: React.FunctionComponent<{
   client: IntermediaryClient;
-}> = (props: { client: IntermediaryClient }) => {
+  chain: ChainData;
+}> = (props: { client: IntermediaryClient; chain: ChainData }) => {
   const [ownerBalance, intermediaryBalance] = useBalances(props.client);
   return (
     <>
+      {props.chain.name}
       <Stack
         direction="row"
         justifyContent="left"
@@ -126,7 +139,10 @@ export const Intermediary: React.FunctionComponent<{
             sx={{ width: 24, height: 24 }}
           />
         </Tooltip>
-        <Typography>Owner balance: {formatEther(ownerBalance)}</Typography>
+        <Typography>
+          Owner balance:{" "}
+          {formatEther(BigInt(ownerBalance)) + " " + props.chain.symbol}
+        </Typography>
       </Stack>
       <Stack
         direction="row"
@@ -141,7 +157,8 @@ export const Intermediary: React.FunctionComponent<{
           />
         </Tooltip>
         <Typography>
-          IntermediaryBalance: {formatEther(intermediaryBalance)}
+          IntermediaryBalance:{" "}
+          {formatEther(BigInt(intermediaryBalance)) + " " + props.chain.symbol}
         </Typography>
       </Stack>
     </>
