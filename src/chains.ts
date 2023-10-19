@@ -45,4 +45,11 @@ export const chains: ChainData[] = [
     explorer: "",
     exchangeRate: 2,
   },
+  {
+    url: "https://sepolia-rpc.scroll.io",
+    name: "scroll",
+    symbol: "ETH",
+    explorer: "",
+    exchangeRate: 1,
+  },
 ];
