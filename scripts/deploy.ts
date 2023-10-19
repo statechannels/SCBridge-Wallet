@@ -13,60 +13,53 @@ const deployFunc = async function (): Promise<void> {
     `Deployer (${hardhatFundedAccount.address}) starting balance ${startingBalance}`,
   );
   console.log("Starting deployment...");
-
-  const aliceAddress = process.env.VITE_ALICE_ADDRESS ?? "";
-  const bobAddress = process.env.VITE_BOB_ADDRESS ?? "";
-  const ireneAddress = process.env.VITE_IRENE_ADDRESS ?? "";
-
   const entryPointDeployer = await ethers.getContractFactory("EntryPoint");
   const entrypoint = await entryPointDeployer.deploy();
   await entrypoint.waitForDeployment();
-
-  const walletDeployer = await ethers.getContractFactory("SCBridgeWallet");
   console.log("EntryPoint deployed to:", await entrypoint.getAddress());
 
-  const aliceWallet = await walletDeployer.deploy(
-    aliceAddress,
-    ireneAddress,
-    await entrypoint.getAddress(),
-  );
-  await aliceWallet.waitForDeployment();
-  console.log(
-    `Alice (${aliceAddress?.slice(
-      0,
-      12,
-    )}) SCBridgeWallet deployed to: ${await aliceWallet.getAddress()}`,
-  );
+  const ireneAddress = process.env.VITE_IRENE_ADDRESS ?? "";
 
-  const bobWallet = await walletDeployer.deploy(
-    bobAddress,
-    ireneAddress,
-    await entrypoint.getAddress(),
-  );
-  await bobWallet.waitForDeployment();
+  const aliceAddress = process.env.VITE_ALICE_ADDRESS ?? "";
+  const bobAddress = process.env.VITE_BOB_ADDRESS ?? "";
+  const charlieAddress = process.env.VITE_CHARLIE_ADDRESS ?? "";
+  // ...
 
-  console.log(
-    `Bob (${bobAddress?.slice(
-      0,
-      12,
-    )}) SCBridgeWallet deployed to: ${await bobWallet.getAddress()}`,
+  const users = [aliceAddress, bobAddress, charlieAddress];
+  const walletDeployer = await ethers.getContractFactory("SCBridgeWallet");
+  const userWallets = [];
+
+  for (let i = 0; i < users.length; i++) {
+    const u = users[i];
+    const wallet = await walletDeployer.deploy(
+      u,
+      ireneAddress,
+      await entrypoint.getAddress(),
+    );
+    await wallet.waitForDeployment();
+    userWallets.push(wallet);
+    console.log(
+      `User (${u?.slice(
+        0,
+        12,
+      )}) SCBridgeWallet deployed to: ${await wallet.getAddress()}`,
+    );
+  }
+
+  const userWalletAddresses = await Promise.all(
+    userWallets.map(async (w) => await w.getAddress()),
   );
 
   const initialFunding = BigInt(process.env.VITE_SCW_DEPOSIT ?? "");
   await fund(
-    [
-      await entrypoint.getAddress(),
-      await aliceWallet.getAddress(),
-      await bobWallet.getAddress(),
-      ireneAddress,
-    ],
+    [await entrypoint.getAddress(), ...userWalletAddresses, ireneAddress],
     BigInt(initialFunding),
     hardhatFundedAccount,
   );
 
   // Fund the Entrypoint to pay for gas for the SCWs
   await fundEntryPoint(
-    [await aliceWallet.getAddress(), await bobWallet.getAddress()],
+    userWalletAddresses,
     initialFunding,
     await entrypoint.getAddress(),
     hardhatFundedAccount,
