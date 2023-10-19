@@ -42,6 +42,16 @@ export class IntermediaryCoordinator {
     console.log(`[Coordinator] ${s}`);
   }
 
+  public uiLog(s: string): void {
+    this.logs.push(s);
+  }
+
+  private readonly logs: string[] = [];
+
+  public getLogsTail(): string[] {
+    return this.logs.slice(-10);
+  }
+
   /**
    * forwardHTLC moves a payment across the network. It is called by a channelWallet who has
    * verified that the payment is safe to forward.
@@ -87,6 +97,7 @@ export class IntermediaryCoordinator {
       intermediarySignature: updatedState.intermediarySignature,
       ownerSignature: ownerAck.signature,
     });
+    this.uiLog("Forwarded HTLC to " + targetClient.getAddress());
   }
 
   async unlockHTLC(req: UnlockHTLCRequest): Promise<void> {
@@ -117,6 +128,7 @@ export class IntermediaryCoordinator {
       intermediarySignature: updated.intermediarySignature,
       ownerSignature: ownerAck.signature,
     });
+    this.uiLog("Unlocked HTLC from " + targetClient.getAddress());
   }
 }
 
@@ -179,6 +191,7 @@ export class IntermediaryClient extends StateChannelWallet {
       intermediarySignature: mySig.intermediarySignature,
     });
     this.ack(mySig.intermediarySignature);
+    this.coordinator.uiLog("received HTLC in " + this.scBridgeWalletAddress);
     await this.coordinator.forwardHTLC(req);
   }
 
