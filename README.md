@@ -1,9 +1,9 @@
 <h1 align="center">
-<div><img src="./SCBridge-Wallet.png"><br>
+<div><img src="./docs/SCBridge-Wallet.png"><br>
 SCBridge-Wallet
 </h1>
 <h3 align="center">
-An L2 state channel bridge contract which is also an ERC-4337 compliant smart contract wallet.
+ERC-4337 compliant smart contract wallet that enables gasless, instant finality cross-chain payments
 </h3>
 
 # Quickstart
@@ -14,7 +14,7 @@ Run each of these commands from the repo root directory:
 yarn
 yarn chain:a
 yarn chain:b
-yarn deploy-and-start
+yarn deploy-and-start-local
 ```
 
 These commands do the following:
@@ -40,17 +40,13 @@ By having that Intermediary perform the same role in several users' smart contra
 
 This repo also contains Typescript source code for off-chain clients that can be run by a user and by a Intermediary, to enable to orchestrate the functionality described above.
 
-### Sequence Diagram
+### Sequence Diagrams
 
-Scenario: Alice wants to (a) pay Bob offchain and (b) execute a trade on Uniswap. Irene is an Intermediary actor.
+Scenario: Alice wants to (a) pay Bob offchain and (b) pay Charley, who does not have a state channel bridge. Irene is an Intermediary actor.
 
-In a typical state channel bridge architecture (green) she must deposit funds into the ID of a "ledger channel" in a Singleton adjudicator contract. Her counterparty in that ledger channel (Irene) must have deposited into another ledger channel with Bob. If Alice wants to execute her Uniswap trade with those deposited funds, she needs to close the ledger channel, withdraw the funds (in one L1 tx), and submit the trade (in another L1 tx).
+In a typical state channel bridge architecture she must deposit funds into the ID of a "ledger channel" in a Singleton adjudicator contract. Her counterparty in that ledger channel (Irene) must have deposited into another ledger channel with Bob. If Alice wants to send Charley money using those deposited funds, she needs to close the ledger channel, withdraw the funds (in one L1 tx), and submit the transfer to Charley (in another L1 tx).
 
-With the State Channel Bridge Wallet (SCBridge-Wallet) Architecture, she can instead propose the Uniswap trade to Irene, who checks that it doesn't compromise any HTLC payments, and then countersigns it and submits it to Alice's SCBridge-Wallet via en entrypoint contract. The SCBridge-Wallet validates the countersigned transaction and calls into Uniswap to execute the trade.
-
-In either case, executing a multihop payment from Alice to Bob (white) is as easy as executing the well known HTLC (Hash Timelocked Contract) protocol, which is the same technology that powers the Bitcoin Lightning Network.
-
-![Sequence Diagram](./SCBridge-Wallet-sequence.png)
+![Sequence Diagram](./docs/seq-typical-sc.png)
 
 <!-- diagram source, edit at sequencediagram.org
 fontawesome f182 Alice
@@ -58,10 +54,7 @@ fontawesome f233 Irene
 fontawesome f183 Bob
 
 fontawesome f0e3 Adjudicator #red
-fontawesome f1c9 SCW-Alice #green
-fontawesome f1c9 SCW-Bob #green
-fontawesome f1c9 Uniswap
-
+fontawesome f183 Charley
 
 group #lightgreen Typical State Channel Bridge
 
@@ -71,35 +64,59 @@ Alice-#red>Adjudicator: deposit 10
 Bob->Irene: ledger 0/10
 Bob<-Irene: ack
 Irene-#red>Adjudicator: deposit 10
-group L1 transaction flow
+group On-chain transaction flow
 Alice->Irene: close ledger
 Alice<-Irene: ack
-Alice-#red>Adjudicator: withdraw
-Alice-#red>Uniswap: uniswap trade
+Alice-#red>Adjudicator: withdraw 10
+Adjudicator--#red>Alice: withdraw 10
+Alice-#red>Charley: transfer 10
 end
 end
+-->
+
+With the State Channel Bridge Wallet (SCBridge-Wallet) Architecture, she can instead send Irene the proposed transfer to Charley. Irene checks that this new payment doesn't compromise any HTLC payments, and then countersigns it and submits it to Alice's SCBridge-Wallet via en EntryPoint contract. The SCBridge-Wallet validates the countersigned transaction, then transfers some of the wallet funds to Charley.
+
+![Sequence Diagram](./docs/seq-sc-bridge-wallet.png)
+
+<!-- diagram source, edit at sequencediagram.org
+fontawesome f182 Alice
+fontawesome f233 Irene
+fontawesome f183 Bob
+
+fontawesome f1c9 EntryPoint
+fontawesome f1c9 SCW-Alice #green
+fontawesome f1c9 SCW-Bob #green
+fontawesome f183 Charley
 
 group #ff00ff State Channel Bridge Wallet
 Alice-#red>SCW-Alice: transfer 10 (direct from exchange, perhaps)
 Bob->Irene: ledger Irene:10
 Bob<-Irene: ack
 Irene-#red>SCW-Bob: transfer 10
-group L1 transaction flow
-Alice->Irene: proposed uniswap trade
-Irene-#red>SCW-Alice: countersigned uniswap trade
-
-SCW-Alice->Uniswap: uniswap trade
+group On-chain transaction flow
+Alice->Irene: proposed transfer
+Irene-#red>EntryPoint: countersigned transfer
+EntryPoint-#red>SCW-Alice: transfer 10
+SCW-Alice->Charley: transfer 10
 end
-
-
 end
+-->
 
-group Multihop L2 payment from Alice to Bob via Irene
+In either case, executing a multihop payment from Alice to Bob is as easy as executing the well known HTLC (Hash Timelocked Contract) protocol, which is the same technology that powers the Bitcoin Lightning Network.
+
+![Sequence Diagram](./docs/seq-off-chain-pay.png)
+
+<!-- diagram source, edit at sequencediagram.org
+fontawesome f182 Alice
+fontawesome f233 Irene
+fontawesome f183 Bob
+
+group Off-chain payment from Alice to Bob via Irene
 Alice->Bob: request an invoice
 Bob->Alice: hash
 Alice->Irene: add HTLC(hash,timeout,amount, sig, turnNum)
 Irene->Bob: add HTLC
-Bob->Irene:  preimage + updated signed state
+Bob->Irene: preimage + updated signed state
 Irene->Alice: preimage + updated signed state
 Irene->Bob: countersigned updated state
 Alice->Irene: countersigned updated state
@@ -108,7 +125,7 @@ end
 
 ### Future work
 
-This repo originated as an entry for the ETHGlobal 2023 hackathon. Therefore some shortcuts were taken to enable an end-to-end demo given the time constraints. The following list identifies future areas for improvement if this foundation was used to build a production-ready application.
+This repo originated as an entry for the ETHGlobal 2023 hackathon. Therefore the code takes some shortcuts to enable an end-to-end demo given the time constraints. The following list identifies future areas for improvement if this foundation was used to build a production-ready application.
 
 1. `Messaging`: currently in-browser [BroadcastChannels](https://nodejs.org/api/worker_threads.html#class-broadcastchannel-extends-eventtarget) are used to communicate between the different users. A proper messaging service should allow users to exchange messages when they are on different machines with different IP addresses. Possible technologies include: WebSockets, WebRTC, HTTP requests, etc.
 2. `Key management`: currently the private signing keys used by each user to sign blockchain txs and state channel messages are stored in a static [.env](./.env) file. These keys are read by the browser code and inserted in the the JavaScript running on the page. Since these keys control the movement of funds, they should be stored more securely, i.e. in Metamask or another crypto wallet.

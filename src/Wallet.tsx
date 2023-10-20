@@ -265,7 +265,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
                 ) : (
                   <AccessTimeIcon style={{ marginRight: "5px" }} />
                 )}
-                L1 Pay
+                Chain Pay
               </Button>
               <Button
                 size="medium"
@@ -280,7 +280,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
                     });
                 }}
               >
-                <BoltIcon /> L2 Pay
+                <BoltIcon /> Bridge Pay
               </Button>
             </ButtonGroup>
           </Stack>
