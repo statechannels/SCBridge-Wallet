@@ -261,7 +261,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
                   void handleL1Pay(recipient, ethers.parseEther(payAmount));
                 }}
               >
-                <AccessTimeIcon style={{ marginRight: "5px" }} /> L1 Pay
+                <AccessTimeIcon style={{ marginRight: "5px" }} /> Chain Pay
               </Button>
               <Button
                 size="medium"
@@ -276,7 +276,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
                     });
                 }}
               >
-                <BoltIcon /> L2 Pay
+                <BoltIcon /> Bridge Pay
               </Button>
             </ButtonGroup>
 
