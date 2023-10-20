@@ -53,8 +53,6 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
       // @ts-expect-error
       myAddress = import.meta.env.VITE_ALICE_ADDRESS;
       // @ts-expect-error
-      myPeer = import.meta.env.VITE_BOB_ADDRESS;
-      // @ts-expect-error
       mySigningKey = import.meta.env.VITE_ALICE_SK;
       // @ts-expect-error
       myScwAddress = import.meta.env.VITE_ALICE_SCW_ADDRESS;
@@ -74,8 +72,6 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
     case "bob":
       // @ts-expect-error
       myAddress = import.meta.env.VITE_BOB_ADDRESS;
-      // @ts-expect-error
-      myPeer = import.meta.env.VITE_ALICE_ADDRESS;
       // @ts-expect-error
       mySigningKey = import.meta.env.VITE_BOB_SK;
       // @ts-expect-error
