@@ -6,6 +6,7 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import EjectIcon from "@mui/icons-material/Eject";
 import {
   Avatar,
+  Box,
   Button,
   ButtonGroup,
   Card,
@@ -31,6 +32,7 @@ import L1PaymentModal from "./modals/L1Payment";
 import { useBalances } from "./useBalances";
 import EjectModal from "./modals/Eject";
 import { chains, type ChainData } from "./chains";
+import { ChainLogo } from "./ChainLogo";
 
 let myAddress: string = "placholder";
 let mySigningKey: string;
@@ -187,10 +189,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
         >
           <AddressIcon address={myScwAddress as `0x${string}`} />
 
-          <Typography>
-            {" "}
-            <b> Host Network:</b> {myChain.name}
-          </Typography>
+          <ChainLogo name={myChain.name} />
           <Typography>
             {" "}
             <b> Balance:</b> {formatEther(ownerBalance)}{" "}

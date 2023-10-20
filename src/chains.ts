@@ -1,3 +1,9 @@
+export type ChainName =
+  | "Hardhat A"
+  | "Hardhat B"
+  | "Polygon zkEVM Testnet"
+  | "scroll";
+
 export interface ChainData {
   /**
    * the RPC endpoint that a provider should be pointed to. EG, http://localhost:8548 for
@@ -11,7 +17,7 @@ export interface ChainData {
   /**
    * The name of the chain. Populates eg, the "Host Network" UI field for channel wallets.
    */
-  name: string;
+  name: ChainName;
   /**
    * The 'ticker' symbol for the chain. Populates eg, the "Amount (ETH)" field for setting transactions.
    */
@@ -40,7 +46,7 @@ export const chains: ChainData[] = [
   {
     url: "http://localhost:8545",
     chainID: 31337n,
-    name: "hardhat 1",
+    name: "Hardhat A",
     symbol: "hh1ETH",
     explorer: "",
     exchangeRate: 1,
@@ -48,7 +54,7 @@ export const chains: ChainData[] = [
   {
     url: "http://localhost:8546",
     chainID: 31338n,
-    name: "hardhat 2",
+    name: "Hardhat B",
     symbol: "hh2ETH",
     explorer: "",
     exchangeRate: 2,
