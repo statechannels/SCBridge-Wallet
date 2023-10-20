@@ -255,6 +255,7 @@ export class IntermediaryClient extends StateChannelWallet {
     if (value > balanceWEI) {
       // todo: account for expected gas consumption? ( out of scope for hackathon )
       this.coordinator.uiLog("insufficient balance to execute user op");
+      this.ack("insufficient balance to execute user op");
       throw new Error("Transfer amount exceeds owner balance");
     }
     const ownerSig = userOp.signature;
@@ -279,7 +280,9 @@ export class IntermediaryClient extends StateChannelWallet {
     const tx = await result.wait();
     if (tx !== null) {
       this.coordinator.uiLog("user op mined: " + tx.hash);
+      this.ack(tx.hash);
+    } else {
+      this.ack("something terrible has happened");
     }
-    this.ack(userOp.signature);
   }
 }
