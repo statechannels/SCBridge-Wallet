@@ -40,7 +40,7 @@ By having that Intermediary perform the same role in several users' smart contra
 
 This repo also contains Typescript source code for off-chain clients that can be run by a user and by a Intermediary, to enable to orchestrate the functionality described above.
 
-### Sequence Diagram
+### Sequence Diagrams
 
 Scenario: Alice wants to (a) pay Bob offchain and (b) pay Charley, who does not have a state channel bridge. Irene is an Intermediary actor.
 
