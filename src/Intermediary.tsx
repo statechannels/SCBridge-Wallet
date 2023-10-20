@@ -17,6 +17,8 @@ import { blo } from "blo";
 import { formatEther } from "ethers";
 import { useLogs } from "./useLogs";
 import { useBalances } from "./useBalances";
+import { ChainLogo } from "./ChainLogo";
+import { chains, type ChainName } from "./chains";
 
 const startingIntermediaryBalance = BigInt(
   // @ts-expect-error
@@ -31,6 +33,16 @@ export const Coordinator: React.FunctionComponent = () => {
   const aliceScwAddress = import.meta.env.VITE_ALICE_SCW_ADDRESS;
   // @ts-expect-error
   const bobScwAddress = import.meta.env.VITE_BOB_SCW_ADDRESS;
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const aliceChain = chains.find(
+    // @ts-expect-error
+    (c) => c.url === import.meta.env.VITE_ALICE_CHAIN_URL,
+  )!;
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const bobChain = chains.find(
+    // @ts-expect-error
+    (c) => c.url === import.meta.env.VITE_BOB_CHAIN_URL,
+  )!;
 
   const [withAlice] = useState(
     () =>
@@ -41,6 +53,8 @@ export const Coordinator: React.FunctionComponent = () => {
         intermediaryAddress: myAddress,
         // @ts-expect-error
         chainRpcUrl: import.meta.env.VITE_ALICE_CHAIN_URL,
+        // @ts-expect-error
+        chain: import.meta.env.VITE_ALICE_CHAIN_URL,
         // @ts-expect-error
         entrypointAddress: import.meta.env.VITE_ALICE_ENTRYPOINT_ADDRESS,
         scwAddress: aliceScwAddress,
@@ -99,9 +113,9 @@ export const Coordinator: React.FunctionComponent = () => {
           alignItems="left"
           spacing={2}
         >
-          <Network name="Hardhat A" clients={[withAlice]} />
+          <Network name={aliceChain.name} clients={[withAlice]} />
           <Divider orientation="vertical" flexItem />
-          <Network name="Hardhat B" clients={[withBob]} />
+          <Network name={bobChain.name} clients={[withBob]} />
         </Stack>
         <CoordinatorTailLogger coordinator={coordinator} />
       </Stack>
@@ -111,9 +125,9 @@ export const Coordinator: React.FunctionComponent = () => {
 };
 
 export const Network: React.FunctionComponent<{
-  name: string;
+  name: ChainName;
   clients: IntermediaryClient[];
-}> = (props: { name: string; clients: IntermediaryClient[] }) => {
+}> = (props: { name: ChainName; clients: IntermediaryClient[] }) => {
   return (
     <>
       <Stack
@@ -122,7 +136,7 @@ export const Network: React.FunctionComponent<{
         alignItems="left"
         spacing={2}
       >
-        <h4>{props.name}</h4>
+        <ChainLogo name={props.name} />
         {props.clients.map((client, i) => (
           <>
             {/* render dividers between channels if more than one exists */}
