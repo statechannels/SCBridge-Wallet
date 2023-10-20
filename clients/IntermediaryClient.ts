@@ -74,19 +74,22 @@ export class IntermediaryCoordinator {
 
     if (targetNetwork !== htlc.invoice.chain) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const sourceChainTicker = chains.find(
-        (c) => c.chainID === htlc.invoice.chain,
-      )!.symbol;
+      const sourceChain = chains.find((c) => c.chainID === htlc.invoice.chain)!;
 
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const targetChainTicker = chains.find(
-        (c) => c.chainID === targetNetwork,
-      )!.symbol;
+      const targetChain = chains.find((c) => c.chainID === targetNetwork)!;
+
+      const sourceAmount = htlc.invoice.amount;
+
+      htlc.invoice = convertInvoice(htlc.invoice, targetNetwork);
+      const targetAmount = htlc.invoice.amount;
 
       this.uiLog(
-        `currency conversion from ${sourceChainTicker} to ${targetChainTicker}...`,
+        `currency conversion from ${sourceAmount} ${sourceChain.symbol} to ${targetAmount} ${targetChain.symbol}`,
       );
-      htlc.invoice = convertInvoice(htlc.invoice, targetNetwork);
+      this.uiLog(
+        `  at [${sourceChain.exchangeRate} / ${targetChain.exchangeRate}] exchange rate`,
+      );
     }
 
     const fee = 0; // for example
