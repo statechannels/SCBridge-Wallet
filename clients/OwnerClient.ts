@@ -205,7 +205,7 @@ export class OwnerClient extends StateChannelWallet {
       signature,
     };
 
-    void this.sendPeerMessage({
+    const l1Hash = await this.sendPeerMessage({
       type: MessageType.UserOperation,
       ...signedUserOp,
     });
@@ -213,9 +213,9 @@ export class OwnerClient extends StateChannelWallet {
     console.log(
       `Initiated transfer of ${ethers.formatEther(
         amount,
-      )} ETH to ${payee} (userOpHash: ${hash})`,
+      )} ETH to ${payee} (userOpHash: ${hash}). Mined at ${l1Hash.signature}.`,
     );
 
-    return hash;
+    return l1Hash.signature; // todo: not a signature, but reusing existing ack pipe type
   }
 }
