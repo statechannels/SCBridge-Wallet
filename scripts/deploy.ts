@@ -21,7 +21,7 @@ const deployFunc = async function (): Promise<void> {
   const ireneAddress = process.env.VITE_IRENE_ADDRESS ?? "";
 
   const entryPointDeployer = await ethers.getContractFactory("EntryPoint");
-  const entrypoint = await entryPointDeployer.deploy();
+  const entrypoint = await entryPointDeployer.deploy({ gasLimit: "0x1000000" });
 
   const walletDeployer = await ethers.getContractFactory("SCBridgeWallet");
   console.log("EntryPoint deploying to:", await entrypoint.getAddress());
@@ -30,6 +30,7 @@ const deployFunc = async function (): Promise<void> {
     aliceAddress,
     ireneAddress,
     await entrypoint.getAddress(),
+    { gasLimit: "0x1000000" },
   );
   console.log(
     `Alice (${aliceAddress?.slice(
@@ -42,6 +43,7 @@ const deployFunc = async function (): Promise<void> {
     bobAddress,
     ireneAddress,
     await entrypoint.getAddress(),
+    { gasLimit: "0x1000000" },
   );
 
   console.log(
@@ -96,7 +98,7 @@ async function fundEntryPoint(
       await EntryPoint__factory.connect(
         entryPointAddress,
         fundedAccount,
-      ).depositTo(address, { value: amount })
+      ).depositTo(address, { value: amount, gasLimit: "0x1000000" })
     ).wait();
   }
 }
@@ -120,6 +122,7 @@ async function fund(
       await fundedAccount.sendTransaction({
         to: address,
         value: amount,
+        gasLimit: "0x1000000",
       })
     ).wait();
   }
