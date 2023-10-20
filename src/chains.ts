@@ -2,7 +2,10 @@ export type ChainName =
   | "Hardhat A"
   | "Hardhat B"
   | "Polygon zkEVM Testnet"
-  | "scroll";
+  | "scroll"
+  | "goerli"
+  | "sepolia"
+  | "mantle";
 
 export interface ChainData {
   /**
@@ -66,5 +69,29 @@ export const chains: ChainData[] = [
     symbol: "ETH",
     explorer: "https://sepolia.scrollscan.com/address/",
     exchangeRate: 1,
+  },
+  {
+    chainID: 5n,
+    symbol: "ETH",
+    name: "goerli",
+    explorer: "https://goerli.etherscan.io",
+    exchangeRate: 1,
+    url: "https://goerli.blockpi.network/v1/rpc/public",
+  },
+  {
+    chainID: 11155111n,
+    symbol: "ETH",
+    name: "sepolia",
+    explorer: "https://sepolia.etherscan.io",
+    exchangeRate: 1,
+    url: "https://eth-sepolia.public.blastapi.io",
+  },
+  {
+    chainID: 5001n,
+    symbol: "MNT",
+    name: "mantle",
+    explorer: "https://explorer.testnet.mantle.xyz",
+    exchangeRate: 1,
+    url: "https://rpc.testnet.mantle.xyz",
   },
 ];

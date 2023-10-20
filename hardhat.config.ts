@@ -26,6 +26,21 @@ const config: HardhatUserConfig = {
       accounts:
         process.env.DEPLOY_KEY !== undefined ? [process.env.DEPLOY_KEY] : [],
     },
+    goerli: {
+      url: "https://goerli.blockpi.network/v1/rpc/public",
+      accounts:
+        process.env.DEPLOY_KEY !== undefined ? [process.env.DEPLOY_KEY] : [],
+    },
+    sepolia: {
+      url: "https://eth-sepolia.public.blastapi.io",
+      accounts:
+        process.env.DEPLOY_KEY !== undefined ? [process.env.DEPLOY_KEY] : [],
+    },
+    mantle: {
+      url: "https://rpc.testnet.mantle.xyz",
+      accounts:
+        process.env.DEPLOY_KEY !== undefined ? [process.env.DEPLOY_KEY] : [],
+    },
     // Used for testing
     hardhat: {
       chainId:
