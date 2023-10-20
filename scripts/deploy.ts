@@ -10,7 +10,9 @@ const deployFunc = async function (): Promise<void> {
     hardhatFundedAccount.address,
   );
   console.log(
-    `Deployer (${hardhatFundedAccount.address}) starting balance ${startingBalance}`,
+    `Deployer (${
+      hardhatFundedAccount.address
+    }) starting balance ${ethers.formatEther(startingBalance)} ETH`,
   );
   console.log("Starting deployment...");
 
