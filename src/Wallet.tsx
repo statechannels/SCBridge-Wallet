@@ -27,7 +27,6 @@ import { AddressIcon, AddressIconSmall } from "./AddressIcon";
 import "./Wallet.css";
 import { type Role } from "./WalletContainer";
 import logo from "./assets/logo.png";
-import L1PaymentModal from "./modals/L1Payment";
 import { useBalances } from "./useBalances";
 import EjectModal from "./modals/Eject";
 import { chains, type ChainData } from "./chains";
@@ -105,21 +104,17 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
     BigInt(parseInt(import.meta.env.VITE_SCW_DEPOSIT, 10) / 100);
 
   const [recipient, setRecipient] = useState(myPeerSCWAddress);
-  const [isModalL1PayOpen, setModalL1PayOpen] = useState<boolean>(false);
   const [isModalEjectOpen, setModalEjectOpen] = useState<boolean>(false);
-  const [userOpHash, setUserOpHash] = useState<string | null>(null);
   const [payAmount, setPayAmount] = useState<string>(
     ethers.formatEther(defaultPaymentSize),
   );
-  const [errorL1Pay, setErrorL1Pay] = useState<string | null>(null);
 
   const handleL1Pay = async (payee: string, amount: bigint): Promise<void> => {
     try {
       txHash = await wallet.payL1(payee, amount);
       setSnackBarOpen(true);
     } catch (e: any) {
-      console.error(e);
-      setErrorL1Pay("Error initiating L1 payment");
+      console.error(e.message);
     }
   };
 
@@ -280,17 +275,6 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
                 <BoltIcon /> L2 Pay
               </Button>
             </ButtonGroup>
-
-            <L1PaymentModal
-              isOpen={isModalL1PayOpen}
-              onClose={() => {
-                setModalL1PayOpen(false);
-              }}
-              errorMessage={errorL1Pay}
-              userOpHash={userOpHash}
-              amount={Number(payAmount)}
-              payee={recipient}
-            />
           </Stack>
           <Divider />
           <Stack
@@ -331,12 +315,27 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
         onClose={() => {
           setSnackBarOpen(false);
         }}
-        // todo: make the happy result a clickable link to the block explorer
-        // maybe: include an image of the block explorer logo?
         message={
-          txHash.startsWith("0x") // received a good tx Hash
-            ? `Transaction mined at ${txHash}`
-            : `Error submitting Tx: ${txHash}`
+          txHash.startsWith("0x") ? ( // received a good tx Hash
+            myChain.explorer !== "" ? (
+              <>
+                Transaction mined at
+                <a
+                  href={`${myChain.explorer}tx/${txHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: "inherit", textDecoration: "underline" }}
+                >
+                  {" "}
+                  {txHash}
+                </a>
+              </>
+            ) : (
+              `Transaction mined at ${txHash}`
+            )
+          ) : (
+            `Error submitting Tx: ${txHash}`
+          )
         }
       ></Snackbar>
     </ThemeProvider>

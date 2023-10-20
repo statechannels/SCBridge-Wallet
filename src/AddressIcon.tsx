@@ -9,7 +9,10 @@ export const AddressIcon: FunctionComponent<{
 }> = (props: { address: `0x${string}`; chain?: ChainData }) => {
   return props.chain !== undefined ? (
     <Tooltip title={props.address}>
-      <a href={props.chain.explorer + "/" + props.address} target="_blank">
+      <a
+        href={props.chain.explorer + "address/" + props.address}
+        target="_blank"
+      >
         <Avatar
           {...props}
           src={blo(props.address)}
