@@ -261,6 +261,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
                   void handleL1Pay(recipient, ethers.parseEther(payAmount));
                 }}
               >
+                {/* todo: make this into a spinner while snackBarOpen == true */}
                 <AccessTimeIcon style={{ marginRight: "5px" }} /> L1 Pay
               </Button>
               <Button
