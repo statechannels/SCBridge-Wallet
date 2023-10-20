@@ -175,6 +175,11 @@ export class OwnerClient extends StateChannelWallet {
 
   // Create L1 payment UserOperation and forward to intermediary
   async payL1(payee: string, amount: bigint): Promise<string> {
+    const balance = await this.getOwnerBalance();
+    if (amount > balance) {
+      throw new Error("Requested payment amount exceeds owner balance");
+    }
+
     // Only need to encode 'to' and 'amount' fields (i.e. no 'data') for basic eth transfer
     const callData = IAccount.encodeFunctionData("execute", [
       payee,
