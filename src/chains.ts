@@ -6,7 +6,8 @@ export type ChainName =
   | "goerli"
   | "sepolia"
   | "mantle"
-  | "optimism";
+  | "optimism"
+  | "filecoin";
 
 export interface ChainData {
   /**
@@ -101,6 +102,14 @@ export const chains: ChainData[] = [
     name: "optimism",
     url: "https://optimism-goerli.public.blastapi.io",
     explorer: "https://goerli-optimism.etherscan.io",
+    exchangeRate: 1,
+  },
+  {
+    chainID: 314159n,
+    symbol: "TFIL",
+    name: "filecoin",
+    url: "https://filecoin-calibration.chainup.net/rpc/v1",
+    explorer: "https://calibration.filfox.info/en",
     exchangeRate: 1,
   },
 ];

@@ -46,6 +46,11 @@ const config: HardhatUserConfig = {
       accounts:
         process.env.DEPLOY_KEY !== undefined ? [process.env.DEPLOY_KEY] : [],
     },
+    filecoin: {
+      url: "https://api.calibration.node.glif.io/rpc/v1",
+      accounts:
+        process.env.DEPLOY_KEY !== undefined ? [process.env.DEPLOY_KEY] : [],
+    },
     // Used for testing
     hardhat: {
       chainId:
