@@ -11,6 +11,7 @@ import {
   Container,
   Divider,
   InputAdornment,
+  Snackbar,
   Stack,
   TextField,
   ThemeProvider,
@@ -40,6 +41,8 @@ let myPeerSCWAddress: string;
 let myChainUrl: string;
 let myChain: ChainData;
 
+let txHash: string;
+
 const startingIntermediaryBalance = BigInt(
   // @ts-expect-error
   parseInt(import.meta.env.VITE_INTERMEDIARY_BALANCE, 10),
@@ -48,6 +51,8 @@ const startingIntermediaryBalance = BigInt(
 const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
   role: Role;
 }) => {
+  const [snackBarOpen, setSnackBarOpen] = useState(false);
+
   switch (props.role) {
     case "alice":
       // @ts-expect-error
@@ -110,15 +115,11 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
 
   const handleL1Pay = async (payee: string, amount: bigint): Promise<void> => {
     try {
-      const resultHash = await wallet.payL1(payee, amount);
-      setUserOpHash(resultHash);
-      setErrorL1Pay(null); // Clear any previous error
-      setModalL1PayOpen(true);
+      txHash = await wallet.payL1(payee, amount);
+      setSnackBarOpen(true);
     } catch (e: any) {
       console.error(e);
       setErrorL1Pay("Error initiating L1 payment");
-    } finally {
-      setModalL1PayOpen(true);
     }
   };
 
@@ -323,6 +324,20 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
           </Stack>
         </Stack>
       </Card>
+      <Snackbar
+        open={snackBarOpen}
+        autoHideDuration={3000}
+        onClose={() => {
+          setSnackBarOpen(false);
+        }}
+        // todo: make the happy result a clickable link to the block explorer
+        // maybe: include an image of the block explorer logo?
+        message={
+          txHash.startsWith("0x") // received a good tx Hash
+            ? `Transaction mined at ${txHash}`
+            : `Error submitting Tx: ${txHash}`
+        }
+      ></Snackbar>
     </ThemeProvider>
   );
 };
