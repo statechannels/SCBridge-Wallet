@@ -6,7 +6,7 @@ import { type ChainData } from "./chains";
 export const AddressIcon: FunctionComponent<{
   address: `0x${string}`;
   chain?: ChainData;
-}> = (props: { address: `0x${string}`; chain: ChainData }) => {
+}> = (props: { address: `0x${string}`; chain?: ChainData }) => {
   return props.chain !== undefined ? (
     <Tooltip title={props.address}>
       <a href={props.chain.explorer + "/" + props.address} target="_blank">
