@@ -19,7 +19,9 @@
     "deploy:b": "npx hardhat run --network b scripts/deploy.ts",
     "deploy-and-start": "yarn deploy:a && yarn deploy:b && yarn start",
     "deploy:scroll": "npx hardhat run --network scroll scripts/deploy.ts",
-    "deploy:poly": "npx hardhat run --network polygonzkevm scripts/deploy.ts"
+    "deploy:poly": "npx hardhat run --network polygonzkevm scripts/deploy.ts",
+    "topup:scroll": "npx hardhat run --network scroll scripts/topup.ts",
+    "topup:poly": "npx hardhat run --network polygonzkevm scripts/topup.ts"
   },
   "packageManager": "yarn@1.22.19",
   "devDependencies": {
