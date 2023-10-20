@@ -41,6 +41,11 @@ const config: HardhatUserConfig = {
       accounts:
         process.env.DEPLOY_KEY !== undefined ? [process.env.DEPLOY_KEY] : [],
     },
+    optimism: {
+      url: "https://optimism-goerli.public.blastapi.io",
+      accounts:
+        process.env.DEPLOY_KEY !== undefined ? [process.env.DEPLOY_KEY] : [],
+    },
     // Used for testing
     hardhat: {
       chainId:

@@ -5,7 +5,8 @@ export type ChainName =
   | "scroll"
   | "goerli"
   | "sepolia"
-  | "mantle";
+  | "mantle"
+  | "optimism";
 
 export interface ChainData {
   /**
@@ -93,5 +94,13 @@ export const chains: ChainData[] = [
     explorer: "https://explorer.testnet.mantle.xyz",
     exchangeRate: 1,
     url: "https://rpc.testnet.mantle.xyz",
+  },
+  {
+    chainID: 420n,
+    symbol: "ETH",
+    name: "optimism",
+    url: "https://optimism-goerli.public.blastapi.io",
+    explorer: "https://goerli-optimism.etherscan.io",
+    exchangeRate: 1,
   },
 ];
