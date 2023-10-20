@@ -116,7 +116,8 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
       setModalL1PayOpen(true);
     } catch (e: any) {
       console.error(e);
-      setErrorL1Pay("Error initiating L1 payment");
+      // setErrorL1Pay("Error initiating L1 payment");
+      setErrorL1Pay("Error: " + e.message);
     } finally {
       setModalL1PayOpen(true);
     }
