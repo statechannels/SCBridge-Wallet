@@ -105,6 +105,7 @@ export const Coordinator: React.FunctionComponent = () => {
             // @ts-expect-error
             import.meta.env.VITE_IRENE_ADDRESS as `0x${string}`
           }
+          chain={undefined}
         />
         <br />
         <Stack

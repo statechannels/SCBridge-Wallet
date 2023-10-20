@@ -179,7 +179,10 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
           alignItems="center"
           spacing={1}
         >
-          <AddressIcon address={myScwAddress as `0x${string}`} />
+          <AddressIcon
+            address={myScwAddress as `0x${string}`}
+            chain={myChain}
+          />
 
           <ChainLogo name={myChain.name} />
           <Typography>

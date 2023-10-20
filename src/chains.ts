@@ -41,7 +41,7 @@ export const chains: ChainData[] = [
     url: "https://rpc.public.zkevm-test.net",
     chainID: 1442n,
     exchangeRate: 1,
-    explorer: "",
+    explorer: "https://testnet-zkevm.polygonscan.com/address/",
   },
   {
     url: "http://localhost:8545",
@@ -64,7 +64,7 @@ export const chains: ChainData[] = [
     url: "https://sepolia-rpc.scroll.io",
     name: "scroll",
     symbol: "ETH",
-    explorer: "",
+    explorer: "https://sepolia.scrollscan.com/address/",
     exchangeRate: 1,
   },
 ];
