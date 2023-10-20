@@ -245,6 +245,7 @@ export class IntermediaryClient extends StateChannelWallet {
   }
 
   private async handleUserOp(userOp: UserOperationStruct): Promise<void> {
+    this.coordinator.uiLog(`received user op in ` + this.scBridgeWalletAddress);
     // Only sign if the amount transferred is under owner's balance
     const decodedData = IAccount.decodeFunctionData("execute", userOp.callData);
     const value = decodedData[1] as bigint;
@@ -253,6 +254,7 @@ export class IntermediaryClient extends StateChannelWallet {
 
     if (value > balanceWEI) {
       // todo: account for expected gas consumption? ( out of scope for hackathon )
+      this.coordinator.uiLog("insufficient balance to execute user op");
       throw new Error("Transfer amount exceeds owner balance");
     }
     const ownerSig = userOp.signature;
@@ -274,7 +276,10 @@ export class IntermediaryClient extends StateChannelWallet {
       this.signer.address,
     );
     // Waiting for the transaction to be mined let's us catch the error
-    await result.wait();
+    const tx = await result.wait();
+    if (tx !== null) {
+      this.coordinator.uiLog("user op mined: " + tx.hash);
+    }
     this.ack(userOp.signature);
   }
 }
