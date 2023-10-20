@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import BoltIcon from "@mui/icons-material/Bolt";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import EjectIcon from "@mui/icons-material/Eject";
+import CircularProgress from "@mui/material/CircularProgress";
 import {
   Avatar,
   Button,
@@ -50,8 +51,6 @@ const startingIntermediaryBalance = BigInt(
 const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
   role: Role;
 }) => {
-  const [snackBarOpen, setSnackBarOpen] = useState(false);
-
   switch (props.role) {
     case "alice":
       // @ts-expect-error
@@ -103,6 +102,8 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
   const defaultPaymentSize = // @ts-expect-error
     BigInt(parseInt(import.meta.env.VITE_SCW_DEPOSIT, 10) / 100);
 
+  const [snackBarOpen, setSnackBarOpen] = useState(false);
+  const [chainPayProcessing, setChainPayProcessing] = useState(false);
   const [recipient, setRecipient] = useState(myPeerSCWAddress);
   const [isModalEjectOpen, setModalEjectOpen] = useState<boolean>(false);
   const [payAmount, setPayAmount] = useState<string>(
@@ -110,11 +111,14 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
   );
 
   const handleL1Pay = async (payee: string, amount: bigint): Promise<void> => {
+    setChainPayProcessing(true);
     try {
       txHash = await wallet.payL1(payee, amount);
       setSnackBarOpen(true);
     } catch (e: any) {
       console.error(e.message);
+    } finally {
+      setChainPayProcessing(false);
     }
   };
 
@@ -251,13 +255,17 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
             <ButtonGroup variant="outlined" aria-label="outlined button group">
               <Button
                 size="medium"
-                disabled={recipient === ""}
+                disabled={recipient === "" || chainPayProcessing}
                 onClick={() => {
                   void handleL1Pay(recipient, ethers.parseEther(payAmount));
                 }}
               >
-                {/* todo: make this into a spinner while snackBarOpen == true */}
-                <AccessTimeIcon style={{ marginRight: "5px" }} /> L1 Pay
+                {chainPayProcessing ? (
+                  <CircularProgress size={24} style={{ marginRight: "5px" }} />
+                ) : (
+                  <AccessTimeIcon style={{ marginRight: "5px" }} />
+                )}
+                L1 Pay
               </Button>
               <Button
                 size="medium"
@@ -311,7 +319,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
       </Card>
       <Snackbar
         open={snackBarOpen}
-        autoHideDuration={3000}
+        autoHideDuration={4000}
         onClose={() => {
           setSnackBarOpen(false);
         }}
