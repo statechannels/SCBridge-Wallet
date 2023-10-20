@@ -1,3 +1,9 @@
+export type ChainName =
+  | "Hardhat A"
+  | "Hardhat B"
+  | "Polygon zkEVM Testnet"
+  | "scroll";
+
 export interface ChainData {
   /**
    * the RPC endpoint that a provider should be pointed to. EG, http://localhost:8548 for
@@ -11,7 +17,7 @@ export interface ChainData {
   /**
    * The name of the chain. Populates eg, the "Host Network" UI field for channel wallets.
    */
-  name: string;
+  name: ChainName;
   /**
    * The 'ticker' symbol for the chain. Populates eg, the "Amount (ETH)" field for setting transactions.
    */
@@ -30,9 +36,17 @@ export type ChainID = bigint;
 
 export const chains: ChainData[] = [
   {
+    name: "Polygon zkEVM Testnet",
+    symbol: "polyETH",
+    url: "https://rpc.public.zkevm-test.net",
+    chainID: 1442n,
+    exchangeRate: 1,
+    explorer: "https://testnet-zkevm.polygonscan.com/address/",
+  },
+  {
     url: "http://localhost:8545",
     chainID: 31337n,
-    name: "hardhat 1",
+    name: "Hardhat A",
     symbol: "hh1ETH",
     explorer: "",
     exchangeRate: 1,
@@ -40,7 +54,7 @@ export const chains: ChainData[] = [
   {
     url: "http://localhost:8546",
     chainID: 31338n,
-    name: "hardhat 2",
+    name: "Hardhat B",
     symbol: "hh2ETH",
     explorer: "",
     exchangeRate: 2,
@@ -50,7 +64,7 @@ export const chains: ChainData[] = [
     url: "https://sepolia-rpc.scroll.io",
     name: "scroll",
     symbol: "ETH",
-    explorer: "",
+    explorer: "https://sepolia.scrollscan.com/address/",
     exchangeRate: 1,
   },
 ];

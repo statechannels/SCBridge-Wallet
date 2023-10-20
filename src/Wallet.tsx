@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from "react";
 import BoltIcon from "@mui/icons-material/Bolt";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
@@ -31,10 +30,10 @@ import L1PaymentModal from "./modals/L1Payment";
 import { useBalances } from "./useBalances";
 import EjectModal from "./modals/Eject";
 import { chains, type ChainData } from "./chains";
+import { ChainLogo } from "./ChainLogo";
 
 let myAddress: string = "placholder";
 let mySigningKey: string;
-let myPeer: string; // If I'm Alice, this is Bob. If I'm Bob, this is Alice.
 let entrypointAddress: string;
 let myScwAddress: string;
 let myPeerSCWAddress: string;
@@ -53,8 +52,6 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
     case "alice":
       // @ts-expect-error
       myAddress = import.meta.env.VITE_ALICE_ADDRESS;
-      // @ts-expect-error
-      myPeer = import.meta.env.VITE_BOB_ADDRESS;
       // @ts-expect-error
       mySigningKey = import.meta.env.VITE_ALICE_SK;
       // @ts-expect-error
@@ -76,8 +73,6 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
       // @ts-expect-error
       myAddress = import.meta.env.VITE_BOB_ADDRESS;
       // @ts-expect-error
-      myPeer = import.meta.env.VITE_ALICE_ADDRESS;
-      // @ts-expect-error
       mySigningKey = import.meta.env.VITE_BOB_SK;
       // @ts-expect-error
       myScwAddress = import.meta.env.VITE_BOB_SCW_ADDRESS;
@@ -95,7 +90,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
       break;
   }
 
-  const [intermediary, setIntermediary] = useState(
+  const [intermediary] = useState(
     // @ts-expect-error
     import.meta.env.VITE_IRENE_ADDRESS,
   );
@@ -105,7 +100,6 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
     BigInt(parseInt(import.meta.env.VITE_SCW_DEPOSIT, 10) / 100);
 
   const [recipient, setRecipient] = useState(myPeerSCWAddress);
-  const [hostNetwork, setHostNetwork] = useState("Scroll");
   const [isModalL1PayOpen, setModalL1PayOpen] = useState<boolean>(false);
   const [isModalEjectOpen, setModalEjectOpen] = useState<boolean>(false);
   const [userOpHash, setUserOpHash] = useState<string | null>(null);
@@ -128,7 +122,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
     }
   };
 
-  const [wallet, _] = useState(
+  const [wallet] = useState(
     () =>
       new OwnerClient({
         signingKey: mySigningKey,
@@ -185,12 +179,12 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
           alignItems="center"
           spacing={1}
         >
-          <AddressIcon address={myScwAddress as `0x${string}`} />
+          <AddressIcon
+            address={myScwAddress as `0x${string}`}
+            chain={myChain}
+          />
 
-          <Typography>
-            {" "}
-            <b> Host Network:</b> {myChain.name}
-          </Typography>
+          <ChainLogo name={myChain.name} />
           <Typography>
             {" "}
             <b> Balance:</b> {formatEther(ownerBalance)}{" "}
