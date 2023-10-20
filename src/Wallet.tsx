@@ -41,7 +41,7 @@ let myPeerSCWAddress: string;
 let myChainUrl: string;
 let myChain: ChainData;
 
-let txHash: string;
+let txHash: string = "";
 
 const startingIntermediaryBalance = BigInt(
   // @ts-expect-error
