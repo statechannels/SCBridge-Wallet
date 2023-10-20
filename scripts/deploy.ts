@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 import { EntryPoint__factory } from "../typechain-types";
 import { type HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 const gasLimit = 500_000_000;
+const maxPriorityFeePerGas = 1_500_000;
+const defaultTxOpts = { gasLimit, maxPriorityFeePerGas };
 const deployFunc = async function (): Promise<void> {
   dotenv.config();
   const hardhatFundedAccount = (await ethers.getSigners())[0];
@@ -21,7 +23,7 @@ const deployFunc = async function (): Promise<void> {
   const ireneAddress = process.env.VITE_IRENE_ADDRESS ?? "";
 
   const entryPointDeployer = await ethers.getContractFactory("EntryPoint");
-  const entrypoint = await entryPointDeployer.deploy({ gasLimit });
+  const entrypoint = await entryPointDeployer.deploy(defaultTxOpts);
 
   const walletDeployer = await ethers.getContractFactory("SCBridgeWallet");
   console.log("EntryPoint deploying to:", await entrypoint.getAddress());
@@ -30,7 +32,7 @@ const deployFunc = async function (): Promise<void> {
     aliceAddress,
     ireneAddress,
     await entrypoint.getAddress(),
-    { gasLimit },
+    defaultTxOpts,
   );
   console.log(
     `Alice (${aliceAddress?.slice(
@@ -43,7 +45,7 @@ const deployFunc = async function (): Promise<void> {
     bobAddress,
     ireneAddress,
     await entrypoint.getAddress(),
-    { gasLimit },
+    defaultTxOpts,
   );
 
   console.log(
@@ -98,7 +100,7 @@ async function fundEntryPoint(
       await EntryPoint__factory.connect(
         entryPointAddress,
         fundedAccount,
-      ).depositTo(address, { value: amount, gasLimit })
+      ).depositTo(address, { value: amount, ...defaultTxOpts })
     ).wait();
   }
 }
@@ -122,7 +124,7 @@ async function fund(
       await fundedAccount.sendTransaction({
         to: address,
         value: amount,
-        gasLimit,
+        ...defaultTxOpts,
       })
     ).wait();
   }
