@@ -14,6 +14,7 @@ import { type UserOperationStruct } from "../typechain-types/contracts/SCBridgeW
 import { IAccount } from "./utils";
 import { hashState } from "./State";
 import { convertInvoice } from "./Accounting";
+import { chains } from "../src/chains";
 
 /**
  * The IntermediaryCoordinator orchestrates an intermediary's participation in the network. It contains
@@ -72,7 +73,23 @@ export class IntermediaryCoordinator {
     const targetNetwork = await targetClient.getHostNetwork();
 
     if (targetNetwork !== htlc.invoice.chain) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const sourceChain = chains.find((c) => c.chainID === htlc.invoice.chain)!;
+
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const targetChain = chains.find((c) => c.chainID === targetNetwork)!;
+
+      const sourceAmount = htlc.invoice.amount;
+
       htlc.invoice = convertInvoice(htlc.invoice, targetNetwork);
+      const targetAmount = htlc.invoice.amount;
+
+      this.uiLog(
+        `currency conversion from ${sourceAmount} ${sourceChain.symbol} to ${targetAmount} ${targetChain.symbol}`,
+      );
+      this.uiLog(
+        `  at [${sourceChain.exchangeRate} / ${targetChain.exchangeRate}] exchange rate`,
+      );
     }
 
     const fee = 0; // for example

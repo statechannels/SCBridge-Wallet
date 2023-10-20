@@ -63,7 +63,7 @@ export const chains: ChainData[] = [
     chainID: 534351n,
     url: "https://sepolia-rpc.scroll.io",
     name: "scroll",
-    symbol: "ETH",
+    symbol: "scrETH",
     explorer: "https://sepolia.scrollscan.com/address/",
     exchangeRate: 1,
   },
