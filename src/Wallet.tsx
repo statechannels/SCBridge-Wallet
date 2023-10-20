@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import BoltIcon from "@mui/icons-material/Bolt";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import EjectIcon from "@mui/icons-material/Eject";
+import CircularProgress from "@mui/material/CircularProgress";
 import {
   Avatar,
   Button,
@@ -11,6 +12,7 @@ import {
   Container,
   Divider,
   InputAdornment,
+  Snackbar,
   Stack,
   TextField,
   ThemeProvider,
@@ -26,7 +28,6 @@ import { AddressIcon, AddressIconSmall } from "./AddressIcon";
 import "./Wallet.css";
 import { type Role } from "./WalletContainer";
 import logo from "./assets/logo.png";
-import L1PaymentModal from "./modals/L1Payment";
 import { useBalances } from "./useBalances";
 import EjectModal from "./modals/Eject";
 import { chains, type ChainData } from "./chains";
@@ -39,6 +40,8 @@ let myScwAddress: string;
 let myPeerSCWAddress: string;
 let myChainUrl: string;
 let myChain: ChainData;
+
+let txHash: string = "";
 
 const startingIntermediaryBalance = BigInt(
   // @ts-expect-error
@@ -99,27 +102,23 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
   const defaultPaymentSize = // @ts-expect-error
     BigInt(parseInt(import.meta.env.VITE_SCW_DEPOSIT, 10) / 100);
 
+  const [snackBarOpen, setSnackBarOpen] = useState(false);
+  const [chainPayProcessing, setChainPayProcessing] = useState(false);
   const [recipient, setRecipient] = useState(myPeerSCWAddress);
-  const [isModalL1PayOpen, setModalL1PayOpen] = useState<boolean>(false);
   const [isModalEjectOpen, setModalEjectOpen] = useState<boolean>(false);
-  const [userOpHash, setUserOpHash] = useState<string | null>(null);
   const [payAmount, setPayAmount] = useState<string>(
     ethers.formatEther(defaultPaymentSize),
   );
-  const [errorL1Pay, setErrorL1Pay] = useState<string | null>(null);
 
   const handleL1Pay = async (payee: string, amount: bigint): Promise<void> => {
+    setChainPayProcessing(true);
     try {
-      const resultHash = await wallet.payL1(payee, amount);
-      setUserOpHash(resultHash);
-      setErrorL1Pay(null); // Clear any previous error
-      setModalL1PayOpen(true);
+      txHash = await wallet.payL1(payee, amount);
+      setSnackBarOpen(true);
     } catch (e: any) {
-      console.error(e);
-      // setErrorL1Pay("Error initiating L1 payment");
-      setErrorL1Pay("Error: " + e.message);
+      console.error(e.message);
     } finally {
-      setModalL1PayOpen(true);
+      setChainPayProcessing(false);
     }
   };
 
@@ -256,12 +255,17 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
             <ButtonGroup variant="outlined" aria-label="outlined button group">
               <Button
                 size="medium"
-                disabled={recipient === ""}
+                disabled={recipient === "" || chainPayProcessing}
                 onClick={() => {
                   void handleL1Pay(recipient, ethers.parseEther(payAmount));
                 }}
               >
-                <AccessTimeIcon style={{ marginRight: "5px" }} /> Chain Pay
+                {chainPayProcessing ? (
+                  <CircularProgress size={24} style={{ marginRight: "5px" }} />
+                ) : (
+                  <AccessTimeIcon style={{ marginRight: "5px" }} />
+                )}
+                Chain Pay
               </Button>
               <Button
                 size="medium"
@@ -279,17 +283,6 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
                 <BoltIcon /> Bridge Pay
               </Button>
             </ButtonGroup>
-
-            <L1PaymentModal
-              isOpen={isModalL1PayOpen}
-              onClose={() => {
-                setModalL1PayOpen(false);
-              }}
-              errorMessage={errorL1Pay}
-              userOpHash={userOpHash}
-              amount={Number(payAmount)}
-              payee={recipient}
-            />
           </Stack>
           <Divider />
           <Stack
@@ -324,6 +317,35 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
           </Stack>
         </Stack>
       </Card>
+      <Snackbar
+        open={snackBarOpen}
+        autoHideDuration={4000}
+        onClose={() => {
+          setSnackBarOpen(false);
+        }}
+        message={
+          txHash.startsWith("0x") ? ( // received a good tx Hash
+            myChain.explorer !== "" ? (
+              <>
+                Transaction mined at
+                <a
+                  href={`${myChain.explorer}tx/${txHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: "inherit", textDecoration: "underline" }}
+                >
+                  {" "}
+                  {txHash}
+                </a>
+              </>
+            ) : (
+              `Transaction mined at ${txHash}`
+            )
+          ) : (
+            `Error submitting Tx: ${txHash}`
+          )
+        }
+      ></Snackbar>
     </ThemeProvider>
   );
 };
