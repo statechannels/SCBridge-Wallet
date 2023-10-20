@@ -1,12 +1,10 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from "react";
 import BoltIcon from "@mui/icons-material/Bolt";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import EjectIcon from "@mui/icons-material/Eject";
 import {
   Avatar,
-  Box,
   Button,
   ButtonGroup,
   Card,
@@ -97,7 +95,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
       break;
   }
 
-  const [intermediary, setIntermediary] = useState(
+  const [intermediary] = useState(
     // @ts-expect-error
     import.meta.env.VITE_IRENE_ADDRESS,
   );
@@ -107,7 +105,6 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
     BigInt(parseInt(import.meta.env.VITE_SCW_DEPOSIT, 10) / 100);
 
   const [recipient, setRecipient] = useState(myPeerSCWAddress);
-  const [hostNetwork, setHostNetwork] = useState("Scroll");
   const [isModalL1PayOpen, setModalL1PayOpen] = useState<boolean>(false);
   const [isModalEjectOpen, setModalEjectOpen] = useState<boolean>(false);
   const [userOpHash, setUserOpHash] = useState<string | null>(null);
