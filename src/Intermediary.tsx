@@ -9,6 +9,7 @@ import {
   Avatar,
   Card,
   Divider,
+  ListItem,
   Stack,
   Tooltip,
   Typography,
@@ -124,11 +125,11 @@ export const Network: React.FunctionComponent<{
       >
         <h4>{props.name}</h4>
         {props.clients.map((client, i) => (
-          <>
+          <ListItem key={client.ownerAddress}>
             {/* render dividers between channels if more than one exists */}
             {i > 0 && <Divider />}
             <IntermediaryChannel key={client.ownerAddress} client={client} />
-          </>
+          </ListItem>
         ))}
       </Stack>
     </>
