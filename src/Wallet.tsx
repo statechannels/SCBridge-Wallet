@@ -34,7 +34,6 @@ import { ChainLogo } from "./ChainLogo";
 
 let myAddress: string = "placholder";
 let mySigningKey: string;
-let myPeer: string; // If I'm Alice, this is Bob. If I'm Bob, this is Alice.
 let entrypointAddress: string;
 let myScwAddress: string;
 let myPeerSCWAddress: string;
@@ -127,7 +126,7 @@ const Wallet: React.FunctionComponent<{ role: Role }> = (props: {
     }
   };
 
-  const [wallet, _] = useState(
+  const [wallet] = useState(
     () =>
       new OwnerClient({
         signingKey: mySigningKey,
