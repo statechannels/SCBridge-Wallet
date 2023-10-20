@@ -10,11 +10,11 @@ async function main(): Promise<void> {
 
   const ireneAddress = process.env.VITE_IRENE_ADDRESS ?? "";
 
-  const fundingTarget = BigInt(process.env.VITE_SCW_DEPOSIT ?? "");
+  const fundingAmount = BigInt(process.env.VITE_SCW_DEPOSIT ?? "");
   const hardhatFundedAccount = (await ethers.getSigners())[0];
   await fundTo(
     [aliceSCWAddress, bobSCWAddress, ireneAddress],
-    fundingTarget,
+    fundingAmount,
     hardhatFundedAccount,
   );
 }
