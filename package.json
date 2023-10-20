@@ -21,7 +21,8 @@
     "deploy:scroll": "npx hardhat run --network scroll scripts/deploy.ts",
     "deploy:poly": "npx hardhat run --network polygonzkevm scripts/deploy.ts",
     "topup:scroll": "npx hardhat run --network scroll scripts/topup.ts",
-    "topup:poly": "npx hardhat run --network polygonzkevm scripts/topup.ts"
+    "topup:poly": "npx hardhat run --network polygonzkevm scripts/topup.ts",
+    "topup:all": "yarn topup:scroll && yarn topup:poly"
   },
   "packageManager": "yarn@1.22.19",
   "devDependencies": {
