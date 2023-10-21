@@ -108,7 +108,7 @@ export const chains: ChainData[] = [
     chainID: 314159n,
     symbol: "TFIL",
     name: "filecoin",
-    url: "https://filecoin-calibration.chainup.net/rpc/v1",
+    url: "https://api.calibration.node.glif.io/rpc/v1",
     explorer: "https://calibration.filfox.info/en",
     exchangeRate: 1,
   },
