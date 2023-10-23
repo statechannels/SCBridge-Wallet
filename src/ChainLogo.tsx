@@ -3,6 +3,7 @@ import ScrollLogo from "./assets/scroll-logo.svg";
 import PolygonLogo from "./assets/polygon-logo.svg";
 import MantleLogo from "./assets/mantle-logo.svg";
 import FilecoinLogo from "./assets/filecoin-logo.svg";
+import EthLogo from "./assets/eth-logo.svg";
 
 import { type ChainName } from "./chains";
 
@@ -21,5 +22,9 @@ export const ChainLogo: React.FunctionComponent<{
       return <img src={FilecoinLogo} height={40} />;
     case "mantle":
       return <img src={MantleLogo} height={40} />;
+    case "goerli":
+      return <img src={EthLogo} height={40} />;
+    case "sepolia":
+      return <img src={EthLogo} height={40} />;
   }
 };
