@@ -28,28 +28,33 @@ const ChooseRole: React.FunctionComponent<{
   setRole: (r: Role) => void;
 }> = (props: { setRole: (r: Role) => void }) => {
   return (
-    <div>
-      <Button
-        onClick={() => {
-          props.setRole("alice");
-        }}
-      >
-        Alice
-      </Button>
-      <Button
-        onClick={() => {
-          props.setRole("irene");
-        }}
-      >
-        Irene
-      </Button>
-      <Button
-        onClick={() => {
-          props.setRole("bob");
-        }}
-      >
-        Bob
-      </Button>
-    </div>
+    <>
+      <div>
+        <Button
+          onClick={() => {
+            props.setRole("irene");
+          }}
+        >
+          Irene
+        </Button>
+      </div>
+      <div>
+        <Button
+          onClick={() => {
+            props.setRole("alice");
+          }}
+        >
+          Alice
+        </Button>
+
+        <Button
+          onClick={() => {
+            props.setRole("bob");
+          }}
+        >
+          Bob
+        </Button>
+      </div>
+    </>
   );
 };
