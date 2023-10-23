@@ -4,6 +4,7 @@ import PolygonLogo from "./assets/polygon-logo.svg";
 import MantleLogo from "./assets/mantle-logo.svg";
 import FilecoinLogo from "./assets/filecoin-logo.svg";
 import EthLogo from "./assets/eth-logo.svg";
+import HardhatLogo from "./assets/hardhat-logo.svg";
 
 import { type ChainName } from "./chains";
 
@@ -12,8 +13,9 @@ export const ChainLogo: React.FunctionComponent<{
 }> = (props: { name: ChainName }) => {
   switch (props.name) {
     case "Hardhat A":
+      return <img src={HardhatLogo} height={40} />;
     case "Hardhat B":
-      return <b>{props.name}</b>;
+      return <img src={HardhatLogo} height={40} />;
     case "Polygon zkEVM Testnet":
       return <img src={PolygonLogo} height={40} />;
     case "scroll":
