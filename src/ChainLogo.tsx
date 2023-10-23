@@ -13,9 +13,19 @@ export const ChainLogo: React.FunctionComponent<{
 }> = (props: { name: ChainName }) => {
   switch (props.name) {
     case "Hardhat A":
-      return <img src={HardhatLogo} height={40} />;
+      return (
+        <>
+          <img src={HardhatLogo} height={40} />
+          <h4>(A)</h4>
+        </>
+      );
     case "Hardhat B":
-      return <img src={HardhatLogo} height={40} />;
+      return (
+        <>
+          <img src={HardhatLogo} height={40} />
+          <h4>(B)</h4>
+        </>
+      );
     case "Polygon zkEVM Testnet":
       return <img src={PolygonLogo} height={40} />;
     case "scroll":
