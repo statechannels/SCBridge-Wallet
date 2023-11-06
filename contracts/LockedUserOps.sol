@@ -10,6 +10,8 @@ struct LockedOp {
 }
 
 contract LockedUserOps {
+  event UserOpRegistered(bytes32 indexed hashlock, LockedOp userOp);
+
   mapping(bytes32 => LockedOp) public lockedUserOps;
   IEntryPoint public entryPoint;
 
@@ -30,6 +32,7 @@ contract LockedUserOps {
     require(lockedUserOps[hashlock].expiry == 0, "UserOp already registered");
 
     lockedUserOps[hashlock] = userOp;
+    emit UserOpRegistered(hashlock, userOp);
     // todo: account for transferred `value`
   }
 
