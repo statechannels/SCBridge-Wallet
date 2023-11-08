@@ -1,3 +1,8 @@
+<div align="center" style="margin-bottom:5px">
+<h1>⚠️Project Moved⚠️</h1>
+<h3>This project has been moved to <a href="https://github.com/magmo/Bridge-Wallet">https://github.com/magmo/Bridge-Wallet</a></h3>
+</div>
+
 <h1 align="center">
 <div><img src="./docs/SCBridge-Wallet.png"><br>
 SCBridge-Wallet
